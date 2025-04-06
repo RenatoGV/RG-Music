@@ -23,7 +23,7 @@ import { requestNotificationPermission } from '@/helpers/notifications';
 const { Navigator } = createStackNavigator()
 const CustomStack = withLayoutContext(Navigator)
 
-SplashScreen.preventAutoHideAsync() // Evita que el SplashScreen termine hasta que las funciones asincrones se realicen
+SplashScreen.preventAutoHideAsync()
 
 TrackPlayer.registerPlaybackService(() => playbackService)
 
@@ -57,35 +57,6 @@ const App = () => {
 	})
 	
 	useLogTrackPlayerState()
-
-	// useEffect(() => {
-	// 	if(!navigationState.key) return
-		
-	//   const handleDeepLink = (event: {url: string}) => {
-	// 	if(event.url === 'trackplayer://notification.click') {
-	// 		console.log('1')
-	// 		// router.replace('/player')
-	// 		router.push('/(tabs)/(songs)')
-	// 	}
-	//   }
-
-	//   const subscription = Linking.addEventListener('url', handleDeepLink)
-
-	//   Linking.getInitialURL().then(url => {
-	// 	if(url === 'trackplayer://notification.click'){
-	// 		console.log('2')
-	// 		try {
-	// 			router.push('/')
-				
-	// 		} catch (error) {
-	// 			console.log(error)
-	// 		}
-	// 	}
-	// 	if(url === 'trackplayer:///notification.click') console.log('3')
-	//   })
-
-	//   return () => subscription.remove()
-	// }, [])
 
 	useEffect(() => {
 		if(!isLoading) {

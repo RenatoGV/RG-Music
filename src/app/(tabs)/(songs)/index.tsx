@@ -6,7 +6,6 @@ import { useMemo } from 'react'
 import { trackTitleFilter } from '@/helpers/filter'
 import { useLibraryStore, useTracks } from '@/store/library'
 import { generateTrackListId } from '@/helpers/miscellaneous'
-import { useRouter } from 'expo-router'
 import { Ionicons } from "@expo/vector-icons"
 import FastImage from 'react-native-fast-image'
 import { unknownTrackImageUri } from '@/constants/images'
@@ -43,8 +42,6 @@ const SongsScreen = () => {
     }
   })
 
-  const router = useRouter()
-
   const handleSelectFolder = async () => {
     closeModal()
     try {
@@ -56,7 +53,6 @@ const SongsScreen = () => {
     } catch (error) {
       console.log(error)
     }
-    // router.push({pathname: '/(modals)/selectFolder'})
   }
 
   const tracks = useTracks()

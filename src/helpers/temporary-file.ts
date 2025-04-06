@@ -21,7 +21,6 @@ export const getTemporaryFile = async (uri: string, fileName: string, tempDir: s
   // Crear ruta segura
   const safeName = fileName.replace(/[^a-z0-9_.-]/gi, '_')
   const destPath = `${tempDir}/${safeName}`
-  console.log(destPath)
 
   // Leer contenido como base64
   const content = await readFile(uri, 'base64')
