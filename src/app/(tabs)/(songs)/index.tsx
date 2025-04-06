@@ -1,7 +1,7 @@
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { defaultStyles, utilsStyles } from '@/styles'
-import { ActivityIndicator, Button, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useMemo } from 'react'
 import { trackTitleFilter } from '@/helpers/filter'
 import { useLibraryStore, useTracks } from '@/store/library'
@@ -12,11 +12,11 @@ import FastImage from 'react-native-fast-image'
 import { unknownTrackImageUri } from '@/constants/images'
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useModalStore } from '@/store/modal'
-import { Album } from 'expo-media-library'
 import { TracksList } from '@/components/track/TracksList'
 import { importTracks } from '@/helpers/import'
 import { loadData } from '@/helpers/storage'
 import { Circle } from 'react-native-progress'
+import { pickDirectory } from '@react-native-documents/picker'
 
 const SongsScreen = () => {
   const { modalFolderVisible, setModalFolderVisible } = useModalStore()
@@ -25,9 +25,9 @@ const SongsScreen = () => {
   const handleRefreshSongs = async () => {
     closeModal()
     try {
-      const album : Album | null = await loadData('selectedAlbum')
+      const folder : string | null = await loadData('selectedAlbum')
 
-      await importTracks(album)
+      await importTracks(folder)
     } catch (error) {
       console.error('Error loading selectedAlbum', error)
     }
@@ -45,9 +45,18 @@ const SongsScreen = () => {
 
   const router = useRouter()
 
-  const handleSelectFolder = () => {
+  const handleSelectFolder = async () => {
     closeModal()
-    router.push({pathname: '/(modals)/selectFolder'})
+    try {
+      const { uri } = await pickDirectory({
+        requestLongTermAccess: true
+      })
+
+      if(uri) importTracks(uri)
+    } catch (error) {
+      console.log(error)
+    }
+    // router.push({pathname: '/(modals)/selectFolder'})
   }
 
   const tracks = useTracks()

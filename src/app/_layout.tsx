@@ -145,7 +145,7 @@ const RootNavigation = () => {
 				gestureEnabled: false,
 				headerTintColor: colors.primary
 			}} />
-			<CustomStack.Screen name='(modals)/selectFolder' options={{
+			{/* <CustomStack.Screen name='(modals)/selectFolder' options={{
 				...TransitionPresets.ModalSlideFromBottomIOS,
 				presentation: 'modal',
 				headerStyle: {
@@ -157,7 +157,7 @@ const RootNavigation = () => {
 				},
 				gestureEnabled: false,
 				headerTintColor: colors.primary
-			}} />
+			}} /> */}
 		</CustomStack>
 	)
 }
