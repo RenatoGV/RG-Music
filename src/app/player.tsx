@@ -2,11 +2,11 @@ import { MovingText } from '@/components/other/MovingText'
 import { unknownTrackImageUri } from '@/constants/images'
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { defaultStyles, utilsStyles } from '@/styles'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useActiveTrack } from 'react-native-track-player'
-import { FontAwesome } from '@expo/vector-icons'
+import { FontAwesome, Ionicons } from '@expo/vector-icons'
 import { PlayerControls } from '@/components/player/PlayerControls'
 import { PlayerProgressbar } from '@/components/player/PlayerProgressbar'
 import { PlayerVolumenbar } from '@/components/player/PlayerVolumenbar'
@@ -14,10 +14,14 @@ import { PlayerRepeatToggle } from '@/components/player/PlayerRepeatToggle'
 import { usePlayerBackground } from '@/hooks/usePlayerBackground'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useTrackPlayerFavorite } from '@/hooks/useTrackPlayerFavorite'
+import { useState } from 'react'
+import { Lyrics } from '@/components/player/Lyrics'
+import { ArtworkFlip } from '@/components/player/ArtworkFlip'
 
 const PlayerScreen = () => {
     const activeTrack = useActiveTrack()
     const {imageColors} = usePlayerBackground(activeTrack?.artwork ?? unknownTrackImageUri)
+    const [showLyrics, setShowLyrics] = useState(false)
 
     const { top, bottom } = useSafeAreaInsets()
     
@@ -38,50 +42,68 @@ const PlayerScreen = () => {
             <DismissPlayerSymbol />
 
             <View style={{flex: 1, marginTop: top + 70, marginBottom: bottom}}>
-                <View style={styles.artworkImageContainer}>
-                    <FastImage source={{
-                        uri: activeTrack.artwork ?? unknownTrackImageUri,
-                        priority: FastImage.priority.high
-                    }} resizeMode='cover' style={styles.artworkImage} />
-                </View>
+                {
+                    (showLyrics)
+                    ? <>
+                        <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
+                            <View style={{marginBottom: 10}}>
+                                <Text style={styles.lyricTitle}>{activeTrack.title}</Text>
+                                <Text style={styles.lyricArtist}>{activeTrack.artist}</Text>
+                            </View>
+                            {/* <StopPropagation> */}
+                                <Lyrics artist={activeTrack.artist} track={activeTrack.title} />
+                            {/* </StopPropagation> */}
+                            <Ionicons
+                                name={'arrow-back-circle-sharp'}
+                                size={40}
+                                color={colors.icon}
+                                style={{marginHorizontal: 'auto', marginTop: 10}}
+                                onPress={() => setShowLyrics(false)}
+                            />
+                        </View>
+                      </>
+                    : <>
+                        <ArtworkFlip artwork={activeTrack.artwork} unknownTrackImageUri={unknownTrackImageUri} onPress={() => setShowLyrics(true)} />
 
-                <View style={{flex: 1}}>
-                    <View style={{marginTop: 'auto'}}>
-                        <View style={{height: 60}}>
-                            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                                {/* Track Title */}
-                                <View style={styles.trackTitleContainer}>
-                                    <MovingText text={activeTrack.title ?? ''} animationThreshold={30} style={styles.trackTitleText} />
+                        <View style={{flex: 1}}>
+                            <View style={{marginTop: 'auto'}}>
+                                <View style={{height: 60}}>
+                                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                                        {/* Track Title */}
+                                        <View style={styles.trackTitleContainer}>
+                                            <MovingText text={activeTrack.title ?? ''} animationThreshold={30} style={styles.trackTitleText} />
+                                        </View>
+
+                                        {/* Favorite Button Action */}
+                                        <FontAwesome
+                                            name={isFavorite ? 'heart' : 'heart-o'}
+                                            size={30}
+                                            color={isFavorite ? colors.primary : colors.icon}
+                                            style={{marginHorizontal: 14}}
+                                            onPress={toggleFavorite}
+                                        />
+                                    </View>
+
+                                    {/* Track Artist */}
+                                    {activeTrack.artist && (
+                                        <Text numberOfLines={1} style={[styles.trackArtistText, {
+                                            marginTop: 6
+                                        }]}>{activeTrack.artist}</Text>
+                                    )}
                                 </View>
 
-                                {/* Favorite Button Action */}
-                                <FontAwesome
-                                    name={isFavorite ? 'heart' : 'heart-o'}
-                                    size={20}
-                                    color={isFavorite ? colors.primary : colors.icon}
-                                    style={{marginHorizontal: 14}}
-                                    onPress={toggleFavorite}
-                                />
+                                <PlayerProgressbar style={{marginTop: 32}} />
+                                <PlayerControls style={{marginTop: 40}} />
                             </View>
 
-                            {/* Track Artist */}
-                            {activeTrack.artist && (
-                                <Text numberOfLines={1} style={[styles.trackArtistText, {
-                                    marginTop: 6
-                                }]}>{activeTrack.artist}</Text>
-                            )}
+                            <PlayerVolumenbar style={{marginTop: 'auto', marginBottom: 30}} />
+
+                            <View style={utilsStyles.centeredRow}>
+                                <PlayerRepeatToggle size={30} style={{marginBottom: 6}} />
+                            </View>
                         </View>
-
-                        <PlayerProgressbar style={{marginTop: 32}} />
-                        <PlayerControls style={{marginTop: 40}} />
-                    </View>
-
-                    <PlayerVolumenbar style={{marginTop: 'auto', marginBottom: 30}} />
-
-                    <View style={utilsStyles.centeredRow}>
-                        <PlayerRepeatToggle size={30} style={{marginBottom: 6}} />
-                    </View>
-                </View>
+                    </>
+                }
             </View>
         </View>
     </LinearGradient>
@@ -148,6 +170,23 @@ const styles = StyleSheet.create({
         fontSize: fontSize.base,
         opacity: 0.8,
         maxWidth: '90%'
+    },
+    cancelText: {
+        color: colors.primary,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    lyricTitle: {
+        color: colors.text,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        fontSize: 48
+    },
+    lyricArtist: {
+        color: colors.textMuted,
+        fontWeight: 'semibold',
+        textAlign: 'center',
+        fontSize: 24
     }
 })
 

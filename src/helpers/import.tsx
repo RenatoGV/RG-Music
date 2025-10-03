@@ -23,6 +23,7 @@ const removeExtension = (fileName : string) => {
 
 export const importTracks = async (uri: string | null) => {
   const {
+    tracks : savedTracks,
     setTracks,
     setIsLoading,
     setProgressLoading,
@@ -42,13 +43,15 @@ export const importTracks = async (uri: string | null) => {
         audioExtensions.some(ext => name.toLowerCase().endsWith(ext))
       )
 
-      audioFiles[0]
+      const newAudioFiles = audioFiles.filter(
+        file => !savedTracks?.some(track => track.url === file)
+      )
 
-      const totalAssets = audioFiles.length
+      const totalAssets = newAudioFiles.length
       let currentProgress = 0
-      const tracks = []
+      let tracks = [...(savedTracks ?? [])]
       
-      for(const audio of audioFiles){
+      for(const audio of newAudioFiles){
         try {
           currentProgress += 1 / totalAssets
           setProgressLoading(currentProgress)
@@ -99,9 +102,9 @@ export const importTracks = async (uri: string | null) => {
       saveData('selectedAlbum', uri)
 
       if(AppState.currentState === 'active'){
-        showToast(`${tracks.length} canciones cargadas`)
+        showToast(`${newAudioFiles.length} canciones agregadas`)
       } else {
-        await scheduleAlarmNotification({title: 'Caniones importadas', message: `${tracks.length} canciones cargadas`})  
+        await scheduleAlarmNotification({title: 'Caniones importadas', message: `${newAudioFiles.length} canciones agregadas`})  
       }
 
       setIsLoading(false)
