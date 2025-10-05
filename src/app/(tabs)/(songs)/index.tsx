@@ -20,6 +20,7 @@ import { pickDirectory } from '@react-native-documents/picker'
 const SongsScreen = () => {
   const { modalFolderVisible, setModalFolderVisible } = useModalStore()
   const { isLoading, progressLoading } = useLibraryStore()
+  const { setTracks } = useLibraryStore()
 
   const handleRefreshSongs = async () => {
     closeModal()
@@ -48,6 +49,8 @@ const SongsScreen = () => {
       const { uri } = await pickDirectory({
         requestLongTermAccess: true
       })
+
+      setTracks(null)
 
       if(uri) importTracks(uri)
     } catch (error) {

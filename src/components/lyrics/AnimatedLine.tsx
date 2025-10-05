@@ -23,7 +23,7 @@ export const AnimatedLine = ({ content, active }: LineProps) => {
         textAlign: 'center',
         color: active ? 'white' : 'gray',
         fontWeight: active ? "bold" : '200',
-        fontSize
+        fontSize,
       }}
     >
       {content}

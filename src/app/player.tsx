@@ -1,9 +1,7 @@
-import { MovingText } from '@/components/other/MovingText'
 import { unknownTrackImageUri } from '@/constants/images'
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { defaultStyles, utilsStyles } from '@/styles'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
-import FastImage from 'react-native-fast-image'
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useActiveTrack } from 'react-native-track-player'
 import { FontAwesome, Ionicons } from '@expo/vector-icons'
@@ -14,18 +12,31 @@ import { PlayerRepeatToggle } from '@/components/player/PlayerRepeatToggle'
 import { usePlayerBackground } from '@/hooks/usePlayerBackground'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useTrackPlayerFavorite } from '@/hooks/useTrackPlayerFavorite'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Lyrics } from '@/components/player/Lyrics'
 import { ArtworkFlip } from '@/components/player/ArtworkFlip'
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import { MovingText } from '@/components/other/MovingText'
+import { AnimatedTitle } from '@/components/lyrics/AnimatedTitle'
+import { useLyricStore } from '@/store/lyrics'
+
 
 const PlayerScreen = () => {
     const activeTrack = useActiveTrack()
     const {imageColors} = usePlayerBackground(activeTrack?.artwork ?? unknownTrackImageUri)
-    const [showLyrics, setShowLyrics] = useState(false)
+    const { showLyrics, setShowLyrics } = useLyricStore()
 
     const { top, bottom } = useSafeAreaInsets()
     
     const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
+
+    useEffect(() => {
+        if(showLyrics){
+            activateKeepAwakeAsync('rg-music')
+        }else{
+            deactivateKeepAwake('rg-music')
+        }
+    }, [showLyrics])
 
     if(!activeTrack) {
         return (
@@ -37,9 +48,8 @@ const PlayerScreen = () => {
 
   return (
     <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
-    {/* <LinearGradient style={{flex: 1}} colors={[colors.primary, colors.secondary, colors.background]}> */}
         <View style={styles.overlayContainer}>
-            <DismissPlayerSymbol />
+            {(showLyrics) ? <></> : <DismissPlayerSymbol />}
 
             <View style={{flex: 1, marginTop: top + 70, marginBottom: bottom}}>
                 {
@@ -47,19 +57,20 @@ const PlayerScreen = () => {
                     ? <>
                         <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
                             <View style={{marginBottom: 10}}>
-                                <Text style={styles.lyricTitle}>{activeTrack.title}</Text>
+                                <AnimatedTitle text={activeTrack.title ?? ''} />
                                 <Text style={styles.lyricArtist}>{activeTrack.artist}</Text>
                             </View>
-                            {/* <StopPropagation> */}
-                                <Lyrics artist={activeTrack.artist} track={activeTrack.title} />
-                            {/* </StopPropagation> */}
-                            <Ionicons
-                                name={'arrow-back-circle-sharp'}
-                                size={40}
-                                color={colors.icon}
-                                style={{marginHorizontal: 'auto', marginTop: 10}}
-                                onPress={() => setShowLyrics(false)}
+                            <Lyrics 
+                                artist={activeTrack.artist} 
+                                track={activeTrack.title}
                             />
+                            <TouchableOpacity onPress={() => setShowLyrics(false)} style={{marginTop: 20, alignSelf: 'center'}}>
+                                <Ionicons
+                                    name={'arrow-back-circle-sharp'}
+                                    size={40}
+                                    color={colors.icon}
+                                />
+                            </TouchableOpacity>
                         </View>
                       </>
                     : <>
@@ -177,8 +188,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     lyricTitle: {
-        color: colors.text,
-        fontWeight: 'bold',
+        color: colors.textMuted,
+        fontWeight: 'semibold',
         textAlign: 'center',
         fontSize: 48
     },
