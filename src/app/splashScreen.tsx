@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
+import LottieView from 'lottie-react-native';
 
 export default function SplashScreen() {
   // Valor animado para la rotación
@@ -58,7 +59,8 @@ export default function SplashScreen() {
   return (
     <LinearGradient colors={['#fc3c44', '#383838']} style={styles.container}>
       <StatusBar backgroundColor='transparent' style='light' />
-      <Animated.Image
+      <LottieView source={require('../../assets/lottie/splash2.json')} style={{width: '100%', height: '100%'}} autoPlay loop={false} />
+      {/* <Animated.Image
         source={require('./../../assets/splash-icon.png')}
         style={[styles.logo, { transform: [{ rotate }] }]} 
       />
@@ -68,7 +70,7 @@ export default function SplashScreen() {
             {char}
           </Animated.Text>
         ))}
-      </View>
+      </View> */}
     </LinearGradient>
   );
 }

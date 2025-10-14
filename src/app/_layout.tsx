@@ -47,7 +47,7 @@ const App = () => {
 			setTracks(storedTracks)
 			setPlaylists(storedPlaylists)
 
-			setTimeout(() => setIsLoading(false), 3000)
+			setTimeout(() => setIsLoading(false), 2000)
 			await SplashScreen.hideAsync()
 		})()
 	}, [])
@@ -68,7 +68,7 @@ const App = () => {
 	return(
 		<SafeAreaProvider>
 			{
-				isLoading ? <SplashScreenView />
+				(isLoading) ? <SplashScreenView />
 				:	<GestureHandlerRootView style={{flex: 1}}>
 						<RootNavigation />
 						<StatusBar style='light' />
