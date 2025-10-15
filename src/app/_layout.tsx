@@ -31,12 +31,22 @@ TrackPlayer.registerPlaybackService(() => playbackService)
 const App = () => {
 	const { setTracks } = useLibraryStore()
 	const { setPlaylists } = usePlaylistStore()
-	const [isLoading, setIsLoading] = useState(true)
+	const [appReady, setAppReady] = useState(false)
+	const [animationFinished, setAnimationFinished] = useState(false)
+  	const [skipAnimation, setSkipAnimation] = useState(false)
 
 	useEffect(() => {
-		(async() => {
+    	SplashScreen.hideAsync().catch(() => {})
+	}, [])
+
+	useEffect(() => {
+		(async () => {
 			const playBackState = await getPlaybackState()
-			if(playBackState.state !== 'none') setIsLoading(false)
+			if (playBackState.state !== 'none') {
+				SplashScreen.preventAutoHideAsync()
+				setSkipAnimation(true)
+				setAppReady(true)
+			}
 		})()
 	}, [])
 
@@ -48,8 +58,9 @@ const App = () => {
 			setTracks(storedTracks)
 			setPlaylists(storedPlaylists)
 
-			setTimeout(() => setIsLoading(false), 2000)
-			await SplashScreen.hideAsync()
+			await requestNotificationPermission()
+
+			setAppReady(true)
 		})()
 	}, [])
 
@@ -59,17 +70,20 @@ const App = () => {
 	
 	useLogTrackPlayerState()
 
-	useEffect(() => {
+	/*useEffect(() => {
 		if(!isLoading) {
 			SplashScreen.hideAsync()
 			requestNotificationPermission()
 		}
-	}, [isLoading])
+	}, [isLoading])*/
+  const showApp = appReady && (skipAnimation || animationFinished)
 
 	return(
 		<SafeAreaProvider>
 			{
-				isLoading ? <SplashScreenView />
+				!showApp ? (
+						<SplashScreenView onFinish={() => setAnimationFinished(true)} />
+					)
 				:	<GestureHandlerRootView style={{flex: 1}}>
 						<RootNavigation />
 						<StatusBar style='light' />
@@ -118,6 +132,7 @@ const RootNavigation = () => {
 				gestureEnabled: false,
 				headerTintColor: colors.primary
 			}} />
+			<CustomStack.Screen name='notification.click' options={{ headerShown: false }} />
 		</CustomStack>
 	)
 }

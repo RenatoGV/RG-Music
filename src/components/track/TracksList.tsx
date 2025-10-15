@@ -19,7 +19,6 @@ export type TrackListProps = Partial<FlatListProps<Track>> & {
 const ItemDivider = () => <View style={{...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60}} />
 
 export const TracksList = ({ id, tracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
-  // TODO: Entender el Código de QUEUE
   const queueOffset = useRef(0)
   const {activeQueueId, setActiveQueueId} = useQueue()
 
