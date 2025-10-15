@@ -19,6 +19,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { Playlist } from '@/helpers/types';
 import { loadData } from '@/helpers/storage';
 import { requestNotificationPermission } from '@/helpers/notifications';
+import { useLyricStore } from '@/store/lyrics';
 
 const { Navigator } = createStackNavigator()
 const CustomStack = withLayoutContext(Navigator)
@@ -68,7 +69,7 @@ const App = () => {
 	return(
 		<SafeAreaProvider>
 			{
-				(isLoading) ? <SplashScreenView />
+				isLoading ? <SplashScreenView />
 				:	<GestureHandlerRootView style={{flex: 1}}>
 						<RootNavigation />
 						<StatusBar style='light' />
@@ -79,16 +80,17 @@ const App = () => {
 }
 
 const RootNavigation = () => {
+	const { showLyrics } = useLyricStore()
+	
 	return (
 		<CustomStack>
 			<CustomStack.Screen name='(tabs)' options={{headerShown: false}} />
 			<CustomStack.Screen name='player' options={{
 				...TransitionPresets.ModalSlideFromBottomIOS,
-				gestureEnabled: true,
+				gestureEnabled: !showLyrics,
 				presentation: 'card',
 				animationDuration: 400,
 				headerShown: false,
-				
 			}} />
 			<CustomStack.Screen name='(modals)/addToPlaylist' options={{
 				...TransitionPresets.ModalSlideFromBottomIOS,
@@ -116,19 +118,6 @@ const RootNavigation = () => {
 				gestureEnabled: false,
 				headerTintColor: colors.primary
 			}} />
-			{/* <CustomStack.Screen name='(modals)/selectFolder' options={{
-				...TransitionPresets.ModalSlideFromBottomIOS,
-				presentation: 'modal',
-				headerStyle: {
-					backgroundColor: colors.background
-				},
-				headerTitle: 'Seleccionar Carpeta',
-				headerTitleStyle: {
-					color: colors.primary
-				},
-				gestureEnabled: false,
-				headerTintColor: colors.primary
-			}} /> */}
 		</CustomStack>
 	)
 }

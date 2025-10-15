@@ -1,7 +1,7 @@
 import { unknownTrackImageUri } from "@/constants/images"
 import { defaultStyles } from "@/styles"
 import React, { useEffect, useRef, useState } from "react"
-import { Animated, PanResponder, StyleSheet, TouchableOpacity, View, ViewProps } from "react-native"
+import { Animated, PanResponder, StyleSheet, View, ViewProps } from "react-native"
 import FastImage from "react-native-fast-image"
 import TrackPlayer, { useActiveTrack } from "react-native-track-player"
 import { PlayPauseButton, SkipToNextButton } from "@/components/player/PlayerControls"
@@ -36,23 +36,19 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
         PanResponder.create({
           onStartShouldSetPanResponder: () => true,
           onPanResponderMove: (_, gestureState) => {
-            // Actualiza el valor de translateX conforme se mueve el dedo
             translateX.setValue(gestureState.dx);
           },
           onPanResponderRelease: (_, gestureState) => {
             if (Math.abs(gestureState.dx) > swipeThreshold) {
-              // Si el swipe supera el umbral, anima el componente fuera de la pantalla
               Animated.timing(translateX, {
                 toValue: gestureState.dx > 0 ? 500 : -500,
                 duration: 200,
                 useNativeDriver: true,
               }).start(async () => {
-                // Ejecuta la acción deseada, por ejemplo, navegar a la pantalla del reproductor
                 await TrackPlayer.reset()
                 setActiveQueueId(null)
                 setCurrentTrack(undefined)
                 
-                // Reinicia la posición para futuras interacciones
                 translateX.setValue(0);
               });
             } else {
@@ -62,7 +58,6 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
                   ) {
                     router.navigate("/player");
                   }
-                  // Vuelve a la posición original
                   Animated.spring(translateX, {
                     toValue: 0,
                     useNativeDriver: true,

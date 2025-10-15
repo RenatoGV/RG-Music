@@ -6,7 +6,7 @@ import { useArtists } from '@/store/library'
 import { defaultStyles, utilsStyles } from '@/styles'
 import { Link } from 'expo-router'
 import { useMemo } from 'react'
-import { FlatList, ScrollView, StyleSheet, Text, TouchableHighlight, View } from 'react-native'
+import { FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 
 const ItemSeparatorComponent = () => {
@@ -39,7 +39,6 @@ const ArtistsScreen = () => {
       <FlatList
         contentContainerStyle={{paddingTop: 10, paddingBottom: 120}}
         ItemSeparatorComponent={ItemSeparatorComponent}
-        // ListFooterComponent={ItemSeparatorComponent}
         ListEmptyComponent={
           <View>
             <Text>No se encontraron artistas</Text>

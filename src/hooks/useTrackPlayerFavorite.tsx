@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import TrackPlayer, { useActiveTrack } from 'react-native-track-player'
 
 export const useTrackPlayerFavorite = () => {
-    const activeTrack = useActiveTrack() // Comes directly from the track player internal state
+    const activeTrack = useActiveTrack()
 
     const { tracks, toggleTrackFavorite } = useLibraryStore()
 
@@ -12,18 +12,15 @@ export const useTrackPlayerFavorite = () => {
 
     const isFavorite = favorites?.find((track) => track.url === activeTrack?.url)?.rating === 1
 
-    // We're updating both the track player internal state and application internal state
     const toggleFavorite = useCallback(async() => {
         const id = await TrackPlayer.getActiveTrackIndex()
 
         if(id == null) return
 
-        // Update track player state
         await TrackPlayer.updateMetadataForTrack(id, {
             rating: isFavorite ? 0 : 1
         })
 
-        // Update the app internal state
         if(activeTrack) {
             toggleTrackFavorite(activeTrack)
         }

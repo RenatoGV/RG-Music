@@ -1,7 +1,7 @@
 import { StackScreenWithSearchBar } from '@/constants/layout'
 import { colors, fontSize } from '@/constants/tokens'
 import { defaultStyles } from '@/styles'
-import { Stack, useLocalSearchParams } from 'expo-router'
+import { Stack } from 'expo-router'
 import { TouchableOpacity, View } from 'react-native'
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useModalStore } from '@/store/modal'

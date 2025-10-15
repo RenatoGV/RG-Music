@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Animated, Text } from 'react-native'
+import { Animated } from 'react-native'
 
 type LineProps = {
   content: string

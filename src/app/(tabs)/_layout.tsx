@@ -1,7 +1,7 @@
 import { colors, fontSize } from "@/constants/tokens"
 import { BlurView } from "expo-blur"
 import { Tabs } from "expo-router"
-import { StyleSheet, View } from "react-native"
+import { StyleSheet } from "react-native"
 import { FontAwesome, MaterialCommunityIcons, FontAwesome6 } from "@expo/vector-icons"
 import React from "react"
 import { FloatingPlayer } from "@/components/player/FloatingPlayer"

@@ -43,8 +43,8 @@ export const MovingText = ({text, animationThreshold, style} : MovingTextProps) 
 
     return (
         <Animated.Text numberOfLines={1} style={[ style, animatedStyle, shouldAnimate && {
-            width: 9999, // Preventing the ellipsis from appearing
-            paddingLeft: 16 // Avoid the initial character being barely visible
+            width: 9999,
+            paddingLeft: 16
         } ]}>
             {text}
         </Animated.Text>

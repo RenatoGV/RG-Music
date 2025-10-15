@@ -2,7 +2,7 @@ import { colors, fontSize } from '@/constants/tokens'
 import { showToast } from '@/helpers/toast'
 import { Playlist } from '@/helpers/types'
 import { usePlaylistStore } from '@/store/playlist'
-import React, { useState } from 'react'
+import React from 'react'
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 type Props = {

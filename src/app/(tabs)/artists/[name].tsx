@@ -3,7 +3,7 @@ import { screenPadding } from '@/constants/tokens'
 import { useArtists } from '@/store/library'
 import { defaultStyles } from '@/styles'
 import { Redirect, useLocalSearchParams } from 'expo-router'
-import { ScrollView, View } from 'react-native'
+import { View } from 'react-native'
 
 const ArtistDetailScreen = () => {
     const {name: artistName} = useLocalSearchParams<{name: string}>()

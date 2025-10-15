@@ -1,22 +1,11 @@
 import { unknownTrackImageUri } from '@/constants/images';
 import { colors, fontSize } from '@/constants/tokens';
 import { defaultStyles } from '@/styles';
-import { StyleSheet, Text, TouchableHighlight, View } from 'react-native'
-import FastImage from 'react-native-fast-image'
-import TrackPlayer, { Track, useActiveTrack, useIsPlaying } from 'react-native-track-player';
-import { Entypo, Ionicons } from "@expo/vector-icons"
-import LoaderKit from "react-native-loader-kit"
-import { StopPropagation } from '@/components/utils/StopPropagation';
-import { Playlist } from '@/helpers/types';
+import { StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
+import { Track } from 'react-native-track-player';
 import { useEffect, useState } from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import { DropdownMenu, MenuOption } from '../other/DropdownMenu';
-import { useLibraryStore } from '@/store/library';
-import { useQueue } from '@/store/queue';
-import { usePlaylistStore } from '@/store/playlist';
-import { showToast } from '@/helpers/toast';
-import { useRouter } from 'expo-router';
 
 export type TrackListItemProps = {
    track: Track

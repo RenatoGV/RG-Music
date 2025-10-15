@@ -1,19 +1,10 @@
 import React, { useRef } from 'react'
 import {
   Animated,
-  Easing,
-  TouchableOpacity,
-  StyleSheet,
-  View,
-  Text,
-  StyleProp,
-  ViewStyle,
-  PressableStateCallbackType,
-  Pressable,
+  Easing, StyleSheet, Pressable
 } from 'react-native'
 import FastImage from 'react-native-fast-image'
 
-// convertir FastImage en componente animado
 const AnimatedImage = Animated.createAnimatedComponent(FastImage)
 
 type Props = {
@@ -37,13 +28,11 @@ export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) =
     })
   }
 
-  // interpolación para rotación
   const rotateX = rotation.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '180deg'],
   })
 
-  // Para efecto flip card (frontal y reverso)
   const frontOpacity = rotation.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [1, 0, 0],
@@ -66,7 +55,7 @@ export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) =
                   styles.artworkImage,
                   {
                     transform: [
-                      { perspective: 1000 }, // necesario en 3D
+                      { perspective: 1000 },
                       { rotateX },
                     ],
                     opacity: frontOpacity,
@@ -74,7 +63,6 @@ export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) =
                 ]}
               />
 
-              {/* Reverso (otra imagen o contenido) */}
               <Animated.View
                 style={[
                   styles.artworkImage,

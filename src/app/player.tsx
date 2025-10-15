@@ -1,12 +1,10 @@
-import { MovingText } from '@/components/other/MovingText'
 import { unknownTrackImageUri } from '@/constants/images'
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { defaultStyles, utilsStyles } from '@/styles'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
-import FastImage from 'react-native-fast-image'
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useActiveTrack } from 'react-native-track-player'
-import { FontAwesome, Ionicons } from '@expo/vector-icons'
+import { FontAwesome } from '@expo/vector-icons'
 import { PlayerControls } from '@/components/player/PlayerControls'
 import { PlayerProgressbar } from '@/components/player/PlayerProgressbar'
 import { PlayerVolumenbar } from '@/components/player/PlayerVolumenbar'
@@ -14,18 +12,32 @@ import { PlayerRepeatToggle } from '@/components/player/PlayerRepeatToggle'
 import { usePlayerBackground } from '@/hooks/usePlayerBackground'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useTrackPlayerFavorite } from '@/hooks/useTrackPlayerFavorite'
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { Lyrics } from '@/components/player/Lyrics'
 import { ArtworkFlip } from '@/components/player/ArtworkFlip'
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import { MovingText } from '@/components/other/MovingText'
+import { useLyricStore } from '@/store/lyrics'
+import { AnimatedTitle } from '@/components/lyrics/AnimatedTitle'
+import { PlayerControlsLyrics } from '@/components/lyrics/PlayerControlsLyrics'
+
 
 const PlayerScreen = () => {
     const activeTrack = useActiveTrack()
     const {imageColors} = usePlayerBackground(activeTrack?.artwork ?? unknownTrackImageUri)
-    const [showLyrics, setShowLyrics] = useState(false)
+    const { showLyrics, setShowLyrics } = useLyricStore()
 
     const { top, bottom } = useSafeAreaInsets()
     
     const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
+
+    useEffect(() => {
+        if(showLyrics){
+            activateKeepAwakeAsync('rg-music')
+        }else{
+            deactivateKeepAwake('rg-music')
+        }
+    }, [showLyrics])
 
     if(!activeTrack) {
         return (
@@ -37,29 +49,26 @@ const PlayerScreen = () => {
 
   return (
     <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
-    {/* <LinearGradient style={{flex: 1}} colors={[colors.primary, colors.secondary, colors.background]}> */}
         <View style={styles.overlayContainer}>
-            <DismissPlayerSymbol />
+            {(showLyrics) ? <></> : <DismissPlayerSymbol />}
 
             <View style={{flex: 1, marginTop: top + 70, marginBottom: bottom}}>
                 {
                     (showLyrics)
                     ? <>
                         <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
-                            <View style={{marginBottom: 10}}>
-                                <Text style={styles.lyricTitle}>{activeTrack.title}</Text>
+                            <View style={{marginBottom: 20}}>
+                                <AnimatedTitle text={activeTrack.title ?? ''} />
                                 <Text style={styles.lyricArtist}>{activeTrack.artist}</Text>
                             </View>
-                            {/* <StopPropagation> */}
-                                <Lyrics artist={activeTrack.artist} track={activeTrack.title} />
-                            {/* </StopPropagation> */}
-                            <Ionicons
-                                name={'arrow-back-circle-sharp'}
-                                size={40}
-                                color={colors.icon}
-                                style={{marginHorizontal: 'auto', marginTop: 10}}
-                                onPress={() => setShowLyrics(false)}
+                            <Lyrics 
+                                artist={activeTrack.artist} 
+                                track={activeTrack.title}
                             />
+                            <View style={{marginTop: 40}}>
+                                <PlayerProgressbar />
+                                <PlayerControlsLyrics />
+                            </View>
                         </View>
                       </>
                     : <>
@@ -69,12 +78,10 @@ const PlayerScreen = () => {
                             <View style={{marginTop: 'auto'}}>
                                 <View style={{height: 60}}>
                                     <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                                        {/* Track Title */}
                                         <View style={styles.trackTitleContainer}>
                                             <MovingText text={activeTrack.title ?? ''} animationThreshold={30} style={styles.trackTitleText} />
                                         </View>
 
-                                        {/* Favorite Button Action */}
                                         <FontAwesome
                                             name={isFavorite ? 'heart' : 'heart-o'}
                                             size={30}
@@ -84,7 +91,6 @@ const PlayerScreen = () => {
                                         />
                                     </View>
 
-                                    {/* Track Artist */}
                                     {activeTrack.artist && (
                                         <Text numberOfLines={1} style={[styles.trackArtistText, {
                                             marginTop: 6
@@ -177,8 +183,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     lyricTitle: {
-        color: colors.text,
-        fontWeight: 'bold',
+        color: colors.textMuted,
+        fontWeight: 'semibold',
         textAlign: 'center',
         fontSize: 48
     },

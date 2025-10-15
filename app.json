@@ -49,7 +49,9 @@
           "defaultChannel": "default",
           "enableBackgroundRemoteNotifications": true
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,

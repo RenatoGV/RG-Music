@@ -1,7 +1,6 @@
 import { unknownTrackImageUri } from "@/constants/images"
 import { saveData } from "@/helpers/storage"
 import { Playlist } from "@/helpers/types"
-import { Track } from "react-native-track-player"
 import { create } from "zustand"
 
 type PlaylistState = {

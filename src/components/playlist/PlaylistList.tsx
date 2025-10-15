@@ -4,10 +4,9 @@ import { Playlist } from '@/helpers/types'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { utilsStyles } from '@/styles'
 import { useMemo, useState } from 'react'
-import { Alert, FlatList, FlatListProps, Text, View } from 'react-native'
+import { FlatList, FlatListProps, Text, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import { PlaylistListItem } from './PlaylistListItem'
-import { usePlaylistStore } from '@/store/playlist'
 import { DeletePlaylist } from '@/components/modals/DeletePlaylist'
 
 type PlaylistsListProps = {

@@ -1,7 +1,7 @@
 import { trackTitleFilter } from '@/helpers/filter'
 import { Playlist } from '@/helpers/types'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { generateTrackListId } from '@/helpers/miscellaneous'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { colors, fontSize } from '@/constants/tokens'

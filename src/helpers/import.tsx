@@ -8,9 +8,10 @@ import { scheduleAlarmNotification } from "./notifications"
 import { StorageAccessFramework } from 'expo-file-system';
 import { createTempSessionDir, deleteTempSessionDir, getTemporaryFile, getTemporaryFileName } from "./temporary-file"
 import { unlink } from "react-native-fs"
-
+import * as FileSystem from "expo-file-system"
 
 const audioExtensions = ['.mp3', '.wav', '.aac', '.m4a']
+const MAX_METADATA_SIZE = 20 * 1024 * 1024 // 20 MB
 
 const removeExtension = (fileName : string) => {
   for(const ext of audioExtensions) {
@@ -42,6 +43,8 @@ export const importTracks = async (uri: string | null) => {
       const audioFiles = files.filter(name =>
         audioExtensions.some(ext => name.toLowerCase().endsWith(ext))
       )
+      let tracks = [...(savedTracks ?? [])]
+      tracks = tracks.filter(track => audioFiles.includes(track.url))
 
       const newAudioFiles = audioFiles.filter(
         file => !savedTracks?.some(track => track.url === file)
@@ -49,7 +52,6 @@ export const importTracks = async (uri: string | null) => {
 
       const totalAssets = newAudioFiles.length
       let currentProgress = 0
-      let tracks = [...(savedTracks ?? [])]
       
       for(const audio of newAudioFiles){
         try {
@@ -60,31 +62,44 @@ export const importTracks = async (uri: string | null) => {
 
           const fileName = getTemporaryFileName(audio)
 
-          const tempPath = await getTemporaryFile(
-            audio,
-            fileName,
-            tempDir
-          )
-          
-          const { metadata } = await getAudioMetadata(
-            `file://${tempPath}`,
-            ['artist', 'artwork', 'name']
-          )
-          
+          const info = await FileSystem.getInfoAsync(audio)
+          let artist = 'Desconocido'
+          let artwork = unknownTrackImageUri
+          let tempPath: string | null = null
+
+          if (info.exists && 'size' in info && typeof info.size === 'number' && info.size <= MAX_METADATA_SIZE) {
+            try {
+              tempPath = await getTemporaryFile(audio, fileName, tempDir)
+              if (tempPath) {
+                const { metadata } = await getAudioMetadata(
+                  `file://${tempPath}`,
+                  ['artist', 'artwork', 'name']
+                )
+                artist = metadata.artist || 'Desconocido'
+                artwork = metadata.artwork || unknownTrackImageUri
+              }
+            } catch (metaErr) {
+              console.warn("Error leyendo metadata o creando temp, usando fallback:", metaErr)
+            } finally {
+              if (tempPath) {
+                try {
+                  await unlink(tempPath)
+                } catch (unlinkError) {
+                  console.warn('Error al eliminar temporal:', unlinkError)
+                }
+                tempPath = null
+              }
+            }
+          } else {
+            console.log(`Archivo demasiado pesado (size: ${(info as any).size}). Se omitió la metadata`)
+          }
+
           tracks.push({
             title: removeExtension(fileName),
             url: audio,
-            artist: metadata.artist || 'Desconocido',
-            artwork: metadata.artwork || unknownTrackImageUri
+            artist,
+            artwork
           })
-          
-          if (tempPath) {
-            try {
-              await unlink(tempPath)
-            } catch (unlinkError) {
-              console.warn('Error al eliminar temporal:', unlinkError)
-            }
-          }
         } catch (error) {
           console.log('Error procesando track:', audio, error)
           
@@ -104,7 +119,7 @@ export const importTracks = async (uri: string | null) => {
       if(AppState.currentState === 'active'){
         showToast(`${newAudioFiles.length} canciones agregadas`)
       } else {
-        await scheduleAlarmNotification({title: 'Caniones importadas', message: `${newAudioFiles.length} canciones agregadas`})  
+        await scheduleAlarmNotification({title: 'Canciones importadas', message: `${newAudioFiles.length} canciones agregadas`})  
       }
 
       setIsLoading(false)

@@ -1,7 +1,7 @@
 import { StackScreenWithSearchBar } from '@/constants/layout'
 import { defaultStyles } from '@/styles'
 import { Stack } from 'expo-router'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 const FavoritesScreenLayout = () => {
   return (

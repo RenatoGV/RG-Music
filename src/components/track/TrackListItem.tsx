@@ -42,7 +42,6 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
         if(track.rating === 1){
             toggleTrackFavorite(track)
             
-            // If the tracks is in the favorite queue, we need to remove it
             if(activeQueueId?.startsWith('favorites')) {
                 const queue = await TrackPlayer.getQueue()
 
@@ -55,7 +54,6 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
         } else {
             toggleTrackFavorite(track)
             
-            // If the tracks is in the favorite queue, add it
             if(activeQueueId?.startsWith('favorites')) {
                 await TrackPlayer.add(track)
             }
