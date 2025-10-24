@@ -20,6 +20,7 @@ import { MovingText } from '@/components/other/MovingText'
 import { useLyricStore } from '@/store/lyrics'
 import { AnimatedTitle } from '@/components/lyrics/AnimatedTitle'
 import { PlayerControlsLyrics } from '@/components/lyrics/PlayerControlsLyrics'
+import { AnimatedSubitle } from '@/components/lyrics/AnimatedSubtitle'
 
 
 const PlayerScreen = () => {
@@ -59,7 +60,7 @@ const PlayerScreen = () => {
                         <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
                             <View style={{marginBottom: 20}}>
                                 <AnimatedTitle text={activeTrack.title ?? ''} />
-                                <Text style={styles.lyricArtist}>{activeTrack.artist}</Text>
+                                <AnimatedSubitle text={activeTrack.artist ?? ''} />
                             </View>
                             <Lyrics 
                                 artist={activeTrack.artist} 
@@ -175,23 +176,6 @@ const styles = StyleSheet.create({
         fontSize: fontSize.base,
         opacity: 0.8,
         maxWidth: '90%'
-    },
-    cancelText: {
-        color: colors.primary,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    lyricTitle: {
-        color: colors.textMuted,
-        fontWeight: 'semibold',
-        textAlign: 'center',
-        fontSize: 48
-    },
-    lyricArtist: {
-        color: colors.textMuted,
-        fontWeight: 'semibold',
-        textAlign: 'center',
-        fontSize: 24
     }
 })
 

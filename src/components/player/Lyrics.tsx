@@ -100,7 +100,9 @@ export const Lyrics = ({artist, track} : Props) => {
 
   const lineRenderer = useCallback(
     ({ lrcLine: { content }, active }: LineRendererProps) => (
-      <AnimatedLine content={content} active={active} />
+      <View style={{height: active ? 68 : 36, justifyContent: 'center', alignItems: 'center'}}>
+        <AnimatedLine content={content} active={active} />
+      </View>
     ),
     []
   )
@@ -129,7 +131,7 @@ export const Lyrics = ({artist, track} : Props) => {
               lrc={lyric}
               currentTime={position * 1000}
               lineHeight={36}
-              activeLineHeight={44}
+              activeLineHeight={68}
               lineRenderer={lineRenderer}
               showsVerticalScrollIndicator={false}
             />
