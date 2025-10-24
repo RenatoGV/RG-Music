@@ -28,7 +28,7 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
     })
 
     const handlePress = () => {
-        router.push({pathname: '../../(modals)/addTracksToPlaylist', params: { playlist: playlist.name }})
+        router.push({pathname: '/(modals)/addTracksToPlaylist', params: { playlist: playlist.name }})
     }
 
     const filteredPlaylistTracks = useMemo(() => {

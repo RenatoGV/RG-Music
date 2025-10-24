@@ -8,8 +8,8 @@ import FastImage from 'react-native-fast-image'
 import { unknownArtistImageUri } from '@/constants/images'
 import { defaultStyles } from '@/styles'
 import { fontSize } from '@/constants/tokens'
-import { TracksList } from '../track/TracksList'
 import { QueueControls } from './QueueControls'
+import { TracksList } from '../track/TracksList'
 
 export const ArtistTracksList = ({artist}: {artist: Artist}) => {
     const search = useNavigationSearch({

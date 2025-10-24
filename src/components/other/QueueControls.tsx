@@ -28,7 +28,7 @@ export const QueueControls = ({tracks, style, ...viewProps} : QueueControlsProps
                 <TouchableOpacity onPress={handlePlay} activeOpacity={0.8} style={styles.button}>
                     <Ionicons name="play" size={22} color={colors.primary} />
 
-                    <Text style={styles.buttonText}>Play</Text>
+                    <Text style={styles.buttonText}>Reproducir</Text>
                 </TouchableOpacity>
             </View>
 
