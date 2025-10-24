@@ -6,6 +6,7 @@ import { useProgress } from 'react-native-track-player'
 import { AnimatedLine } from '../lyrics/AnimatedLine'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useLyricStore } from '@/store/lyrics'
+import Constants from 'expo-constants'
 
 type Props = {
    artist: string | undefined
@@ -34,6 +35,19 @@ export const Lyrics = ({artist, track} : Props) => {
         { artist: second, track: first }
       )
     }
+
+    if(artist?.includes('/')) {
+      const artists = artist.split('/')
+      artists.map(a => {
+        variants.push({
+          artist: a,
+          track: track
+        })
+      })
+    }
+
+    console.log(variants)
+
     return variants
   }
 
@@ -50,8 +64,13 @@ export const Lyrics = ({artist, track} : Props) => {
 
       for (const v of variants) {
         const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(v.artist)}&track_name=${encodeURIComponent(v.track)}`
+        console.log(url)
         try {
-          const res = await fetch(url, { signal: controller.signal })
+          const res = await fetch(url, { signal: controller.signal, method: 'GET', headers: {
+            'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`,
+            'Content-Type': 'application/json'
+          }})
+
           if (res.ok) {
             const data = await res.json()
             if (data?.syncedLyrics || data?.plainLyrics) {
