@@ -3,7 +3,7 @@ import TrackPlayer, { useIsPlaying } from "react-native-track-player"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { colors } from "@/constants/tokens"
 import { useLyricStore } from "@/store/lyrics"
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons'
+import { FontAwesome } from '@expo/vector-icons'
 
 type PlayerControlsProps = {
     style?: ViewStyle
@@ -19,32 +19,32 @@ export const PlayerControlsLyrics = ({style}: PlayerControlsProps) => {
    const {setShowLyrics, setSyncedLyrics, syncedLyrics} = useLyricStore()
 
    return (
-      <View style={[styles.container, style]}>
-         <View style={styles.row}>
-            
-            <TouchableOpacity onPress={() => setShowLyrics(false)}>
-               <MaterialIcons
-                     name={'arrow-back-ios'}
-                     size={30}
-                     color={colors.icon}
-               />
-            </TouchableOpacity>
+    
+        <View style={[styles.container, style]}>
+            <View style={styles.row}>
+                <TouchableOpacity onPress={() => setShowLyrics(false)}>
+                    <FontAwesome
+                            name={'close'}
+                            size={30}
+                            color={colors.icon}
+                    />
+                </TouchableOpacity>
 
-            <SkipToPreviousButton />
+                <SkipToPreviousButton />
 
-            <PlayPauseButton />
+                <PlayPauseButton />
 
-            <SkipToNextButton />
+                <SkipToNextButton />
 
-            <TouchableOpacity onPress={() => setSyncedLyrics(!syncedLyrics)}>
-               <FontAwesome
-                     name={(syncedLyrics) ? 'microphone' : 'microphone-slash'}
-                     size={30}
-                     color={colors.icon}
-               />
-            </TouchableOpacity>
-         </View>
-      </View>
+                <TouchableOpacity onPress={() => setSyncedLyrics(!syncedLyrics)} style={styles.btnContainer}>
+                    <FontAwesome
+                            name={(syncedLyrics) ? 'microphone' : 'microphone-slash'}
+                            size={30}
+                            color={colors.icon}
+                    />
+                </TouchableOpacity>
+            </View>
+        </View>
    )
 }
 
@@ -92,6 +92,11 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         justifyContent: 'space-evenly',
+        alignItems: 'center'
+    },
+    btnContainer: {
+        width: 30,
+        height: 30,
         alignItems: 'center'
     }
 })

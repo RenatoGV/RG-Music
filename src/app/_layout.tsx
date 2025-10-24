@@ -20,6 +20,7 @@ import { Playlist } from '@/helpers/types';
 import { loadData } from '@/helpers/storage';
 import { requestNotificationPermission } from '@/helpers/notifications';
 import { useLyricStore } from '@/store/lyrics';
+import { Ionicons } from '@expo/vector-icons'
 
 const { Navigator } = createStackNavigator()
 const CustomStack = withLayoutContext(Navigator)
@@ -116,7 +117,7 @@ const RootNavigation = () => {
 				headerTitleStyle: {
 					color: colors.primary
 				},
-				gestureEnabled: true,
+				gestureEnabled: false,
 				headerTintColor: colors.primary
 			}} />
 			<CustomStack.Screen name='(modals)/addTracksToPlaylist' options={{

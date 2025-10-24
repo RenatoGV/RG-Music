@@ -3,7 +3,7 @@ import { Playlist } from '@/helpers/types'
 import { useTracks } from '@/store/library'
 import { useQueue } from '@/store/queue'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import TrackPlayer, { Track } from 'react-native-track-player'
+import TrackPlayer from 'react-native-track-player'
 import { StyleSheet, View } from 'react-native'
 import { defaultStyles } from '@/styles'
 import { screenPadding } from '@/constants/tokens'
@@ -12,15 +12,16 @@ import { showToast } from '@/helpers/toast'
 
 const addToPlaylistModal = () => {
     const router = useRouter()
+
     const { activeQueueId } = useQueue()
 
-    const { trackUrl } = useLocalSearchParams<{ trackUrl: [Track['url']] }>()
+    const { trackUrl } = useLocalSearchParams<{ trackUrl: string }>()
 
     const tracks = useTracks()
 
     const { playlists, addToPlaylist } = usePlaylistStore()
 
-    const track = tracks?.find((currentTrack) => trackUrl.toString() === currentTrack.url)
+    const track = tracks?.find((currentTrack) => trackUrl === decodeURIComponent(currentTrack.url))
 
     if(!track) {
         return null

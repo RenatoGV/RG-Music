@@ -11,7 +11,7 @@ export const AnimatedLine = ({ content, active }: LineProps) => {
 
   useEffect(() => {
     Animated.timing(fontSize, {
-      toValue: active ? 20 : 16,
+      toValue: active ? 24 : 16,
       duration: 300,
       useNativeDriver: false
     }).start()

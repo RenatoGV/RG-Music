@@ -64,7 +64,6 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
 
     const handleAddToPlaylist = () => {
         setVisible(false)
-        if(fromPlaylist) return router.push({pathname: '../../(modals)/addToPlaylist', params: { trackUrl: track.url }})
         router.push({pathname: '../(modals)/addToPlaylist', params: { trackUrl: track.url }})
     }
 

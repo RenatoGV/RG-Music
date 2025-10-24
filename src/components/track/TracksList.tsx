@@ -12,13 +12,14 @@ import { TrackListItem } from './TrackListItem'
 export type TrackListProps = Partial<FlatListProps<Track>> & {
   id: string
   tracks: Track[]
+  filteredTracks?: Track[]
   hideQueueControls?: boolean
   fromPlaylist?: Playlist
 }
 
 const ItemDivider = () => <View style={{...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60}} />
 
-export const TracksList = ({ id, tracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
+export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
   const queueOffset = useRef(0)
   const {activeQueueId, setActiveQueueId} = useQueue()
 
@@ -62,10 +63,10 @@ export const TracksList = ({ id, tracks, hideQueueControls = false, fromPlaylist
 
   return (
     <FlatList 
-        data={tracks}
+        data={filteredTracks}
         contentContainerStyle={{paddingTop: 10, paddingBottom: 128}}
         ListHeaderComponent={
-          !hideQueueControls ? <QueueControls tracks={tracks} style={{paddingBottom: 20}}/>
+          (!hideQueueControls && tracks.length > 0) ? <QueueControls tracks={tracks} style={{paddingBottom: 20}}/>
             : undefined
         }
         ItemSeparatorComponent={ItemDivider}

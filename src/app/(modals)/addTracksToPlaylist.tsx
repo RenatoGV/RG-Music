@@ -18,7 +18,7 @@ const addTracksToPlaylistModal = () => {
    const search = useNavigationSearch({
       searchBarOptions: {
          hideWhenScrolling: true,
-         placeholder: 'Buscar Canción',
+         placeholder: 'Buscar canción',
          textColor: '#fff',
          tintColor: '#fff',
          barTintColor: '#fff',

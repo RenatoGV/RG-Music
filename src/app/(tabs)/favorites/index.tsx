@@ -12,7 +12,8 @@ import { TracksList } from '@/components/track/TracksList'
 const FavoriteScreen = () => {
   const search = useNavigationSearch({
     searchBarOptions: {
-      placeholder: 'Buscar en Favoritos'
+      placeholder: 'Buscar en Favoritos',
+      shouldShowHintSearchIcon: false
     }
   })
 
@@ -36,7 +37,7 @@ const FavoriteScreen = () => {
         style={{paddingHorizontal: screenPadding.horizontal}}
         contentInsetAdjustmentBehavior='automatic'
       >
-        <TracksList id={generateTrackListId('favorites', search)} scrollEnabled={false} tracks={filteredFavoritesTracks} />
+        <TracksList id={generateTrackListId('favorites', search)} scrollEnabled={false} tracks={favoritesTracks ?? []} filteredTracks={filteredFavoritesTracks} />
       </ScrollView>
     </View>
   )

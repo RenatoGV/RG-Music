@@ -22,8 +22,8 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
 
     const search = useNavigationSearch({
         searchBarOptions: {
-            hideWhenScrolling: true,
-            placeholder: 'Buscar en Playlist'
+            placeholder: 'Buscar en Playlist',
+            shouldShowHintSearchIcon: false
         }
     })
 
@@ -61,13 +61,14 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
                             <Text style={styles.addTracksText}>Agregar Canciones</Text>
                         </TouchableOpacity>
                     </View>
-
-                    {search.length === 0 && (
+                    
+                    {currentTracks && currentTracks.length > 0 && (
                         <QueueControls style={{paddingTop: 24}} tracks={currentTracks || []} />
                     )}
                 </View>
             }
-            tracks={filteredPlaylistTracks}
+            tracks={currentTracks ?? []}
+            filteredTracks={filteredPlaylistTracks}
         />
     )
 }

@@ -26,6 +26,7 @@ const PlaylistsScreen = () => {
 	const search = useNavigationSearch({
 		searchBarOptions: {
 			placeholder: 'Buscar en Playlist',
+      	shouldShowHintSearchIcon: false
 		},
 	})
 
@@ -117,11 +118,11 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	modalView: {
-		width: '70%',
-		margin: 20,
+		width: '90%',
 		backgroundColor: '#1c1c1c',
 		borderRadius: 20,
-		padding: 35,
+		paddingVertical: 35,
+		paddingHorizontal: 20,
 		alignItems: 'center',
 		shadowColor: '#000',
 		shadowOffset: {

@@ -52,10 +52,10 @@ const PlayerScreen = () => {
         <View style={styles.overlayContainer}>
             {(showLyrics) ? <></> : <DismissPlayerSymbol />}
 
-            <View style={{flex: 1, marginTop: top + 70, marginBottom: bottom}}>
+            <View style={{flex: 1, marginTop: (showLyrics) ? top : top + 70, marginBottom: bottom}}>
                 {
                     (showLyrics)
-                    ? <>
+                    ? 
                         <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
                             <View style={{marginBottom: 20}}>
                                 <AnimatedTitle text={activeTrack.title ?? ''} />
@@ -70,7 +70,6 @@ const PlayerScreen = () => {
                                 <PlayerControlsLyrics />
                             </View>
                         </View>
-                      </>
                     : <>
                         <ArtworkFlip artwork={activeTrack.artwork} unknownTrackImageUri={unknownTrackImageUri} onPress={() => setShowLyrics(true)} />
 

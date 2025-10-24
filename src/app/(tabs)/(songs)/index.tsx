@@ -38,7 +38,8 @@ const SongsScreen = () => {
 
   const search = useNavigationSearch({
     searchBarOptions: {
-      placeholder: 'Buscar en Canciones'
+      placeholder: 'Buscar en Canciones',
+      shouldShowHintSearchIcon: false
     }
   })
 
@@ -91,7 +92,7 @@ const SongsScreen = () => {
   return (
     <View style={{...defaultStyles.container, paddingHorizontal: screenPadding.horizontal}}>
 
-      <TracksList id={generateTrackListId('songs', search)} tracks={filteredTracks} />
+      <TracksList id={generateTrackListId('songs', search)} tracks={tracks} filteredTracks={filteredTracks} />
 
       <Modal
           animationType="slide"

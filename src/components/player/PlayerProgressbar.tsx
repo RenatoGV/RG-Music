@@ -17,7 +17,7 @@ export const PlayerProgressbar = ({style} : ViewProps) => {
     const max = useSharedValue(1)
 
     const trackElapsedTime = formatSecondsToMinute(position)
-    const trackRemainingTime = formatSecondsToMinute(duration - position)
+    const trackDurationTime = formatSecondsToMinute(duration)
 
     useEffect(() => {
         if(!isSliding.value) {
@@ -53,7 +53,7 @@ export const PlayerProgressbar = ({style} : ViewProps) => {
 
         <View style={styles.timeRow}>
             <Text style={styles.timeText}>{trackElapsedTime}</Text>
-            <Text style={styles.timeText}>{'-'} {trackRemainingTime}</Text>
+            <Text style={styles.timeText}>{trackDurationTime}</Text>
         </View>
     </View>
   )

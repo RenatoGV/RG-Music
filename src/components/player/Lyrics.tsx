@@ -128,17 +128,20 @@ export const Lyrics = ({artist, track} : Props) => {
             <Lyric
               lrc={lyric}
               currentTime={position * 1000}
-              lineHeight={50}
+              lineHeight={36}
+              activeLineHeight={44}
               lineRenderer={lineRenderer}
               showsVerticalScrollIndicator={false}
             />
           :
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+              <View style={{height: 50}}/>
               {lyric.split("\n").map((line, i) => (
-                <Text key={i} style={{ color: colors.text, fontSize: fontSize.sm, paddingVertical: 10, textAlign: 'center'}}>
+                <Text key={i} style={{ color: colors.text, fontSize: fontSize.sm, paddingVertical: 5, textAlign: 'center'}}>
                   {line}
                 </Text>
               ))}
+              <View style={{height: 50}}/>
             </ScrollView>
         }
       </View>

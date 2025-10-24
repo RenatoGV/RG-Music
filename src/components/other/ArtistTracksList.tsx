@@ -14,8 +14,8 @@ import { QueueControls } from './QueueControls'
 export const ArtistTracksList = ({artist}: {artist: Artist}) => {
     const search = useNavigationSearch({
         searchBarOptions: {
-            hideWhenScrolling: true,
-            placeholder: 'Buscar en sus canciones'
+            placeholder: 'Buscar en sus canciones',
+      	    shouldShowHintSearchIcon: false
         }
     })
 
@@ -40,12 +40,13 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
 
                 <Text numberOfLines={1} style={styles.artistNameText}>{artist.name}</Text>
 
-                {search.length === 0 && (
-                    <QueueControls tracks={filteredArtistTracks} style={{paddingTop: 24}} />
+                {artist.tracks.length > 0 && (
+                    <QueueControls tracks={artist.tracks} style={{paddingTop: 24}} />
                 )}
             </View>
         }
-        tracks={filteredArtistTracks}
+        tracks={artist.tracks}
+        filteredTracks={filteredArtistTracks}
     />
 }
 

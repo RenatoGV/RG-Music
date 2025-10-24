@@ -23,7 +23,7 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 
     const search = useNavigationSearch({
         searchBarOptions: {
-            placeholder: 'Buscar en Playlist'
+            placeholder: 'Buscar playlist'
         }
     })
 	
@@ -37,7 +37,7 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 	}
 
 	return (
-		<>
+		<View>
 			<DeletePlaylist selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
 			<FlatList
 				contentContainerStyle={{ paddingTop: 10, paddingBottom: 128 }}
@@ -59,6 +59,6 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 				)}
 				{...flatListProps}
 			/>
-		</>
+		</View>
 	)
 }
