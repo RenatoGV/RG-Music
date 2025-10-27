@@ -18,9 +18,8 @@ import { getPlaybackState } from 'react-native-track-player/lib/src/trackPlayer'
 import * as SplashScreen from 'expo-splash-screen';
 import { Playlist } from '@/helpers/types';
 import { loadData } from '@/helpers/storage';
-import { requestNotificationPermission } from '@/helpers/notifications';
+import { configureNotificationChannel, requestNotificationPermission } from '@/helpers/notifications';
 import { useLyricStore } from '@/store/lyrics';
-import { Ionicons } from '@expo/vector-icons'
 
 const { Navigator } = createStackNavigator()
 const CustomStack = withLayoutContext(Navigator)
@@ -38,6 +37,7 @@ const App = () => {
 
 	useEffect(() => {
     	SplashScreen.hideAsync().catch(() => {})
+		configureNotificationChannel()
 	}, [])
 
 	useEffect(() => {

@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications"
 import { showToast } from "./toast"
+import { Platform } from "react-native";
 
 Notifications.setNotificationHandler({
    handleNotification: async () => ({
@@ -15,6 +16,17 @@ export async function requestNotificationPermission(): Promise<void> {
    if (status !== 'granted') {
       showToast('Permiso de notificaciones denegado')
    }
+}
+
+export async function configureNotificationChannel() {
+   if (Platform.OS === "android") {
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#fc3c44"
+    });
+  }
 }
 
 export async function scheduleAlarmNotification( options: { title: string; message: string; } ) {
