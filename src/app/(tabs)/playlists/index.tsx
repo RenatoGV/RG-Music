@@ -83,10 +83,10 @@ const PlaylistsScreen = () => {
 							<TouchableOpacity onPress={closeModal} style={styles.buttonClose}>
 								<FontAwesome6 name="circle-xmark" size={22} color={colors.primary} />
 							</TouchableOpacity>
-							<Text style={styles.modalText}>Ingrese el nombre del Playlist</Text>
+							<Text style={styles.modalText}>Crear Playlist</Text>
 							<TextInput
 								style={styles.modalInput}
-								placeholder="Nuevo Playlist"
+								placeholder="Ingrese un nuevo nombre"
 								selectionColor={colors.primary}
 								placeholderTextColor={colors.textMuted}
 								onChangeText={handleChangeText}
@@ -96,7 +96,7 @@ const PlaylistsScreen = () => {
 								style={[styles.button, styles.buttonSave, { opacity: isDisabled ? 0.5 : 1 }]}
 								onPress={handleSave}
 							>
-								<Text style={styles.textStyle}>Crear Nuevo Playlist</Text>
+								<Text style={styles.textStyle}>Agregar</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
 		width: '90%',
 		backgroundColor: '#1c1c1c',
 		borderRadius: 20,
-		paddingVertical: 35,
+		paddingVertical: 20,
 		paddingHorizontal: 20,
 		alignItems: 'center',
 		shadowColor: '#000',

@@ -46,8 +46,6 @@ export const Lyrics = ({artist, track} : Props) => {
       })
     }
 
-    console.log(variants)
-
     return variants
   }
 
@@ -64,7 +62,6 @@ export const Lyrics = ({artist, track} : Props) => {
 
       for (const v of variants) {
         const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(v.artist)}&track_name=${encodeURIComponent(v.track)}`
-        console.log(url)
         try {
           const res = await fetch(url, { signal: controller.signal, method: 'GET', headers: {
             'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`,
@@ -119,7 +116,7 @@ export const Lyrics = ({artist, track} : Props) => {
 
   const lineRenderer = useCallback(
     ({ lrcLine: { content }, active }: LineRendererProps) => (
-      <View style={{height: active ? 68 : 36, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{height: active ? 102 : 36, justifyContent: 'center', alignItems: 'center'}}>
         <AnimatedLine content={content} active={active} />
       </View>
     ),
@@ -150,7 +147,7 @@ export const Lyrics = ({artist, track} : Props) => {
               lrc={lyric}
               currentTime={position * 1000}
               lineHeight={36}
-              activeLineHeight={68}
+              activeLineHeight={102}
               lineRenderer={lineRenderer}
               showsVerticalScrollIndicator={false}
             />

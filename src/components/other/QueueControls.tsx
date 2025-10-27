@@ -3,6 +3,7 @@ import { defaultStyles } from "@/styles"
 import { StyleSheet, Text, TouchableOpacity, View, ViewProps } from "react-native"
 import TrackPlayer, { Track } from "react-native-track-player"
 import { Ionicons } from "@expo/vector-icons"
+import { scheduleAlarmNotification } from "@/helpers/notifications"
 
 type QueueControlsProps = {
     tracks: Track[]

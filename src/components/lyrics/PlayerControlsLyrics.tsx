@@ -23,8 +23,8 @@ export const PlayerControlsLyrics = ({style}: PlayerControlsProps) => {
         <View style={[styles.container, style]}>
             <View style={styles.row}>
                 <TouchableOpacity onPress={() => setShowLyrics(false)}>
-                    <FontAwesome
-                            name={'close'}
+                    <FontAwesome6
+                            name={'angle-down'}
                             size={30}
                             color={colors.icon}
                     />

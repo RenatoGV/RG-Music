@@ -37,7 +37,7 @@ export const DeletePlaylist = ({selectedPlaylist, setSelectedPlaylist} : Props) 
          <View style={styles.centeredView}>
             <View style={styles.modalView}>
                <Text style={styles.modalTitle}>Eliminar Playlist</Text>
-               <Text style={styles.modalSubtitle}>¿Seguro que desea eliminar la Playlist {selectedPlaylist?.name}?</Text>
+               <Text style={styles.modalSubtitle}>¿Seguro que desea eliminar {selectedPlaylist?.name}?</Text>
                <View style={styles.modalButtons}>
                   <TouchableOpacity
                      style={[styles.button]}
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
       width: '90%',
       backgroundColor: '#1c1c1c',
       borderRadius: 20,
-		paddingVertical: 35,
+		paddingVertical: 20,
 		paddingHorizontal: 20,
       shadowColor: '#000',
       shadowOffset: {
@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
       color: colors.primary,
       fontWeight: '500',
       fontSize: fontSize.sm,
+      textAlign:'center'
    },
    modalSubtitle: {
       color: '#FFF',
