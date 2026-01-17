@@ -28,6 +28,7 @@ import { useModalStore } from '@/store/modal'
 import { FontAwesome6 } from '@expo/vector-icons'
 import { showToast } from '@/helpers/toast'
 import { useLibraryStore } from '@/store/library'
+import { router } from 'expo-router'
 
 
 const PlayerScreen = () => {
@@ -121,7 +122,12 @@ const PlayerScreen = () => {
                         <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
                             <View style={{marginBottom: 20}}>
                                 <AnimatedTitle text={activeTrack.title ?? ''} />
-                                <AnimatedSubitle text={activeTrack.artist ?? ''} />
+                                <TouchableOpacity  onPress={
+                                    () => router.navigate(`/(tabs)/artists/${activeTrack.artist}`)
+                                }>
+                                    <AnimatedSubitle text={activeTrack.artist ?? ''} />
+                                </TouchableOpacity>
+                                
                             </View>
                             <Lyrics 
                                 artist={activeTrack.artist} 
@@ -161,9 +167,15 @@ const PlayerScreen = () => {
                                     </View>
 
                                     {activeTrack.artist && (
-                                        <Text numberOfLines={1} style={[styles.trackArtistText, {
-                                            marginTop: 6
-                                        }]}>{activeTrack.artist}</Text>
+                                        <TouchableOpacity
+                                            onPress={() => router.push(`/(tabs)/artists/${activeTrack.artist}`)}
+                                        >
+                                            <Text 
+                                                numberOfLines={1} 
+                                                style={[styles.trackArtistText, {marginTop: 6}]}
+                                                >
+                                            {activeTrack.artist}</Text>
+                                        </TouchableOpacity>
                                     )}
                                 </View>
 
