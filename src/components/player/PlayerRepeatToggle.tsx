@@ -25,8 +25,8 @@ export const PlayerRepeatToggle = ({...iconProps} : IconProps) => {
     useEffect(() => {
         match(repeatMode)
             .with(RepeatMode.Off, () => setRepeatModeText('No Repetir'))
-            .with(RepeatMode.Track, () => setRepeatModeText('En Bucle'))
-            .with(RepeatMode.Queue, () => setRepeatModeText('Repetir Playlist'))
+            .with(RepeatMode.Track, () => setRepeatModeText('Bucle'))
+            .with(RepeatMode.Queue, () => setRepeatModeText('Normal'))
 
             opacity.value = 0
             opacity.value = withTiming(1, { duration: 180, easing: Easing.out(Easing.ease) }, (finished) => {

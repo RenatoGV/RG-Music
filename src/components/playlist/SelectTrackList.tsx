@@ -1,6 +1,6 @@
 import { FlatList, FlatListProps, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { utilsStyles } from '@/styles'
-import { Track } from 'react-native-track-player'
+import { Track } from '@/helpers/types'
 import FastImage from 'react-native-fast-image'
 import { unknownTrackImageUri } from '@/constants/images'
 import { SelectTrackListItem } from './SelectTrackListItem'

@@ -1,9 +1,10 @@
 import { unknownTrackImageUri } from '@/constants/images'
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { defaultStyles, utilsStyles } from '@/styles'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useActiveTrack } from 'react-native-track-player'
+import { Track } from '@/helpers/types'
 import { FontAwesome } from '@expo/vector-icons'
 import { PlayerControls } from '@/components/player/PlayerControls'
 import { PlayerProgressbar } from '@/components/player/PlayerProgressbar'
@@ -12,7 +13,7 @@ import { PlayerRepeatToggle } from '@/components/player/PlayerRepeatToggle'
 import { usePlayerBackground } from '@/hooks/usePlayerBackground'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useTrackPlayerFavorite } from '@/hooks/useTrackPlayerFavorite'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Lyrics } from '@/components/player/Lyrics'
 import { ArtworkFlip } from '@/components/player/ArtworkFlip'
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
@@ -21,16 +22,46 @@ import { useLyricStore } from '@/store/lyrics'
 import { AnimatedTitle } from '@/components/lyrics/AnimatedTitle'
 import { PlayerControlsLyrics } from '@/components/lyrics/PlayerControlsLyrics'
 import { AnimatedSubitle } from '@/components/lyrics/AnimatedSubtitle'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { TextInput } from 'react-native-gesture-handler'
+import { useModalStore } from '@/store/modal'
+import { FontAwesome6 } from '@expo/vector-icons'
+import { showToast } from '@/helpers/toast'
+import { useLibraryStore } from '@/store/library'
 
 
 const PlayerScreen = () => {
-    const activeTrack = useActiveTrack()
-    const {imageColors} = usePlayerBackground(activeTrack?.artwork ?? unknownTrackImageUri)
+    const activeTrackRaw = useActiveTrack()
+    const tracks = useLibraryStore(state => state.tracks)
+    
+    const activeTrack = activeTrackRaw && tracks 
+        ? tracks.find(t => t.url === activeTrackRaw.url) ?? (activeTrackRaw as Track)
+        : (activeTrackRaw as Track | undefined)
+    
+    const { imageColors } = usePlayerBackground(activeTrack?.artwork ?? unknownTrackImageUri)
     const { showLyrics, setShowLyrics } = useLyricStore()
+    const { updateTrackLyricId } = useLibraryStore()
 
     const { top, bottom } = useSafeAreaInsets()
     
     const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
+
+    const { modalVisible, setModalVisible } = useModalStore()
+    const [ lyricId, setLyricId ] = useState('')
+    const handleSave = () => {
+        if (activeTrack) {
+            updateTrackLyricId(activeTrack.url, lyricId.trim())
+            showToast("Lyric ID establecido")
+            closeModal()
+        }
+    }
+    const closeModal = () => {
+        setModalVisible(false)
+        setLyricId('')
+    }
+	const handleChangeText = (value: string) => {
+		setLyricId(value)
+	}
 
     useEffect(() => {
         if(showLyrics){
@@ -50,6 +81,36 @@ const PlayerScreen = () => {
 
   return (
     <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
+        <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => {
+                setModalVisible(!modalVisible)
+            }}
+        >
+            <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                    <TouchableOpacity onPress={closeModal} style={styles.buttonClose}>
+                        <FontAwesome6 name="circle-xmark" size={22} color={colors.primary} />
+                    </TouchableOpacity>
+                    <Text style={styles.modalText}>Establecer Lyric ID</Text>
+                    <TextInput
+                        style={styles.modalInput}
+                        placeholder="Ingrese el ID"
+                        selectionColor={colors.primary}
+                        placeholderTextColor={colors.textMuted}
+                        onChangeText={handleChangeText}
+                    />
+                    <TouchableOpacity
+                        style={[styles.button, styles.buttonSave, { opacity: 1 }]}
+                        onPress={handleSave}
+                    >
+                        <Text style={styles.textStyle}>Guardar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
         <View style={styles.overlayContainer}>
             {(showLyrics) ? <></> : <DismissPlayerSymbol />}
 
@@ -65,6 +126,7 @@ const PlayerScreen = () => {
                             <Lyrics 
                                 artist={activeTrack.artist} 
                                 track={activeTrack.title}
+                                lyricId={activeTrack.lyric_id}
                             />
                             <View style={{marginTop: 40}}>
                                 <PlayerProgressbar />
@@ -82,6 +144,13 @@ const PlayerScreen = () => {
                                             <MovingText text={activeTrack.title ?? ''} animationThreshold={30} style={styles.trackTitleText} />
                                         </View>
 
+                                        <MaterialIcons
+                                            name="music-note"
+                                            size={30} 
+                                            color={colors.icon}
+                                            style={{marginHorizontal: 14}}
+                                            onPress={() => setModalVisible(true)}
+                                        />
                                         <FontAwesome
                                             name={isFavorite ? 'heart' : 'heart-o'}
                                             size={30}
@@ -176,7 +245,64 @@ const styles = StyleSheet.create({
         fontSize: fontSize.base,
         opacity: 0.8,
         maxWidth: '90%'
-    }
+    },
+    centeredView: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	modalView: {
+		width: '90%',
+		backgroundColor: '#1c1c1c',
+		borderRadius: 20,
+		paddingVertical: 20,
+		paddingHorizontal: 20,
+		alignItems: 'center',
+		shadowColor: '#000',
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+		elevation: 5,
+	},
+	button: {
+		borderRadius: 20,
+		padding: 10,
+		elevation: 2,
+		paddingHorizontal: 20,
+	},
+	buttonClose: {
+		position: 'absolute',
+		right: 12,
+		top: 12,
+	},
+	buttonSave: {
+		backgroundColor: colors.primary,
+	},
+	textStyle: {
+		color: 'white',
+		fontWeight: 'bold',
+		textAlign: 'center',
+	},
+	modalText: {
+		marginBottom: 15,
+		textAlign: 'center',
+		color: colors.primary,
+		fontWeight: '500',
+		fontSize: fontSize.sm,
+	},
+	modalInput: {
+		width: '80%',
+		marginBottom: 15,
+		backgroundColor: colors.secondary,
+		fontSize: fontSize.sm,
+		borderRadius: 5,
+		paddingHorizontal: 10,
+		paddingVertical: 5,
+		color: colors.text,
+	},
 })
 
 export default PlayerScreen

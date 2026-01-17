@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { Track, useActiveTrack } from "react-native-track-player"
+import { useActiveTrack } from "react-native-track-player"
+import { Track } from "@/helpers/types"
 
 export const useLastActiveTrack = () => {
     const activeTrack = useActiveTrack()

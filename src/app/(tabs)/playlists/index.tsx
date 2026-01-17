@@ -86,7 +86,7 @@ const PlaylistsScreen = () => {
 							<Text style={styles.modalText}>Crear Playlist</Text>
 							<TextInput
 								style={styles.modalInput}
-								placeholder="Ingrese un nuevo nombre"
+								placeholder="Ingrese el nombre de la Playlist"
 								selectionColor={colors.primary}
 								placeholderTextColor={colors.textMuted}
 								onChangeText={handleChangeText}

@@ -1,5 +1,5 @@
 import { Artist } from "@/helpers/types";
-import { Track } from "react-native-track-player";
+import { Track } from "@/helpers/types";
 import { create } from "zustand";
 import { useMemo } from "react";
 import { saveData } from "@/helpers/storage";
@@ -12,6 +12,7 @@ interface LibraryState {
     setTracks: (tracks: Track[] | null) => void
     toggleTrackFavorite: (track: Track) => void
     addToPlaylist: (track: Track, playlistName: string) => void
+    updateTrackLyricId: (trackUrl: string, lyricId: string) => void
     setProgressLoading: (progressLoading: number) => void
     resetProgressLoading: () => void
 }
@@ -49,6 +50,19 @@ export const useLibraryStore = create<LibraryState>()((set, get) => ({
             return currentTrack
         })
     })),
+    updateTrackLyricId: (trackUrl, lyricId) => set((state) => {
+        const updatedTracks = state.tracks?.map((currentTrack) => {
+            if(currentTrack.url === trackUrl){
+                return {
+                    ...currentTrack,
+                    lyric_id: lyricId
+                }
+            }
+            return currentTrack
+        })
+        saveData('tracks', updatedTracks)
+        return {tracks: updatedTracks}
+    }),
     setProgressLoading: (value) => set({progressLoading: value}),
     resetProgressLoading: () => {set({ progressLoading: 0 })}
 }))

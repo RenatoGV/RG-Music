@@ -3,7 +3,7 @@ import { colors, fontSize } from '@/constants/tokens';
 import { defaultStyles } from '@/styles';
 import { StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import { Track } from 'react-native-track-player';
+import { Track } from '@/helpers/types';
 import { useEffect, useState } from 'react';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 

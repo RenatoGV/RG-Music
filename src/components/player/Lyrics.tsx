@@ -7,13 +7,15 @@ import { AnimatedLine } from '../lyrics/AnimatedLine'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useLyricStore } from '@/store/lyrics'
 import Constants from 'expo-constants'
+import { showToast } from '@/helpers/toast'
 
 type Props = {
    artist: string | undefined
    track: string | undefined
+   lyricId: string | undefined
 }
 
-export const Lyrics = ({artist, track} : Props) => {   
+export const Lyrics = ({artist, track, lyricId} : Props) => {
   const {position} = useProgress(250)
   const [lyric, setLyric] = useState<string | null>(null)
   const [syncedLyrics, setSyncedLyric] = useState<string | null>(null)
@@ -58,6 +60,38 @@ export const Lyrics = ({artist, track} : Props) => {
       setError(null)
       setLyric(null)
 
+      if(lyricId?.length && lyricId.length > 0) {
+        const url = `https://lrclib.net/api/get/${lyricId}`
+        try {
+          const res = await fetch(url, { signal: controller.signal, method: 'GET', headers: {
+            'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`,
+            'Content-Type': 'application/json'
+          }})
+
+          if (res.ok) {
+            const data = await res.json()
+            if (data?.syncedLyrics || data?.plainLyrics) {
+
+              setLyric((data.syncedLyrics && SL) ? data.syncedLyrics : data.plainLyrics)
+
+              if(!data.syncedLyrics) setSL(false)
+
+              // setLyric(data.syncedLyrics ?? data.plainLyrics)
+              setSyncedLyric(data.syncedLyrics ? data.syncedLyrics : null)
+              setPlainLyric(data.plainLyrics)
+              setIsLRC(data.syncedLyrics ? true : false)
+              setLoading(false)
+              return
+            }
+          }
+        } catch (e) {
+          if (controller.signal.aborted) return
+          console.warn('Error:', url, e)
+        }
+
+        showToast("No se encontró lyrics por Id")
+      }
+
       const variants = getVariants(artist, track)
 
       for (const v of variants) {
@@ -86,7 +120,7 @@ export const Lyrics = ({artist, track} : Props) => {
           }
         } catch (e) {
           if (controller.signal.aborted) return
-          console.warn('Error probando:', url, e)
+          console.warn('Error:', url, e)
         }
       }
 
@@ -99,7 +133,7 @@ export const Lyrics = ({artist, track} : Props) => {
     fetchLyrics()
 
     return () => controller.abort()
-  }, [artist, track])
+  }, [artist, track, lyricId])
 
   useEffect(() => {
     if(syncedLyrics != null) {

@@ -1,9 +1,10 @@
 import { unknownTrackImageUri } from '@/constants/images';
 import { colors, fontSize } from '@/constants/tokens';
 import { defaultStyles } from '@/styles';
-import { StyleSheet, Text, TouchableHighlight, View } from 'react-native'
+import { Modal, StyleSheet, Text, TouchableHighlight, TouchableOpacity, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
-import TrackPlayer, { Track, useActiveTrack, useIsPlaying } from 'react-native-track-player';
+import TrackPlayer, { useActiveTrack, useIsPlaying } from 'react-native-track-player';
+import { Track } from '@/helpers/types';
 import { Entypo, Ionicons } from "@expo/vector-icons"
 import LoaderKit from "react-native-loader-kit"
 import { StopPropagation } from '@/components/utils/StopPropagation';

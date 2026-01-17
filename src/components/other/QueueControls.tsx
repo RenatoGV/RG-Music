@@ -1,7 +1,8 @@
 import { colors } from "@/constants/tokens"
 import { defaultStyles } from "@/styles"
 import { StyleSheet, Text, TouchableOpacity, View, ViewProps } from "react-native"
-import TrackPlayer, { Track } from "react-native-track-player"
+import TrackPlayer from "react-native-track-player"
+import { Track } from "@/helpers/types"
 import { Ionicons } from "@expo/vector-icons"
 
 type QueueControlsProps = {
