@@ -124,7 +124,7 @@ const PlayerScreen = () => {
                     (showLyrics)
                     ? 
                         <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
-                            <View style={{marginBottom: 20}}>
+                            <View style={{marginBottom: 30}}>
                                 <AnimatedTitle text={activeTrack.title ?? ''} />
                                 <TouchableOpacity  onPress={
                                     () => router.navigate(`/(tabs)/artists/${activeTrack.artist}`)
@@ -138,7 +138,7 @@ const PlayerScreen = () => {
                                 track={activeTrack.title}
                                 lyricId={activeTrack.lyric_id}
                             />
-                            <View style={{marginTop: 40}}>
+                            <View style={{marginTop: 30}}>
                                 <PlayerProgressbar />
                                 <PlayerControlsLyrics />
                             </View>
