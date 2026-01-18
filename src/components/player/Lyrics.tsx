@@ -1,10 +1,7 @@
 import { colors, fontSize } from '@/constants/tokens'
-import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
-import { Lyric } from 'react-native-lyric'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ActivityIndicator, StyleSheet, Text, View, ScrollView, NativeScrollEvent, NativeSyntheticEvent, Dimensions } from 'react-native'
 import { useProgress } from 'react-native-track-player'
-import { AnimatedLine } from '../lyrics/AnimatedLine'
-import { ScrollView } from 'react-native-gesture-handler'
 import { useLyricStore } from '@/store/lyrics'
 import Constants from 'expo-constants'
 import { showToast } from '@/helpers/toast'
@@ -13,6 +10,33 @@ type Props = {
    artist: string | undefined
    track: string | undefined
    lyricId: string | undefined
+}
+
+interface LyricLine {
+  time: number
+  content: string
+}
+
+const parseLRC = (lrcText: string): LyricLine[] => {
+  const lines = lrcText.split('\n')
+  const lyricLines: LyricLine[] = []
+
+  lines.forEach(line => {
+    const timeMatch = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\]/)
+    if (timeMatch) {
+      const minutes = parseInt(timeMatch[1])
+      const seconds = parseInt(timeMatch[2])
+      const centiseconds = parseInt(timeMatch[3])
+      const time = minutes * 60 + seconds + centiseconds / 100
+      const content = line.replace(/\[\d{2}:\d{2}\.\d{2}\]/g, '').trim()
+      
+      if (content) {
+        lyricLines.push({ time, content })
+      }
+    }
+  })
+
+  return lyricLines
 }
 
 export const Lyrics = ({artist, track, lyricId} : Props) => {
@@ -146,16 +170,10 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
   type LineRendererProps = {
     lrcLine: { content: string }
     active: boolean
+    index?: number
+    totalLines?: number
+    activeLineIndex?: number
   }
-
-  const lineRenderer = useCallback(
-    ({ lrcLine: { content }, active }: LineRendererProps) => (
-      <View style={{height: active ? 102 : 36, justifyContent: 'center', alignItems: 'center'}}>
-        <AnimatedLine content={content} active={active} />
-      </View>
-    ),
-    []
-  )
 
   if (loading) {
     return (
@@ -177,26 +195,163 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
       <View style={{flex: 1}}>
         {
           (isLRC && SL) ?
-            <Lyric
-              lrc={lyric}
-              currentTime={position * 1000}
-              lineHeight={36}
-              activeLineHeight={102}
-              lineRenderer={lineRenderer}
-              showsVerticalScrollIndicator={false}
-            />
+            <SyncedLyricsView lyrics={lyric} />
           :
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-              <View style={{height: 50}}/>
-              {lyric.split("\n").map((line, i) => (
-                <Text key={i} style={{ color: colors.text, fontSize: fontSize.sm, paddingVertical: 5, textAlign: 'center'}}>
-                  {line}
-                </Text>
-              ))}
-              <View style={{height: 50}}/>
-            </ScrollView>
+            <PlainLyricsView lyrics={lyric} />
         }
       </View>
+  )
+}
+
+const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
+  
+  const { position } = useProgress(250)
+  const [autoPlayLineIndex, setAutoPlayLineIndex] = useState(0)
+  const [scrollOffset, setScrollOffset] = useState(0)
+  const [isUserScrolling, setIsUserScrolling] = useState(false)
+  
+  const lyricLines = parseLRC(lyrics)
+  const scrollViewRef = useRef<ScrollView>(null)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const LINE_HEIGHT = 70
+  const screenHeight = Dimensions.get('window').height
+
+  // Encontrar la línea activa según el tiempo
+  useEffect(() => {
+    const activeIndex = lyricLines.findIndex(
+      (line, index) => {
+        const nextLine = lyricLines[index + 1]
+        return line.time <= position && (nextLine ? position < nextLine.time : true)
+      }
+    )
+    setAutoPlayLineIndex(Math.max(0, activeIndex))
+  }, [position, lyricLines])
+
+  // Auto-scroll cuando cambia la línea de reproducción y el usuario no está scrolleando
+  useEffect(() => {
+    if (!isUserScrolling && scrollViewRef.current) {
+      const scrollPosition = autoPlayLineIndex * LINE_HEIGHT
+      scrollViewRef.current.scrollTo({
+        y: scrollPosition,
+        animated: true
+      })
+    }
+  }, [autoPlayLineIndex, isUserScrolling])
+
+  // Limpiar timeout anterior
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setIsUserScrolling(true)
+    const offsetY = event.nativeEvent.contentOffset.y
+    setScrollOffset(offsetY)
+
+    // Limpiar timeout anterior
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
+    }
+
+    // Después de 1 segundo sin scroll, volver a la línea actual
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsUserScrolling(false)
+    }, 1000)
+  }
+
+  // Calcular índice activo según el scroll
+  const activeLineIndex = isUserScrolling 
+    ? Math.round(scrollOffset / LINE_HEIGHT)
+    : autoPlayLineIndex
+
+  const getLineStyles = (distanceFromActive: number) => {
+    const distance = Math.abs(distanceFromActive)
+    let sizeMultiplier = 1
+    let fontWeightValue: any = '400'
+    let opacityValue = 0.3
+
+    if (distance === 0) {
+      sizeMultiplier = 1.4
+      fontWeightValue = '700'
+      opacityValue = 1
+    } else if (distance === 1) {
+      sizeMultiplier = 1.15
+      fontWeightValue = '600'
+      opacityValue = 0.65
+    } else if (distance === 2) {
+      sizeMultiplier = 1
+      fontWeightValue = '400'
+      opacityValue = 0.4
+    }
+
+    return {
+      sizeMultiplier,
+      fontWeightValue,
+      opacityValue
+    }
+  }
+
+  const centerPaddingHeight = (screenHeight / 3) - (LINE_HEIGHT / 2)
+
+  return (
+    <ScrollView
+      ref={scrollViewRef}
+      scrollEventThrottle={16}
+      onScroll={handleScroll}
+      showsVerticalScrollIndicator={false}
+      scrollEnabled={true}
+      snapToInterval={LINE_HEIGHT}
+      decelerationRate="fast"
+    >
+      <View style={{ height: centerPaddingHeight }} />
+      
+      {lyricLines.map((line, index) => {
+        const distanceFromActive = index - activeLineIndex
+        const { sizeMultiplier, fontWeightValue, opacityValue } = getLineStyles(distanceFromActive)
+        const isVisible = Math.abs(distanceFromActive) <= 2
+
+        return (
+          <View
+            key={index}
+            style={{
+              height: LINE_HEIGHT,
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: isVisible ? opacityValue : 0
+            }}
+          >
+            {isVisible && (
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: fontSize.sm * sizeMultiplier,
+                  fontWeight: fontWeightValue,
+                  textAlign: 'center',
+                  paddingHorizontal: 20
+                }}
+              >
+                {line.content}
+              </Text>
+            )}
+          </View>
+        )
+      })}
+    </ScrollView>
+  )
+}
+
+
+const PlainLyricsView = ({ lyrics }: { lyrics: string }) => {
+  return (
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.lyrics}>{lyrics}</Text>
+    </ScrollView>
   )
 }
 
@@ -206,7 +361,21 @@ const styles = StyleSheet.create({
    },
    lyrics: {
       textAlign: 'center',
-      fontSize: fontSize.sm,
+      fontSize: fontSize.base,
       color: colors.text
-   }
+   },
+   container2: {
+    position: 'relative',
+  },
+  text: {
+    fontSize: 32,
+    fontWeight: 'bold'
+  },
+  blur: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  }
 })
