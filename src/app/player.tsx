@@ -156,7 +156,7 @@ const PlayerScreen = () => {
 
                                         <TouchableOpacity onPress={() => {setModalVisible(true)}}>
                                             <MaterialIcons
-                                                name="music-note"
+                                                name="info-outline"
                                                 size={30} 
                                                 color={colors.icon}
                                                 style={{marginHorizontal: 14}}
