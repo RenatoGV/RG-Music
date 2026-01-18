@@ -127,7 +127,7 @@ const PlayerScreen = () => {
                             <View style={{marginBottom: 30}}>
                                 <AnimatedTitle text={activeTrack.title ?? ''} />
                                 <TouchableOpacity  onPress={
-                                    () => router.navigate(`/(tabs)/artists/${activeTrack.artist}`)
+                                    () => router.navigate((activeTrack.artist?.includes('/')) ? '/(tabs)/artists' : `/(tabs)/artists/${activeTrack.artist}`)
                                 }>
                                     <AnimatedSubitle text={activeTrack.artist ?? ''} />
                                 </TouchableOpacity>
@@ -173,7 +173,7 @@ const PlayerScreen = () => {
 
                                     {activeTrack.artist && (
                                         <TouchableOpacity
-                                            onPress={() => router.push(`/(tabs)/artists/${activeTrack.artist}`)}
+                                            onPress={() => router.navigate((activeTrack.artist?.includes('/')) ? '/(tabs)/artists' : `/(tabs)/artists/${activeTrack.artist}`)}
                                         >
                                             <Text 
                                                 numberOfLines={1} 
