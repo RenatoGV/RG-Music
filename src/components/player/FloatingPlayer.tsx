@@ -10,6 +10,7 @@ import { BlurView } from "expo-blur"
 import { MovingText } from "../other/MovingText"
 import { useRouter } from "expo-router"
 import { useQueue } from "@/store/queue"
+import { saveData } from "@/helpers/storage"
 
 export const FloatingPlayer = ({ style } : ViewProps) => {
 
@@ -48,6 +49,7 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
                 await TrackPlayer.reset()
                 setActiveQueueId(null)
                 setCurrentTrack(undefined)
+                saveData('playback', '')
                 
                 translateX.setValue(0);
               });
