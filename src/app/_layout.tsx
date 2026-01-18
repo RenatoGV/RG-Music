@@ -91,15 +91,11 @@ const App = () => {
 			const storedTracks : Track[] | null = await loadData('tracks')
 			const storedPlaylists : Playlist[] | null = await loadData('playlists')
 			const storedPlayback = await loadData('playback')
-			
-			const activeTrackExist = (await TrackPlayer.getActiveTrack()) !== null
-			console.log(activeTrackExist)
 
 			setTracks(storedTracks)
 			setPlaylists(storedPlaylists)
 
 			if(storedPlayback) {
-				console.log('Restored')
 				try {
 					const playback: StoredPlayback =
 						typeof storedPlayback === 'string'

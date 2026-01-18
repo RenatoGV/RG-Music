@@ -48,7 +48,7 @@ const PlayerScreen = () => {
     const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
 
     const { modalVisible, setModalVisible } = useModalStore()
-    const [ lyricId, setLyricId ] = useState('')
+    const [ lyricId, setLyricId ] = useState(activeTrack?.lyric_id || '')
     const handleSave = () => {
         if (activeTrack) {
             updateTrackLyricId(activeTrack.url, lyricId.trim())
@@ -58,11 +58,14 @@ const PlayerScreen = () => {
     }
     const closeModal = () => {
         setModalVisible(false)
-        setLyricId('')
     }
 	const handleChangeText = (value: string) => {
 		setLyricId(value)
 	}
+
+    useEffect(() => {
+        setLyricId(activeTrack?.lyric_id || '')
+    },[activeTrack])
 
     useEffect(() => {
         if(showLyrics){
@@ -102,6 +105,7 @@ const PlayerScreen = () => {
                         selectionColor={colors.primary}
                         placeholderTextColor={colors.textMuted}
                         onChangeText={handleChangeText}
+                        value={lyricId}
                     />
                     <TouchableOpacity
                         style={[styles.button, styles.buttonSave, { opacity: 1 }]}
@@ -150,13 +154,14 @@ const PlayerScreen = () => {
                                             <MovingText text={activeTrack.title ?? ''} animationThreshold={30} style={styles.trackTitleText} />
                                         </View>
 
-                                        <MaterialIcons
-                                            name="music-note"
-                                            size={30} 
-                                            color={colors.icon}
-                                            style={{marginHorizontal: 14}}
-                                            onPress={() => setModalVisible(true)}
-                                        />
+                                        <TouchableOpacity onPress={() => {setModalVisible(true)}}>
+                                            <MaterialIcons
+                                                name="music-note"
+                                                size={30} 
+                                                color={colors.icon}
+                                                style={{marginHorizontal: 14}}
+                                            />
+                                        </TouchableOpacity>
                                         <FontAwesome
                                             name={isFavorite ? 'heart' : 'heart-o'}
                                             size={30}
