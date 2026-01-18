@@ -49,7 +49,8 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
                 await TrackPlayer.reset()
                 setActiveQueueId(null)
                 setCurrentTrack(undefined)
-                saveData('playback', '')
+                saveData('playback_queue', '')
+                saveData('playback_position', '')
                 
                 translateX.setValue(0);
               });

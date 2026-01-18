@@ -21,6 +21,7 @@ import { Playlist } from '@/helpers/types';
 import { loadData, saveData } from '@/helpers/storage';
 import { configureNotificationChannel, requestNotificationPermission } from '@/helpers/notifications';
 import { useLyricStore } from '@/store/lyrics';
+import { AppState } from 'react-native';
 
 const { Navigator } = createStackNavigator()
 const CustomStack = withLayoutContext(Navigator)
@@ -58,55 +59,98 @@ const App = () => {
 		// initialized.current = true
 		
 		const sub = TrackPlayer.addEventListener(
-			Event.PlaybackState,
-			async({ state }) => {
-				if(state === State.Paused) {
-					try {
-						const queue = await TrackPlayer.getQueue()
-						const currectTrackIndex = await TrackPlayer.getActiveTrackIndex()
-						const position = await TrackPlayer.getProgress().then((progress) => progress.position)
+			Event.PlaybackActiveTrackChanged,
+			async({ track }) => {
+				if(track == null) return
 
-						if(currectTrackIndex == null) return
+				const queue = await TrackPlayer.getQueue()
 
-						const dataToSave = {
-							queue,
-							currectTrackIndex,
-							position
-						}
+				saveData(
+					'playback_queue',
+					JSON.stringify({
+					queue,
+					currentTrackIndex: track,
+					})
+				)
 
-						saveData('playback', JSON.stringify(dataToSave))
-						console.log('💾 Playback saved')
-					} catch (e) {
-						console.error('Error guardando playback', e)
-					}
-				}
+				const position = (await TrackPlayer.getProgress()).position
+				saveData('playback_position', position)
+				
+    			console.log('💾 Queue + track index + position saved')
 			}
 		)
 
 		return () => sub.remove()
 	}, [])
 
+	useEffect(() => {
+		const sub = AppState.addEventListener('change', async state => {
+			const storedPlaybackQueue = await loadData('playback_queue')
+
+			if(storedPlaybackQueue && storedPlaybackQueue.queue.length > 0) {
+				if (state === 'background' || state === 'inactive') {
+					try {
+					const position = (await TrackPlayer.getProgress()).position
+					saveData('playback_position', position)
+					console.log('💾 Position guardada por background')
+					} catch {}
+				}
+			}
+		})
+
+		return () => sub.remove()
+	}, [])
+
+	useEffect(() => {
+		let interval: NodeJS.Timeout | null = null
+
+		interval = setInterval(async() => {
+			const playBackState = await getPlaybackState()
+			if(playBackState.state !== 'playing') return
+
+			const position = (await TrackPlayer.getProgress()).position
+			saveData('playback_position', position)
+		}, 5000)
+
+		return () => interval && clearInterval(interval)
+	}, [])
+
 	const handleTrackPlayerLoaded = useCallback(() => {
 		(async() => {
 			const storedTracks : Track[] | null = await loadData('tracks')
 			const storedPlaylists : Playlist[] | null = await loadData('playlists')
-			const storedPlayback = await loadData('playback')
+			const storedPlaybackQueue = await loadData('playback_queue')
+			const storedPlaybackPosition = await loadData('playback_position')
 
 			setTracks(storedTracks)
 			setPlaylists(storedPlaylists)
 
-			if(storedPlayback) {
+			if(storedPlaybackQueue && storedPlaybackPosition) {
 				try {
 					const playback: StoredPlayback =
-						typeof storedPlayback === 'string'
-						? JSON.parse(storedPlayback)
-						: storedPlayback
+						typeof storedPlaybackQueue === 'string'
+						? JSON.parse(storedPlaybackQueue)
+						: storedPlaybackQueue
 					
 					if(playback.queue?.length > 0) {
+						const index =
+							typeof playback.currectTrackIndex === 'number'
+								? playback.currectTrackIndex
+								: 0
+
+						const safeIndex =
+							index >= 0 && index < playback.queue.length
+								? index
+								: 0
+
 						await TrackPlayer.reset()
 						await TrackPlayer.add(playback.queue)
-						await TrackPlayer.skip(playback.currectTrackIndex)
-						await TrackPlayer.seekTo(playback.position)
+						await TrackPlayer.skip(safeIndex)
+
+						if (typeof storedPlaybackPosition === 'number') {
+							await new Promise(r => setTimeout(r, 300))
+							await TrackPlayer.seekTo(storedPlaybackPosition)
+						}
 					}
 				} catch (e) {
 					console.error('Error restoring playback', e)

@@ -18,5 +18,4 @@ export type Artist = {
 export type StoredPlayback = {
     queue: Track[]
     currectTrackIndex: number
-    position: number
 }
