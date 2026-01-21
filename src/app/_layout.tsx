@@ -84,24 +84,6 @@ const App = () => {
 	}, [])
 
 	useEffect(() => {
-		const sub = AppState.addEventListener('change', async state => {
-			const storedPlaybackQueue = await loadData('playback_queue')
-
-			if(storedPlaybackQueue && storedPlaybackQueue.queue.length > 0) {
-				if (state === 'background' || state === 'inactive') {
-					try {
-					const position = (await TrackPlayer.getProgress()).position
-					saveData('playback_position', position)
-					console.log('💾 Position guardada por background')
-					} catch {}
-				}
-			}
-		})
-
-		return () => sub.remove()
-	}, [])
-
-	useEffect(() => {
 		let interval: NodeJS.Timeout | null = null
 
 		interval = setInterval(async() => {

@@ -23,7 +23,7 @@ export const playbackService = async () => {
 
     TrackPlayer.addEventListener(Event.PlaybackError, async() => {
         const track = await TrackPlayer.getActiveTrack()
-        //await scheduleAlarmNotification({title: 'Error al reproducir', message: `No se pudo reproducir ${track?.title}`})        
+        await scheduleAlarmNotification({title: 'Error al reproducir', message: `No se pudo reproducir ${track?.title}`})        
         await TrackPlayer.skipToNext()
     })
 
@@ -36,12 +36,6 @@ export const playbackService = async () => {
 
     TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, async({ track }) => {
         if(track == null) return
-
-        TrackPlayer.updateNowPlayingMetadata({
-            title: track.title,
-            artist: track.artist,
-            artwork: track.artwork,
-        })
 
         const queue = await TrackPlayer.getQueue()
 
