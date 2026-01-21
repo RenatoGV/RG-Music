@@ -5,6 +5,7 @@ import { useProgress } from 'react-native-track-player'
 import { useLyricStore } from '@/store/lyrics'
 import Constants from 'expo-constants'
 import { showToast } from '@/helpers/toast'
+import { Animated } from 'react-native'
 
 type Props = {
    artist: string | undefined
@@ -205,6 +206,8 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
   const screenHeight = Dimensions.get('window').height
   const isAutoScrollingRef = useRef(false)
 
+  const [animatedScales, setAnimatedScales] = useState<Animated.Value[]>([])
+
   useEffect(() => {
     const activeIndex = lyricLines.findIndex(
       (line, index) => {
@@ -244,13 +247,19 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
     }
   }, [])
 
+  const handleScrollBeginDrag = () => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
+    }
+    setIsUserScrolling(true)
+  }
+
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (isAutoScrollingRef.current) return
+    setScrollOffset(event.nativeEvent.contentOffset.y)
+  }
 
-    setIsUserScrolling(true)
-    const offsetY = event.nativeEvent.contentOffset.y
-    setScrollOffset(offsetY)
-
+  const handleScrollEndDrag = () => {
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current)
     }
@@ -263,6 +272,26 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
   const activeLineIndex = isUserScrolling 
     ? Math.round(scrollOffset / LINE_HEIGHT)
     : autoPlayLineIndex
+
+  useEffect(() => {
+    if (!animatedScales.length) return
+
+    animatedScales.forEach((anim, index) => {
+      const distance = Math.abs(index - activeLineIndex)
+
+      let targetScale = 1
+      if (distance === 0) targetScale = 1
+      else if (distance === 1) targetScale = 0.85
+      else targetScale = 0.75
+
+      Animated.spring(anim, {
+        toValue: targetScale,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 6
+      }).start()
+    })
+  }, [activeLineIndex, animatedScales])
 
   const getLineStyles = (distanceFromActive: number) => {
     const distance = Math.abs(distanceFromActive)
@@ -293,12 +322,20 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
 
   const centerPaddingHeight = (screenHeight / 3) - (LINE_HEIGHT / 2)
 
+  useEffect(() => {
+    setAnimatedScales(
+      lyricLines.map(() => new Animated.Value(1))
+    )
+  }, [lyricLines.length])
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView
         ref={scrollViewRef}
         scrollEventThrottle={16}
+        onScrollBeginDrag={handleScrollBeginDrag}
         onScroll={handleScroll}
+        onScrollEndDrag={handleScrollEndDrag}
         showsVerticalScrollIndicator={false}
         scrollEnabled={true}
         snapToInterval={LINE_HEIGHT}
@@ -316,12 +353,11 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
               style={{
                 height: LINE_HEIGHT,
                 justifyContent: 'center',
-                alignItems: 'center',
                 opacity: isVisible ? opacityValue : 0
               }}
             >
               {isVisible && (
-                <Text
+                <Animated.Text
                   numberOfLines={4}
                   adjustsFontSizeToFit
                   style={{
@@ -329,11 +365,12 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
                     fontSize: fontSize.lg * sizeMultiplier,
                     fontWeight: fontWeightValue,
                     textAlign: 'center',
-                    paddingHorizontal: 20
+                    opacity: opacityValue,
+                    transform: [{ scale: animatedScales[index] ?? 1 }]
                   }}
                 >
                   {line.content}
-                </Text>
+                </Animated.Text>
               )}
             </View>
           )
