@@ -55,35 +55,6 @@ const App = () => {
 	}, [])
 
 	useEffect(() => {
-		// if(initialized.current) return
-		// initialized.current = true
-		
-		const sub = TrackPlayer.addEventListener(
-			Event.PlaybackActiveTrackChanged,
-			async({ track }) => {
-				if(track == null) return
-
-				const queue = await TrackPlayer.getQueue()
-
-				saveData(
-					'playback_queue',
-					JSON.stringify({
-					queue,
-					currentTrackIndex: track,
-					})
-				)
-
-				const position = (await TrackPlayer.getProgress()).position
-				saveData('playback_position', position)
-				
-    			console.log('💾 Queue + track index + position saved')
-			}
-		)
-
-		return () => sub.remove()
-	}, [])
-
-	useEffect(() => {
 		let interval: NodeJS.Timeout | null = null
 
 		interval = setInterval(async() => {
@@ -116,8 +87,8 @@ const App = () => {
 					
 					if(playback.queue?.length > 0) {
 						const index =
-							typeof playback.currectTrackIndex === 'number'
-								? playback.currectTrackIndex
+							typeof playback.currentTrackIndex === 'number'
+								? playback.currentTrackIndex
 								: 0
 
 						const safeIndex =

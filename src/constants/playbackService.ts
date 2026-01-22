@@ -1,5 +1,5 @@
 import { scheduleAlarmNotification } from "@/helpers/notifications"
-import { saveData } from "@/helpers/storage"
+import { loadData, saveData } from "@/helpers/storage"
 import TrackPlayer, { Event } from "react-native-track-player"
 
 let lastSaved = 0
@@ -30,7 +30,7 @@ export const playbackService = async () => {
     TrackPlayer.addEventListener(Event.PlaybackState, async ({ state }) => {
         if (state === 'paused' || state === 'stopped') {
             const position = (await TrackPlayer.getProgress()).position
-            await saveData('playback_position', position)
+            saveData('playback_position', position)
         }
     })
 
@@ -38,18 +38,19 @@ export const playbackService = async () => {
         if(track == null) return
 
         const queue = await TrackPlayer.getQueue()
+        const index = await TrackPlayer.getActiveTrackIndex()
 
         saveData(
             'playback_queue',
             JSON.stringify({
             queue,
-            currentTrackIndex: track,
+            currentTrackIndex: index,
             })
         )
 
         const position = (await TrackPlayer.getProgress()).position
         saveData('playback_position', position)
         
-        console.log('💾 Queue + track index + position saved')
+        console.log('💾 Queue + track index + position saved - BG')
     })
 }
