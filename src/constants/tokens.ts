@@ -11,12 +11,13 @@ export const colors = {
 }
 
 export const fontSize = {
-    xs: 12,
-    sm: 16,
-    base: 20,
-    lg: 24
+	xs: 12,
+	sm: 16,
+	base: 20,
+	lg: 24,
+	xl: 35
 }
 
 export const screenPadding = {
-    horizontal: 24
+	horizontal: 24
 }

@@ -74,6 +74,19 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
     return variants
   }
 
+  const applyLyrics = (data: any) => {
+    const plainLyrics = data.plainLyrics.replace(/\n+/g, (match : any) => match + '\n') ?? null
+
+    setLyric((data.syncedLyrics && SL) ? data.syncedLyrics : plainLyrics)
+
+    if (!data.syncedLyrics) setSL(false)
+
+    setSyncedLyric(data.syncedLyrics ?? null)
+    setPlainLyric(plainLyrics)
+    setIsLRC(!!data.syncedLyrics)
+    setLoading(false)
+  }
+
   useEffect(() => {
     if (!track) return
 
@@ -83,32 +96,27 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
       setError(null)
       setLyric(null)
 
-      if(lyricId?.length && lyricId.length > 0) {
-        const url = `https://lrclib.net/api/get/${lyricId}`
+      if(lyricId) {
         try {
-          const res = await fetch(url, { signal: controller.signal, method: 'GET', headers: {
-            'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`,
-            'Content-Type': 'application/json'
-          }})
+          const res = await fetch(
+            `https://lrclib.net/api/get/${lyricId}`,
+            {
+              signal: controller.signal,
+              headers: {
+                'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`
+              }
+            }
+          )
 
           if (res.ok) {
             const data = await res.json()
             if (data?.syncedLyrics || data?.plainLyrics) {
-
-              setLyric((data.syncedLyrics && SL) ? data.syncedLyrics : data.plainLyrics)
-
-              if(!data.syncedLyrics) setSL(false)
-
-              setSyncedLyric(data.syncedLyrics ? data.syncedLyrics : null)
-              setPlainLyric(data.plainLyrics)
-              setIsLRC(data.syncedLyrics ? true : false)
-              setLoading(false)
+              applyLyrics(data)
               return
             }
           }
         } catch (e) {
           if (controller.signal.aborted) return
-          console.warn('Error:', url, e)
         }
 
         showToast("No se encontró lyrics por Id")
@@ -117,31 +125,26 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
       const variants = getVariants(artist, track)
 
       for (const v of variants) {
-        const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(v.artist)}&track_name=${encodeURIComponent(v.track)}`
         try {
-          const res = await fetch(url, { signal: controller.signal, method: 'GET', headers: {
-            'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`,
-            'Content-Type': 'application/json'
-          }})
+          const res = await fetch(
+            `https://lrclib.net/api/get?artist_name=${encodeURIComponent(v.artist)}&track_name=${encodeURIComponent(v.track)}`,
+            {
+              signal: controller.signal,
+              headers: {
+                'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`
+              }
+            }
+          )
 
           if (res.ok) {
             const data = await res.json()
             if (data?.syncedLyrics || data?.plainLyrics) {
-
-              setLyric((data.syncedLyrics && SL) ? data.syncedLyrics : data.plainLyrics)
-
-              if(!data.syncedLyrics) setSL(false)
-
-              setSyncedLyric(data.syncedLyrics ? data.syncedLyrics : null)
-              setPlainLyric(data.plainLyrics)
-              setIsLRC(data.syncedLyrics ? true : false)
-              setLoading(false)
+              applyLyrics(data)
               return
             }
           }
         } catch (e) {
           if (controller.signal.aborted) return
-          console.warn('Error:', url, e)
         }
       }
 
@@ -295,32 +298,27 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
 
   const getLineStyles = (distanceFromActive: number) => {
     const distance = Math.abs(distanceFromActive)
-    let sizeMultiplier = 1
     let fontWeightValue: any = '400'
     let opacityValue = 0.3
 
     if (distance === 0) {
-      sizeMultiplier = 1.4
       fontWeightValue = '900'
       opacityValue = 1
     } else if (distance === 1) {
-      sizeMultiplier = 1.15
       fontWeightValue = '700'
       opacityValue = 0.65
     } else if (distance === 2) {
-      sizeMultiplier = 1
       fontWeightValue = '500'
       opacityValue = 0.4
     }
 
     return {
-      sizeMultiplier,
       fontWeightValue,
       opacityValue
     }
   }
 
-  const centerPaddingHeight = (screenHeight / 3) - (LINE_HEIGHT / 2)
+  const centerPaddingHeight = (screenHeight / 3.5) - (LINE_HEIGHT / 2)
 
   useEffect(() => {
     setAnimatedScales(
@@ -344,7 +342,7 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
         <View style={{ height: centerPaddingHeight }} />
         {lyricLines.map((line, index) => {
           const distanceFromActive = index - activeLineIndex
-          const { sizeMultiplier, fontWeightValue, opacityValue } = getLineStyles(distanceFromActive)
+          const { fontWeightValue, opacityValue } = getLineStyles(distanceFromActive)
           const isVisible = Math.abs(distanceFromActive) <= 2
 
           return (
@@ -362,7 +360,7 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
                   adjustsFontSizeToFit
                   style={{
                     color: colors.text,
-                    fontSize: fontSize.lg * sizeMultiplier,
+                    fontSize: fontSize.xl,
                     fontWeight: fontWeightValue,
                     textAlign: 'center',
                     opacity: opacityValue,
@@ -399,7 +397,7 @@ const styles = StyleSheet.create({
    },
    lyrics: {
       textAlign: 'center',
-      fontSize: fontSize.base,
+      fontSize: fontSize.lg,
       color: colors.text
    }
 })
