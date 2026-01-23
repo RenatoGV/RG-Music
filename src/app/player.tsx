@@ -162,13 +162,15 @@ const PlayerScreen = () => {
                                                 style={{marginHorizontal: 14}}
                                             />
                                         </TouchableOpacity>
-                                        <FontAwesome
-                                            name={isFavorite ? 'heart' : 'heart-o'}
-                                            size={30}
-                                            color={isFavorite ? colors.primary : colors.icon}
-                                            style={{marginHorizontal: 14}}
-                                            onPress={toggleFavorite}
-                                        />
+
+                                        <TouchableOpacity onPress={toggleFavorite}>
+                                            <FontAwesome
+                                                name={isFavorite ? 'heart' : 'heart-o'}
+                                                size={30}
+                                                color={isFavorite ? colors.primary : colors.icon}
+                                                style={{marginHorizontal: 14}}
+                                            />
+                                        </TouchableOpacity>
                                     </View>
 
                                     {activeTrack.artist && (
