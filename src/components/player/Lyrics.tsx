@@ -47,6 +47,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
   const [error, setError] = useState<string | null>(null)
   const [isLRC, setIsLRC] = useState(false)
   const {syncedLyrics : SL, setSyncedLyrics : setSL} = useLyricStore()
+  const lastRequestRef = useRef(0)
    
   const getVariants = (artist?: string, track?: string) => {
     if (!track) return []
@@ -90,14 +91,19 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
   useEffect(() => {
     if (!track) return
 
+    const requestId = ++lastRequestRef.current
     const controller = new AbortController()
+
     const fetchLyrics = async () => {
       setLoading(true)
       setError(null)
-      setLyric(null)
 
-      if(lyricId) {
-        try {
+      await new Promise(r => setTimeout(r, 300))
+
+      if (requestId !== lastRequestRef.current) return
+
+      try {
+        if (lyricId) {
           const res = await fetch(
             `https://lrclib.net/api/get/${lyricId}`,
             {
@@ -115,17 +121,15 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
               return
             }
           }
-        } catch (e) {
-          if (controller.signal.aborted) return
+
+          showToast("No se encontró lyrics por Id")
         }
 
-        showToast("No se encontró lyrics por Id")
-      }
+        const variants = getVariants(artist, track)
 
-      const variants = getVariants(artist, track)
+        for (const v of variants) {
+          if (requestId !== lastRequestRef.current) return
 
-      for (const v of variants) {
-        try {
           const res = await fetch(
             `https://lrclib.net/api/get?artist_name=${encodeURIComponent(v.artist)}&track_name=${encodeURIComponent(v.track)}`,
             {
@@ -143,28 +147,31 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
               return
             }
           }
-        } catch (e) {
-          if (controller.signal.aborted) return
+        }
+
+        setError('No lyrics found')
+        setSyncedLyric(null)
+        setPlainLyric(null)
+      } catch (e) {
+        if (controller.signal.aborted) return
+        setError('Lyrics error')
+      } finally {
+        if (requestId === lastRequestRef.current) {
+          setLoading(false)
         }
       }
-
-      setError('No lyrics found')
-      setSyncedLyric(null)
-      setPlainLyric(null)
-      setLoading(false)
     }
 
     fetchLyrics()
 
     return () => controller.abort()
-  }, [artist, track, lyricId])
+  }, [track, lyricId])
 
   useEffect(() => {
     if(syncedLyrics != null) {
       setLyric( (SL) ? syncedLyrics : plainLyrics )
     }
   }, [SL])
-  
 
   if (loading) {
     return (
