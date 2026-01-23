@@ -47,7 +47,7 @@ const PlayerScreen = () => {
     
     const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
 
-    const { modalVisible, setModalVisible } = useModalStore()
+    const [ modalVisible, setModalVisible ] = useState(false)
     const [ lyricId, setLyricId ] = useState(activeTrack?.lyric_id || '')
     const handleSave = () => {
         if (activeTrack) {

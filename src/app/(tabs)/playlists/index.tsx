@@ -31,7 +31,7 @@ const PlaylistsScreen = () => {
 	})
 
 	const { modalVisible, setModalVisible } = useModalStore()
-	const [playlistName, setPlaylistName] = useState('')
+	const [ playlistName, setPlaylistName ] = useState('')
 	const { playlists, addPlaylist } = usePlaylistStore()
 
 	const filteredPlaylists = useMemo(() => {
