@@ -6,6 +6,7 @@ import { useLyricStore } from '@/store/lyrics'
 import Constants from 'expo-constants'
 import { showToast } from '@/helpers/toast'
 import { Animated } from 'react-native'
+import axios from 'axios'
 
 type Props = {
    artist: string | undefined
@@ -110,27 +111,27 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
 
         if (requestId !== lastRequestRef.current) return
 
+        const axiosInstance = axios.create({
+          timeout: 15000,
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': `RGMusic/${Constants.expoConfig?.version || '1.0.0'}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
         if (lyricId) {
           const url = `https://lrclib.net/api/get/${lyricId}`
 
-          const res = await fetch(
-            url,
-            {
-              signal: controller.signal,
-              headers: {
-                Accept: 'application/json',
-                'User-Agent': `RGMusic/${Constants.expoConfig?.version || '1.0.0'}`
-              }
-            }
-          )
+          const { data } = await axiosInstance.get(url, {
+            signal: controller.signal
+          })
+
           console.log(`[RGMUSIC] LyricId: ${url}`)
 
-          if (res.ok) {
-            const data = await res.json()
-            if (data?.syncedLyrics || data?.plainLyrics) {
-              applyLyrics(data)
-              return
-            }
+          if (data?.syncedLyrics || data?.plainLyrics) {
+            applyLyrics(data)
+            return
           }
 
           showToast("No se encontró lyrics por Id")
@@ -143,36 +144,43 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
 
           const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(v.artist)}&track_name=${encodeURIComponent(v.track)}`
 
-          const res = await fetch(
-            url,
-            {
-              signal: controller.signal,
-              headers: {
-                Accept: 'application/json',
-                'User-Agent': `RGMusic/${Constants.expoConfig?.version || '1.0.0'}`
-              }
-            }
-          )
+          const { data } = await axiosInstance.get(url, {
+            signal: controller.signal
+          })
 
           console.warn(`[RGMUSIC] Variants: ${url}`)
-          if (res.ok) {
-            const data = await res.json()
-            if (data?.syncedLyrics || data?.plainLyrics) {
-              applyLyrics(data)
-              return
-            }
+          if (data?.syncedLyrics || data?.plainLyrics) {
+            applyLyrics(data)
+            return
           }
         }
 
         setError('No lyrics found')
       } catch (e : any) {
-        console.error('[RGMUSIC]', {
+        console.error('[RGMUSIC] Full error:', {
           message: e?.message,
-          name: e?.name,
-          stack: e?.stack
+          code: e?.code,
+          errno: e?.errno,
+          response: {
+            status: e?.response?.status,
+            data: e?.response?.data
+          },
+          request: e?.request ? 'made' : 'not made',
+          config: {
+            url: e?.config?.url,
+            method: e?.config?.method
+          }
         })
+        
         if (controller.signal.aborted) return
-        setError('Lyrics error')
+        
+        if (e?.code === 'ECONNABORTED') {
+          setError('Timeout - la conexión tardó mucho')
+        } else if (e?.message?.includes('Network Error')) {
+          setError('Error de red - verifica tu conexión')
+        } else {
+          setError('Error al cargar lyrics')
+        }
       } finally {
         if (requestId === lastRequestRef.current) {
           setLoading(false)
