@@ -1,6 +1,6 @@
 import { colors, fontSize } from '@/constants/tokens'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View, ScrollView, NativeScrollEvent, NativeSyntheticEvent, Dimensions } from 'react-native'
+import { ActivityIndicator, StyleSheet, Text, View, ScrollView, NativeScrollEvent, NativeSyntheticEvent, Dimensions, TouchableOpacity } from 'react-native'
 import { useProgress } from 'react-native-track-player'
 import { useLyricStore } from '@/store/lyrics'
 import Constants from 'expo-constants'
@@ -48,6 +48,8 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
   const [isLRC, setIsLRC] = useState(false)
   const {syncedLyrics : SL, setSyncedLyrics : setSL} = useLyricStore()
   const lastRequestRef = useRef(0)
+  
+  const [retryKey, setRetryKey] = useState(0)
    
   const getVariants = (artist?: string, track?: string) => {
     if (!track) return []
@@ -127,7 +129,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
             }
           }
 
-          console.log(`[RGMUSIC] LyricId: ${url}`)
+          console.warn(`[RGMUSIC] LyricId: ${url}`)
           showToast("No se encontró lyrics por Id")
         }
 
@@ -148,7 +150,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
             }
           )
 
-          console.log(`[RGMUSIC] Variants: ${url}`)
+          console.warn(`[RGMUSIC] Variants: ${url}`)
           if (res.ok) {
             const data = await res.json()
             if (data?.syncedLyrics || data?.plainLyrics) {
@@ -159,9 +161,14 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
         }
 
         setError('No lyrics found')
-      } catch (e) {
+      } catch (e : any) {
+        console.error('[LYRICS FETCH ERROR]', {
+          message: e?.message,
+          name: e?.name,
+          stack: e?.stack
+        })
         if (controller.signal.aborted) return
-        setError('Lyrics error')
+        setError('Lyrics error: ' + e)
       } finally {
         if (requestId === lastRequestRef.current) {
           setLoading(false)
@@ -172,7 +179,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
     fetchLyrics()
 
     return () => controller.abort()
-  }, [track, lyricId])
+  }, [track, lyricId, retryKey])
 
   useEffect(() => {
     if(syncedLyrics != null) {
@@ -191,7 +198,11 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
   if (!lyric) {
     return (
       <View style={styles.container}>
-        <Text style={{ color: colors.text }}>{error}</Text>
+        <Text style={styles.textError}>{error}</Text>
+
+        <TouchableOpacity style={styles.retryButton} onPress={() => setRetryKey(v => v + 1)}>
+          <Text style={styles.retryText}>Reintentar</Text>
+        </TouchableOpacity>
       </View>
     )
   }
@@ -406,12 +417,29 @@ const PlainLyricsView = ({ lyrics }: { lyrics: string }) => {
 }
 
 const styles = StyleSheet.create({
-   container: {
-      alignItems: 'center'
-   },
-   lyrics: {
-      textAlign: 'center',
-      fontSize: fontSize.lg,
-      color: colors.text
-   }
+  container: {
+    alignItems: 'center'
+  },
+  lyrics: {
+    textAlign: 'center',
+    fontSize: fontSize.lg,
+    color: colors.text
+  },
+  textError: {
+    color: colors.text,
+    fontSize: fontSize.base
+  },
+  retryButton: {
+    marginTop: 15,
+    paddingVertical: 2,
+    paddingHorizontal: 10,
+    borderColor: colors.textMuted,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    borderWidth: 1
+  },
+  retryText: {
+    color: colors.textMuted,
+    fontSize: fontSize.base
+  }
 })
