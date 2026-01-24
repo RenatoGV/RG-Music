@@ -118,7 +118,8 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
             {
               signal: controller.signal,
               headers: {
-                Accept: 'application/json'
+                Accept: 'application/json',
+                'User-Agent': `RGMusic/${Constants.expoConfig?.version || '1.0.0'}`
               }
             }
           )
@@ -147,7 +148,8 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
             {
               signal: controller.signal,
               headers: {
-                Accept: 'application/json'
+                Accept: 'application/json',
+                'User-Agent': `RGMusic/${Constants.expoConfig?.version || '1.0.0'}`
               }
             }
           )

@@ -28,7 +28,9 @@
       "versionCode": 35,
       "permissions": [
         "SCHEDULE_EXACT_ALARM",
-        "SYSTEM_ALERT_WINDOW"
+        "SYSTEM_ALERT_WINDOW",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
       ]
     },
     "web": {
@@ -58,7 +60,8 @@
       "expo-build-properties",
       {
         "android": {
-          "kotlinVersion": "1.9.25"
+          "kotlinVersion": "1.9.25",
+          "usesCleartextTraffic": true
         }
       }
     ]
