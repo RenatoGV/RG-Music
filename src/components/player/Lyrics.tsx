@@ -92,6 +92,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
 
   useEffect(() => {
     if (!track) return
+
     setLyric(null)
     setSyncedLyric(null)
     setPlainLyric(null)
@@ -103,11 +104,12 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
     const controller = new AbortController()
 
     const fetchLyrics = async () => {
-      await new Promise(r => setTimeout(r, 300))
-
-      if (requestId !== lastRequestRef.current) return
-
       try {
+        
+        await new Promise(r => setTimeout(r, 300))
+
+        if (requestId !== lastRequestRef.current) return
+
         if (lyricId) {
           const url = `https://lrclib.net/api/get/${lyricId}`
 
@@ -116,10 +118,11 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
             {
               signal: controller.signal,
               headers: {
-                'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`
+                Accept: 'application/json'
               }
             }
           )
+          console.log(`[RGMUSIC] LyricId: ${url}`)
 
           if (res.ok) {
             const data = await res.json()
@@ -129,7 +132,6 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
             }
           }
 
-          console.warn(`[RGMUSIC] LyricId: ${url}`)
           showToast("No se encontró lyrics por Id")
         }
 
@@ -145,7 +147,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
             {
               signal: controller.signal,
               headers: {
-                'User-Agent': `RG Music v${Constants.expoConfig?.version || '1.0.0'} (https://github.com/RenatoGV/RG-Music)`
+                Accept: 'application/json'
               }
             }
           )
@@ -162,13 +164,13 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
 
         setError('No lyrics found')
       } catch (e : any) {
-        console.error('[LYRICS FETCH ERROR]', {
+        console.error('[RGMUSIC]', {
           message: e?.message,
           name: e?.name,
           stack: e?.stack
         })
         if (controller.signal.aborted) return
-        setError('Lyrics error: ' + e)
+        setError('Lyrics error')
       } finally {
         if (requestId === lastRequestRef.current) {
           setLoading(false)
