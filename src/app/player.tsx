@@ -24,7 +24,6 @@ import { PlayerControlsLyrics } from '@/components/lyrics/PlayerControlsLyrics'
 import { AnimatedSubitle } from '@/components/lyrics/AnimatedSubtitle'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { TextInput } from 'react-native-gesture-handler'
-import { useModalStore } from '@/store/modal'
 import { FontAwesome6 } from '@expo/vector-icons'
 import { showToast } from '@/helpers/toast'
 import { useLibraryStore } from '@/store/library'

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Animated,
   Easing, StyleSheet, Pressable
@@ -15,6 +15,9 @@ type Props = {
 
 export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) => {
   const rotation = useRef(new Animated.Value(0)).current
+
+  const overlayAnim = useRef(new Animated.Value(0)).current
+  const [showOverlay, setShowOverlay] = useState(false)
 
   const handleFlip = () => {
     Animated.timing(rotation, {
@@ -41,6 +44,32 @@ export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) =
   const backOpacity = rotation.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, 1, 1],
+  })
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowOverlay(true)
+      overlayAnim.setValue(0)
+      Animated.timing(overlayAnim, {
+        toValue: 1,
+        duration: 900,
+        useNativeDriver: true
+      }).start(() => {
+        Animated.timing(overlayAnim, {
+          toValue: 0,
+          duration: 900,
+          delay: 2000,
+          useNativeDriver: true
+        }).start(() => setShowOverlay(false))
+      })
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const overlayOpacity = overlayAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.7]
   })
 
   return (
@@ -76,6 +105,21 @@ export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) =
                   },
                 ]}
               />
+
+              {showOverlay && (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[
+                  styles.overlay,
+                  { opacity: overlayOpacity }
+                  ]}
+                >
+                  <FastImage
+                    source={require('@/assets/icons/microphone.png')}
+                    style={{ width: 70, height: 84 }}
+                  />
+                </Animated.View>
+              )}
     </Pressable>
   )
 }
@@ -104,4 +148,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'black',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
 })
