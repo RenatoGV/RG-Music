@@ -3,10 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, StyleSheet, Text, View, ScrollView, NativeScrollEvent, NativeSyntheticEvent, Dimensions, TouchableOpacity } from 'react-native'
 import { useProgress } from 'react-native-track-player'
 import { useLyricStore } from '@/store/lyrics'
-import Constants from 'expo-constants'
 import { showToast } from '@/helpers/toast'
 import { Animated } from 'react-native'
-import axios from 'axios'
+import { createLyricsAxiosInstance, logNetworkError } from '@/helpers/networkRequest'
 
 type Props = {
    artist: string | undefined
@@ -111,14 +110,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
 
         if (requestId !== lastRequestRef.current) return
 
-        const axiosInstance = axios.create({
-          timeout: 15000,
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': `RGMusic/${Constants.expoConfig?.version || '1.0.0'}`,
-            'Content-Type': 'application/json'
-          }
-        })
+        const axiosInstance = createLyricsAxiosInstance()
 
         if (lyricId) {
           const url = `https://lrclib.net/api/get/${lyricId}`
@@ -157,27 +149,14 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
 
         setError('No lyrics found')
       } catch (e : any) {
-        console.error('[RGMUSIC] Full error:', {
-          message: e?.message,
-          code: e?.code,
-          errno: e?.errno,
-          response: {
-            status: e?.response?.status,
-            data: e?.response?.data
-          },
-          request: e?.request ? 'made' : 'not made',
-          config: {
-            url: e?.config?.url,
-            method: e?.config?.method
-          }
-        })
+        logNetworkError(e)
         
         if (controller.signal.aborted) return
         
         if (e?.code === 'ECONNABORTED') {
           setError('Timeout - la conexión tardó mucho')
-        } else if (e?.message?.includes('Network Error')) {
-          setError('Error de red - verifica tu conexión')
+        } else if (e?.message?.includes('Network Error') || e?.code === 'ERR_NETWORK') {
+          setError('Error de red - verifica tu conexión a internet')
         } else {
           setError('Error al cargar lyrics')
         }
