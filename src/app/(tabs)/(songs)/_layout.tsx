@@ -1,7 +1,7 @@
 import { StackScreenWithSearchBar } from '@/constants/layout'
 import { useLibraryStore } from '@/store/library'
 import { defaultStyles } from '@/styles'
-import { Stack, useRouter } from 'expo-router'
+import { Stack } from 'expo-router'
 import { TouchableOpacity, View } from 'react-native'
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { colors } from '@/constants/tokens'

@@ -32,7 +32,7 @@ export const useTrackPlayerFavorite = () => {
             clearTimeout(debounceRef.current)
         }
 
-        debounceRef.current = setTimeout(async () => {
+        debounceRef.current = setTimeout(() => {
             if (lastUrlRef.current !== activeTrack.url) return
 
             toggleTrackFavorite(activeTrack)

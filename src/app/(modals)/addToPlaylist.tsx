@@ -10,7 +10,7 @@ import { screenPadding } from '@/constants/tokens'
 import { usePlaylistStore } from '@/store/playlist'
 import { showToast } from '@/helpers/toast'
 
-const addToPlaylistModal = () => {
+const AddToPlaylistModal = () => {
     const router = useRouter()
 
     const { activeQueueId } = useQueue()
@@ -28,16 +28,16 @@ const addToPlaylistModal = () => {
     }
 
     const availablePlaylists = playlists?.filter(
-        (playlist) => !playlist.tracksUri.some((playlistTrack) => playlistTrack === track.url)
+        (playlist) => !playlist.tracksUri.includes(track.url)
     )
 
-    const handlePlaylistPress = async(playlist: Playlist) => {
+    const handlePlaylistPress = (playlist: Playlist) => {
         addToPlaylist(track.url, playlist)
 
         router.dismiss()
 
         if(activeQueueId?.startsWith(playlist.name)){
-            await TrackPlayer.add(track)
+            TrackPlayer.add(track)
         }
 
         showToast(`Agregado a ${playlist.name}`)
@@ -57,4 +57,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default addToPlaylistModal
+export default AddToPlaylistModal

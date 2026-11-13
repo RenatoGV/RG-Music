@@ -49,7 +49,7 @@ export const PlayerRepeatToggle = ({...iconProps} : IconProps) => {
         const currentIndex = repeatOrder.indexOf(repeatMode)
         const nextIndex = (currentIndex + 1) % repeatOrder.length
 
-        changeRepeatMode(repeatOrder[nextIndex])
+        void changeRepeatMode(repeatOrder[nextIndex])
     }
 
     const icon = match(repeatMode)

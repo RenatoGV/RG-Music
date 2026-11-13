@@ -3,7 +3,7 @@ import { Event, useTrackPlayerEvents } from "@/helpers/track-player-compat";
 const events = [Event.PlaybackState, Event.PlaybackError, Event.PlaybackActiveTrackChanged]
 
 export const useLogTrackPlayerState = () => {
-    useTrackPlayerEvents(events, async(event) => {
+    useTrackPlayerEvents(events, (event) => {
         if(event.type === Event.PlaybackError) {
             console.warn('An error ocurred: ', event)
         }

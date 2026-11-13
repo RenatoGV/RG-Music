@@ -1,22 +1,22 @@
 import { useEffect, useRef } from "react"
 import TrackPlayer, { Capability, RepeatMode } from "@/helpers/track-player-compat"
 
-const setupPlayer = async() => {
-    await TrackPlayer.setupPlayer({
-        maxCacheSize: 1024 * 10
-    })
+const setupPlayer = () => {
+	TrackPlayer.setupPlayer({
+		maxCacheSize: 1024 * 10
+	})
 
-    await TrackPlayer.updateOptions({
-        capabilities: [
-            Capability.Play,
-            Capability.Pause,
-            Capability.SkipToNext,
-            Capability.SkipToPrevious
-        ]
-    })
+	TrackPlayer.updateOptions({
+		capabilities: [
+			Capability.Play,
+			Capability.Pause,
+			Capability.SkipToNext,
+			Capability.SkipToPrevious
+		]
+	})
 
-    await TrackPlayer.setVolume(1)
-    await TrackPlayer.setRepeatMode(RepeatMode.Queue)
+	TrackPlayer.setVolume(1)
+	TrackPlayer.setRepeatMode(RepeatMode.Queue)
 }
 
 export const useSetupTrackPlayer = ({
@@ -32,14 +32,15 @@ export const useSetupTrackPlayer = ({
 	useEffect(() => {
 		let isActive = true
 
-		if (!setupPromise.current) {
-			setupPromise.current = setupPlayer()
-				.then(() => true)
-				.catch((error) => {
-					console.error('Error setting up Track Player', error)
-					return false
-				})
-		}
+		setupPromise.current ??= Promise.resolve()
+			.then(() => {
+				setupPlayer()
+				return true
+			})
+			.catch((error: unknown) => {
+				console.error('Error setting up Track Player', error)
+				return false
+			})
 
 		void setupPromise.current.then(async (playerReady) => {
 			if (!isActive || onLoadCalled.current) return

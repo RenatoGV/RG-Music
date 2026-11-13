@@ -22,24 +22,23 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
     const {setActiveQueueId} = useQueue()
 
     useEffect(() => {
-        if (!activeTrack && !(lastActiveTrack && currentTrack)) return
-
-        const nextTrack = activeTrack ?? lastActiveTrack
-        if (!nextTrack) return
+        // Keep the last track as the initial display value, but don't restore it
+        // after the queue has been cleared (for example, after swiping away).
+        if (!activeTrack) return
 
         setCurrentTrack((previousTrack) => {
             if (
-                previousTrack?.url === nextTrack.url &&
-                previousTrack.title === nextTrack.title &&
-                previousTrack.artist === nextTrack.artist &&
-                previousTrack.artwork === nextTrack.artwork
+                previousTrack?.url === activeTrack.url &&
+                previousTrack.title === activeTrack.title &&
+                previousTrack.artist === activeTrack.artist &&
+                previousTrack.artwork === activeTrack.artwork
             ) {
                 return previousTrack
             }
 
-            return nextTrack
+            return activeTrack
         })
-      }, [activeTrack, lastActiveTrack, currentTrack])
+    }, [activeTrack])
 
     // Swipe Action
     const translateX = useRef(new Animated.Value(0)).current
@@ -47,38 +46,36 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
 
     const panResponder = useRef(
         PanResponder.create({
-          onStartShouldSetPanResponder: () => true,
-          onPanResponderMove: (_, gestureState) => {
-            translateX.setValue(gestureState.dx);
-          },
-          onPanResponderRelease: (_, gestureState) => {
-            if (Math.abs(gestureState.dx) > swipeThreshold) {
-              Animated.timing(translateX, {
-                toValue: gestureState.dx > 0 ? 500 : -500,
-                duration: 200,
-                useNativeDriver: true,
-              }).start(async () => {
-                await TrackPlayer.reset()
-                setActiveQueueId(null)
-                setCurrentTrack(undefined)
-                saveData('playback_queue', '')
-                saveData('playback_position', '')
-                
-                translateX.setValue(0);
-              });
-            } else {
-                if (
-                    Math.abs(gestureState.dx) < 5 &&
-                    Math.abs(gestureState.dy) < 5
-                  ) {
-                    router.navigate("/player");
-                  }
-                  Animated.spring(translateX, {
-                    toValue: 0,
+            onStartShouldSetPanResponder: () => true,
+            onPanResponderMove: (_, gestureState) => {
+                translateX.setValue(gestureState.dx);
+            },
+            onPanResponderRelease: (_, gestureState) => {
+                if (Math.abs(gestureState.dx) > swipeThreshold) {
+                Animated.timing(translateX, {
+                    toValue: gestureState.dx > 0 ? 500 : -500,
+                    duration: 200,
                     useNativeDriver: true,
-                  }).start()
-            }
-          },
+                }).start(() => {
+                    TrackPlayer.reset()
+
+                    setActiveQueueId(null)
+                    setCurrentTrack(undefined)
+                    saveData('playback_queue', '')
+                    saveData('playback_position', '')
+                    
+                    translateX.setValue(0);
+                });
+                } else {
+                    if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5) {
+                        router.navigate("/player");
+                    }
+                    Animated.spring(translateX, {
+                        toValue: 0,
+                        useNativeDriver: true,
+                    }).start()
+                }
+            },
         })
     ).current
     

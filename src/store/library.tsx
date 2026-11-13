@@ -1,5 +1,4 @@
-import { Artist } from "@/helpers/types";
-import { Track } from "@/helpers/types";
+import { Track, Artist } from "@/helpers/types";
 import { create } from "zustand";
 import { useMemo } from "react";
 import { saveData } from "@/helpers/storage";
@@ -23,7 +22,7 @@ export const useLibraryStore = create<LibraryState>()((set, get) => ({
     progressLoading: 0,
     setIsLoading: (isLoading) => set({isLoading: isLoading}),
     setTracks: (tracks) => set({tracks: tracks}),
-	toggleTrackFavorite: async (track) => {
+	toggleTrackFavorite: (track) => {
 		set((state) => ({
 			tracks: state.tracks?.map((currentTrack) => {
 				if (currentTrack.url === track.url) {

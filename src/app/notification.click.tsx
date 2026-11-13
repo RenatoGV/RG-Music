@@ -3,6 +3,7 @@ import { useRootNavigationState, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import splashIcon from '@/assets/splash-icon.png'
 
 export default function NotificationClick() {
   const router = useRouter()
@@ -18,12 +19,12 @@ export default function NotificationClick() {
     }, 300)
 
     return () => clearTimeout(timeout)
-  }, [navigationState?.key])
+  }, [navigationState?.key, router])
   
   return (
     <LinearGradient colors={['#fc3c44', '#383838']} style={styles.container}>
       <FastImage
-          source={require('@/assets/splash-icon.png')}
+          source={splashIcon}
           style={{ height: 100, width: 100 }}
       />
     </LinearGradient>

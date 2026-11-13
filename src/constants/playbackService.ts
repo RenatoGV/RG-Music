@@ -1,44 +1,33 @@
 import { scheduleAlarmNotification } from "@/helpers/notifications"
-import { loadData, saveData } from "@/helpers/storage"
+import { saveData } from "@/helpers/storage"
 import TrackPlayer, { Event } from "@/helpers/track-player-compat"
 
-let lastSaved = 0
-
-export const playbackService = async () => {
-    TrackPlayer.addEventListener(Event.RemotePlay, () => {
-        TrackPlayer.play()
-    })
-
-    TrackPlayer.addEventListener(Event.RemotePause, () => {
-        TrackPlayer.pause()
-    })
-
-    TrackPlayer.addEventListener(Event.RemoteNext, () => {
-        TrackPlayer.skipToNext()
-    })
-
-    TrackPlayer.addEventListener(Event.RemotePrevious, () => {
-        TrackPlayer.skipToPrevious()
+export const playbackService = () => {
+    TrackPlayer.registerRemoteHandlers({
+        play: (command) => command.performDefault(),
+        pause: (command) => command.performDefault(),
+        next: (command) => command.performDefault(),
+        previous: (command) => command.performDefault(),
     })
 
     TrackPlayer.addEventListener(Event.PlaybackError, async() => {
-        const track = await TrackPlayer.getActiveTrack()
-        await scheduleAlarmNotification({title: 'Error al reproducir', message: `No se pudo reproducir ${track?.title}`})        
-        await TrackPlayer.skipToNext()
+        const track = TrackPlayer.getActiveTrack()
+        await scheduleAlarmNotification({title: 'Error al reproducir', message: `No se pudo reproducir ${track?.title}`})
+        TrackPlayer.skipToNext()
     })
 
-    TrackPlayer.addEventListener(Event.PlaybackState, async ({ state }) => {
+    TrackPlayer.addEventListener(Event.PlaybackState, ({ state }) => {
         if (state === 'paused' || state === 'stopped') {
-            const position = (await TrackPlayer.getProgress()).position
+            const position = (TrackPlayer.getProgress()).position
             saveData('playback_position', position)
         }
     })
 
-    TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, async({ track }) => {
+    TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, ({ track }) => {
         if(track == null) return
 
-        const queue = await TrackPlayer.getQueue()
-        const index = await TrackPlayer.getActiveTrackIndex()
+        const queue = TrackPlayer.getQueue()
+        const index = TrackPlayer.getActiveTrackIndex()
 
         saveData(
             'playback_queue',
@@ -48,7 +37,7 @@ export const playbackService = async () => {
             })
         )
 
-        const position = (await TrackPlayer.getProgress()).position
+        const position = (TrackPlayer.getProgress()).position
         saveData('playback_position', position)
         
         console.log('💾 Queue + track index + position saved - BG')

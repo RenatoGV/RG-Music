@@ -1,5 +1,5 @@
 import { colors, fontSize } from '@/constants/tokens'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, StyleSheet, Text, View, ScrollView, NativeScrollEvent, NativeSyntheticEvent, Dimensions, TouchableOpacity, type ScrollViewInstance } from 'react-native'
 import { useProgress } from '@/helpers/track-player-compat'
 import { useLyricStore } from '@/store/lyrics'
@@ -8,9 +8,9 @@ import { Animated } from 'react-native'
 import { createLyricsAxiosInstance, logNetworkError } from '@/helpers/networkRequest'
 
 type Props = {
-   artist: string | undefined
-   track: string | undefined
-   lyricId: string | undefined
+  artist: string | undefined
+  track: string | undefined
+  lyricId: string | undefined
 }
 
 interface LyricLine {
@@ -24,11 +24,11 @@ const parseLRC = (lrcText: string): LyricLine[] => {
   const lyricLines: LyricLine[] = []
 
   lines.forEach(line => {
-    const timeMatch = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\]/)
+    const timeMatch = /\[(\d{2}):(\d{2})\.(\d{2})\]/.exec(line)
     if (timeMatch) {
-      const minutes = parseInt(timeMatch[1])
-      const seconds = parseInt(timeMatch[2])
-      const centiseconds = parseInt(timeMatch[3])
+      const minutes = Number.parseInt(timeMatch[1])
+      const seconds = Number.parseInt(timeMatch[2])
+      const centiseconds = Number.parseInt(timeMatch[3])
       const time = minutes * 60 + seconds + centiseconds / 100
       const content = line.replace(/\[\d{2}:\d{2}\.\d{2}\]/g, '').trim()
       
@@ -41,8 +41,8 @@ const parseLRC = (lrcText: string): LyricLine[] => {
 
 export const Lyrics = ({artist, track, lyricId} : Props) => {
   const [lyric, setLyric] = useState<string | null>(null)
-  const [syncedLyrics, setSyncedLyric] = useState<string | null>(null)
-  const [plainLyrics, setPlainLyric] = useState<string | null>(null)
+  const [syncedLyrics, setSyncedLyrics] = useState<string | null>(null)
+  const [plainLyrics, setPlainLyrics] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isLRC, setIsLRC] = useState(false)
@@ -50,7 +50,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
   const lastRequestRef = useRef(0)
   
   const [retryKey, setRetryKey] = useState(0)
-   
+
   const getVariants = (artist?: string, track?: string) => {
     if (!track) return []
     const variants = [{ artist: artist?.trim() ?? '', track: track.trim() }]
@@ -66,7 +66,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
 
     if(artist?.includes('/')) {
       const artists = artist.split('/')
-      artists.map(a => {
+      artists.forEach(a => {
         variants.push({
           artist: a,
           track: track
@@ -77,25 +77,25 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
     return variants
   }
 
-  const applyLyrics = (data: any) => {
-    const plainLyrics = data.plainLyrics.replace(/\n+/g, (match : any) => match + '\n') ?? null
+  const applyLyrics = useCallback((data: any) => {
+    const plainLyrics = data.plainLyrics?.replace(/\n+/g, (match : any) => match + '\n') ?? null
 
     setLyric((data.syncedLyrics && SL) ? data.syncedLyrics : plainLyrics)
 
     if (!data.syncedLyrics) setSL(false)
 
-    setSyncedLyric(data.syncedLyrics ?? null)
-    setPlainLyric(plainLyrics)
+    setSyncedLyrics(data.syncedLyrics ?? null)
+    setPlainLyrics(plainLyrics)
     setIsLRC(!!data.syncedLyrics)
     setLoading(false)
-  }
+  }, [SL, setSL])
 
   useEffect(() => {
     if (!track) return
 
     setLyric(null)
-    setSyncedLyric(null)
-    setPlainLyric(null)
+    setSyncedLyrics(null)
+    setPlainLyrics(null)
     setIsLRC(false)
     setError(null)
     setLoading(true)
@@ -167,16 +167,16 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
       }
     }
 
-    fetchLyrics()
+    void fetchLyrics()
 
     return () => controller.abort()
-  }, [track, lyricId, retryKey])
+  }, [track, artist, lyricId, retryKey, applyLyrics])
 
   useEffect(() => {
     if(syncedLyrics != null) {
       setLyric( (SL) ? syncedLyrics : plainLyrics )
     }
-  }, [SL])
+  }, [SL, syncedLyrics, plainLyrics])
 
   if (loading) {
     return (
@@ -217,7 +217,7 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
   const [scrollOffset, setScrollOffset] = useState(0)
   const [isUserScrolling, setIsUserScrolling] = useState(false)
   
-  const lyricLines = parseLRC(lyrics)
+  const lyricLines = useMemo(() => parseLRC(lyrics), [lyrics])
   const scrollViewRef = useRef<ScrollViewInstance | null>(null)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastActiveIndexRef = useRef(0)
@@ -288,7 +288,7 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
     }, 1000)
   }
 
-  const activeLineIndex = isUserScrolling 
+  const activeLineIndex = isUserScrolling
     ? Math.round(scrollOffset / LINE_HEIGHT)
     : autoPlayLineIndex
 
@@ -299,8 +299,7 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
       const distance = Math.abs(index - activeLineIndex)
 
       let targetScale = 1
-      if (distance === 0) targetScale = 1
-      else if (distance === 1) targetScale = 0.85
+      if (distance === 1) targetScale = 0.85
       else targetScale = 0.75
 
       Animated.spring(anim, {
@@ -340,7 +339,7 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
     setAnimatedScales(
       lyricLines.map(() => new Animated.Value(1))
     )
-  }, [lyricLines.length])
+  }, [lyricLines])
 
   return (
     <View style={{ flex: 1 }}>
@@ -363,7 +362,7 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
 
           return (
             <View
-              key={index}
+              key={`${line.time}-${line.content}`}
               style={{
                 height: LINE_HEIGHT,
                 justifyContent: 'center',

@@ -4,11 +4,11 @@ import { Platform } from "react-native";
 
 Notifications.setNotificationHandler({
    handleNotification: async () => ({
-     shouldShowAlert: true,
-     shouldShowBanner: true,
-     shouldShowList: true,
-     shouldPlaySound: true,
-     shouldSetBadge: false,
+      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
    }),
 })
 
@@ -22,13 +22,13 @@ export async function requestNotificationPermission(): Promise<void> {
 
 export async function configureNotificationChannel() {
    if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#fc3c44"
-    });
-  }
+      await Notifications.setNotificationChannelAsync("default", {
+         name: "default",
+         importance: Notifications.AndroidImportance.HIGH,
+         vibrationPattern: [0, 250, 250, 250],
+         lightColor: "#fc3c44"
+      });
+   }
 }
 
 export async function scheduleAlarmNotification( options: { title: string; message: string; } ) {

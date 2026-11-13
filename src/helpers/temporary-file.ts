@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy'
+import * as Crypto from 'expo-crypto'
 
-const generateSessionId = () => `${Date.now()}_${Math.random().toString(36).slice(2)}`
+const generateSessionId = () => Crypto.randomUUID()
 
 export const createTempSessionDir = async () => {
   const sessionId = generateSessionId();
@@ -41,7 +42,7 @@ export const getTemporaryFileName = (uri : string) => {
   const name = uri.split('/').pop() || 'Audio'
   try {
     return decodeURIComponent(name)
-  } catch (e) {
+  } catch {
     return name
   }
 }

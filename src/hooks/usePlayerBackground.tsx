@@ -8,11 +8,11 @@ export const usePlayerBackground = (imageUrl: string) => {
 	const [imageColors, setImageColors] = useState<AndroidImageColors | null>(null)
 
 	useEffect(() => {
-        if(imageUrl === unknownTrackImageUri) return
+		if(imageUrl === unknownTrackImageUri) return
 
-        if(!imageUrl) return
+		if(!imageUrl) return
 
-		getColors(imageUrl, {
+		void getColors(imageUrl, {
 			fallback: colors.background,
 			cache: true,
 			key: imageUrl,

@@ -4,6 +4,7 @@ import {
   Easing, StyleSheet, Pressable
 } from 'react-native'
 import FastImage from 'react-native-fast-image'
+import microphoneIcon from '@/assets/icons/microphone.png'
 
 const AnimatedImage = Animated.createAnimatedComponent(FastImage)
 
@@ -65,7 +66,7 @@ export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) =
     }, 10000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [overlayAnim])
 
   const overlayOpacity = overlayAnim.interpolate({
     inputRange: [0, 1],
@@ -75,51 +76,50 @@ export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) =
   return (
     <Pressable style={styles.artworkImageContainer} onPress={handleFlip} >
       <AnimatedImage
-                source={{
-                  uri: artwork ?? unknownTrackImageUri,
-                  priority: FastImage.priority.high,
-                }}
-                objectFit="cover"
-                style={[
-                  styles.artworkImage,
-                  {
-                    transform: [
-                      { perspective: 1000 },
-                      { rotateX },
-                    ],
-                    opacity: frontOpacity,
-                  },
-                ]}
-              />
+        source={{
+          uri: artwork ?? unknownTrackImageUri
+        }}
+        objectFit="cover"
+        style={[
+          styles.artworkImage,
+          {
+            transform: [
+              { perspective: 1000 },
+              { rotateX },
+            ],
+            opacity: frontOpacity,
+          },
+        ]}
+      />
 
-              <Animated.View
-                style={[
-                  styles.artworkImage,
-                  styles.backside,
-                  {
-                    transform: [
-                      { perspective: 1000 },
-                      { rotateX },
-                    ],
-                    opacity: backOpacity,
-                  },
-                ]}
-              />
+      <Animated.View
+        style={[
+          styles.artworkImage,
+          styles.backside,
+          {
+            transform: [
+              { perspective: 1000 },
+              { rotateX },
+            ],
+            opacity: backOpacity,
+          },
+        ]}
+      />
 
-              {showOverlay && (
-                <Animated.View
-                  pointerEvents="none"
-                  style={[
-                  styles.overlay,
-                  { opacity: overlayOpacity }
-                  ]}
-                >
-                  <FastImage
-                    source={require('@/assets/icons/microphone.png')}
-                    style={{ width: 70, height: 84 }}
-                  />
-                </Animated.View>
-              )}
+      {showOverlay && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+          styles.overlay,
+          { opacity: overlayOpacity }
+          ]}
+        >
+          <FastImage
+            source={microphoneIcon}
+            style={{ width: 70, height: 84 }}
+          />
+        </Animated.View>
+      )}
     </Pressable>
   )
 }

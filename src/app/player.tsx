@@ -5,7 +5,6 @@ import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useActiveTrack } from '@/helpers/track-player-compat'
 import { Track } from '@/helpers/types'
-import { FontAwesome } from '@expo/vector-icons'
 import { PlayerControls } from '@/components/player/PlayerControls'
 import { PlayerProgressbar } from '@/components/player/PlayerProgressbar'
 import { PlayerVolumenbar } from '@/components/player/PlayerVolumenbar'
@@ -24,7 +23,7 @@ import { PlayerControlsLyrics } from '@/components/lyrics/PlayerControlsLyrics'
 import { AnimatedSubitle } from '@/components/lyrics/AnimatedSubtitle'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { TextInput } from 'react-native-gesture-handler'
-import { FontAwesome6 } from '@expo/vector-icons'
+import { FontAwesome, FontAwesome6 } from '@expo/vector-icons'
 import { showToast } from '@/helpers/toast'
 import { useLibraryStore } from '@/store/library'
 import { router } from 'expo-router'
@@ -68,9 +67,9 @@ const PlayerScreen = () => {
 
     useEffect(() => {
         if(showLyrics){
-            activateKeepAwakeAsync('rg-music')
+            void activateKeepAwakeAsync('rg-music')
         }else{
-            deactivateKeepAwake('rg-music')
+            void deactivateKeepAwake('rg-music')
         }
     }, [showLyrics])
 

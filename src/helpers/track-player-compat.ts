@@ -20,10 +20,6 @@ export type Track = {
 }
 
 export enum Event {
-  RemotePlay = 'remote-play',
-  RemotePause = 'remote-pause',
-  RemoteNext = 'remote-next',
-  RemotePrevious = 'remote-previous',
   PlaybackError = 'playback-error',
   PlaybackState = 'playback-state',
   PlaybackActiveTrackChanged = 'playback-active-track-changed',
@@ -64,9 +60,14 @@ const fromMediaItem = (item: MediaItem | null | undefined): Track | undefined =>
     : artworkUrl && typeof artworkUrl === 'object' && 'uri' in artworkUrl
       ? String(artworkUrl.uri)
       : undefined
+  const url = typeof item.url === 'string'
+    ? item.url
+    : item.url && typeof item.url === 'object' && 'uri' in item.url
+      ? String(item.url.uri)
+      : ''
   return {
     title: item.title ?? '',
-    url: typeof item.url === 'string' ? item.url : String(item.url),
+    url,
     artist: item.artist,
     artwork,
     rating: typeof extras.rating === 'number' ? extras.rating : undefined,
@@ -94,23 +95,14 @@ const addEventListener = (event: Event, listener: LegacyListener) => {
     })
   }
 
-  const eventMap: Record<Event, V5Event> = {
-    [Event.RemotePlay]: V5Event.RemotePlay,
-    [Event.RemotePause]: V5Event.RemotePause,
-    [Event.RemoteNext]: V5Event.RemoteNext,
-    [Event.RemotePrevious]: V5Event.RemotePrevious,
-    [Event.PlaybackError]: V5Event.PlaybackError,
-    [Event.PlaybackState]: V5Event.PlaybackStateChanged,
-    [Event.PlaybackActiveTrackChanged]: V5Event.MediaItemTransition,
-  }
-  return TrackPlayerV5.addEventListener(eventMap[event] as any, listener as any)
+  return TrackPlayerV5.addEventListener(V5Event.PlaybackError, listener as any)
 }
 
 const TrackPlayer = {
-  setupPlayer: async (options?: { maxCacheSize?: number }) => TrackPlayerV5.setupPlayer({
+  setupPlayer: (options?: { maxCacheSize?: number }) => TrackPlayerV5.setupPlayer({
     cache: options?.maxCacheSize ? { maxSizeBytes: options.maxCacheSize * 1024 * 1024 } : undefined,
   }),
-  updateOptions: async (options: { capabilities?: Capability[] }) => TrackPlayerV5.setCommands({
+  updateOptions: (options: { capabilities?: Capability[] }) => TrackPlayerV5.setCommands({
     capabilities: (options.capabilities ?? []).map((capability) => {
       switch (capability) {
         case Capability.Play:
@@ -121,6 +113,7 @@ const TrackPlayer = {
     }).filter(Boolean) as PlayerCommand[],
   }),
   registerPlaybackService: (service: () => void | Promise<void>) => TrackPlayerV5.registerPlaybackSession(service),
+  registerRemoteHandlers: TrackPlayerV5.registerRemoteHandlers,
   addEventListener,
   play: TrackPlayerV5.play,
   pause: TrackPlayerV5.pause,
@@ -131,7 +124,7 @@ const TrackPlayer = {
   getVolume: TrackPlayerV5.getVolume,
   getProgress: TrackPlayerV5.getProgress,
   setRepeatMode: (mode: RepeatMode) => TrackPlayerV5.setRepeatMode(mode as unknown as V5RepeatMode),
-  getRepeatMode: async () => {
+  getRepeatMode: () => {
     const mode = TrackPlayerV5.getRepeatMode()
     return mode === V5RepeatMode.One ? RepeatMode.Track : mode === V5RepeatMode.All ? RepeatMode.Queue : RepeatMode.Off
   },
@@ -145,7 +138,7 @@ const TrackPlayer = {
   getQueue: () => TrackPlayerV5.getQueue().map((item) => fromMediaItem(item)!).filter(Boolean),
   getActiveTrack: () => fromMediaItem(TrackPlayerV5.getActiveMediaItem()),
   getActiveTrackIndex: TrackPlayerV5.getActiveMediaItemIndex,
-  getPlaybackState: async () => ({
+  getPlaybackState: () => ({
     state: TrackPlayerV5.getQueue().length === 0 ? 'none' : TrackPlayerV5.isPlaying() ? 'playing' : 'paused',
   }),
 }
@@ -164,8 +157,8 @@ export const useTrackPlayerEvents = (events: Event[], handler: (event: any) => v
   }, [events, handler])
 }
 
-export const getPlaybackState = async () => ({
+export const getPlaybackState = () => ({
   state: TrackPlayerV5.getQueue().length === 0 ? 'none' : TrackPlayerV5.isPlaying() ? 'playing' : 'paused',
 })
 
-export { TrackPlayer as default }
+export default TrackPlayer

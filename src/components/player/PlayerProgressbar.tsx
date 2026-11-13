@@ -39,15 +39,15 @@ export const PlayerProgressbar = ({style} : ViewProps) => {
                 maximumTrackTintColor: colors.maximumTrackTintColor
             }}
             onSlidingStart={() => (isSliding.value = true)}
-            onValueChange={async(value) => {
-                await TrackPlayer.seekTo(value * duration)
+            onValueChange={(value) => {
+                TrackPlayer.seekTo(value * duration)
             }}
-            onSlidingComplete={async(value) => {
+            onSlidingComplete={(value) => {
                 if(!isSliding.value) return
 
                 isSliding.value = false
 
-                await TrackPlayer.seekTo(value * duration)
+                TrackPlayer.seekTo(value * duration)
             }}
         />
 

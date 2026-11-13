@@ -10,16 +10,16 @@ type QueueControlsProps = {
 } & ViewProps
 
 export const QueueControls = ({tracks, style, ...viewProps} : QueueControlsProps) => {
-    const handlePlay = async() => {
-        await TrackPlayer.setQueue(tracks)
-        await TrackPlayer.play()
+    const handlePlay = () => {
+        TrackPlayer.setQueue(tracks)
+        TrackPlayer.play()
     }
 
-    const handleShufflePlay = async() => {
+    const handleShufflePlay = () => {
         const shuffledTracks = [...tracks].sort(() => Math.random() - 0.5 )
 
-        await TrackPlayer.setQueue(shuffledTracks)
-        await TrackPlayer.play()
+        TrackPlayer.setQueue(shuffledTracks)
+        TrackPlayer.play()
     }
 
     return (
