@@ -3,7 +3,7 @@ import { defaultStyles } from "@/styles"
 import React, { useEffect, useRef, useState } from "react"
 import { Animated, PanResponder, StyleSheet, View, ViewProps } from "react-native"
 import FastImage from "react-native-fast-image"
-import TrackPlayer, { useActiveTrack } from "react-native-track-player"
+import TrackPlayer, { useActiveTrack } from "@/helpers/track-player-compat"
 import { PlayPauseButton, SkipToNextButton } from "@/components/player/PlayerControls"
 import { useLastActiveTrack } from "@/hooks/useLastActiveTrack"
 import { BlurView } from "expo-blur"
@@ -22,12 +22,24 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
     const {setActiveQueueId} = useQueue()
 
     useEffect(() => {
-        // if(!activeTrack) return setCurrentTrack(undefined)
+        if (!activeTrack && !(lastActiveTrack && currentTrack)) return
 
-        if (activeTrack || lastActiveTrack && currentTrack) {
-          setCurrentTrack(activeTrack ?? lastActiveTrack);
-        }
-      }, [activeTrack, lastActiveTrack])
+        const nextTrack = activeTrack ?? lastActiveTrack
+        if (!nextTrack) return
+
+        setCurrentTrack((previousTrack) => {
+            if (
+                previousTrack?.url === nextTrack.url &&
+                previousTrack.title === nextTrack.title &&
+                previousTrack.artist === nextTrack.artist &&
+                previousTrack.artwork === nextTrack.artwork
+            ) {
+                return previousTrack
+            }
+
+            return nextTrack
+        })
+      }, [activeTrack, lastActiveTrack, currentTrack])
 
     // Swipe Action
     const translateX = useRef(new Animated.Value(0)).current

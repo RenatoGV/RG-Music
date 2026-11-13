@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import TrackPlayer, { Capability, RatingType, RepeatMode } from "react-native-track-player"
+import TrackPlayer, { Capability, RepeatMode } from "@/helpers/track-player-compat"
 
 const setupPlayer = async() => {
     await TrackPlayer.setupPlayer({
@@ -7,7 +7,6 @@ const setupPlayer = async() => {
     })
 
     await TrackPlayer.updateOptions({
-        ratingType: RatingType.Heart,
         capabilities: [
             Capability.Play,
             Capability.Pause,
@@ -20,20 +19,41 @@ const setupPlayer = async() => {
     await TrackPlayer.setRepeatMode(RepeatMode.Queue)
 }
 
-export const useSetupTrackPlayer = ({onLoad}: {onLoad?: () => void}) => {
-    const isInitialized = useRef(false)
+export const useSetupTrackPlayer = ({
+	onLoad,
+}: {
+	onLoad?: (playerReady: boolean) => void | Promise<void>
+}) => {
+	const setupPromise = useRef<Promise<boolean> | null>(null)
+	const onLoadRef = useRef(onLoad)
+	const onLoadCalled = useRef(false)
+	onLoadRef.current = onLoad
 
-    useEffect(() => {
+	useEffect(() => {
+		let isActive = true
 
-        if(isInitialized.current) return
+		if (!setupPromise.current) {
+			setupPromise.current = setupPlayer()
+				.then(() => true)
+				.catch((error) => {
+					console.error('Error setting up Track Player', error)
+					return false
+				})
+		}
 
-        setupPlayer().then(() => {
-            isInitialized.current = true
-            onLoad?.()
-        })
-        .catch((error) => {
-            isInitialized.current= false
-            console.log(error)
-        })
-    },[onLoad])
+		void setupPromise.current.then(async (playerReady) => {
+			if (!isActive || onLoadCalled.current) return
+
+			onLoadCalled.current = true
+			try {
+				await onLoadRef.current?.(playerReady)
+			} catch (error) {
+				console.error('Error during app startup', error)
+			}
+		})
+
+		return () => {
+			isActive = false
+		}
+	}, [])
 }

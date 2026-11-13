@@ -1,6 +1,6 @@
 import { scheduleAlarmNotification } from "@/helpers/notifications"
 import { loadData, saveData } from "@/helpers/storage"
-import TrackPlayer, { Event } from "react-native-track-player"
+import TrackPlayer, { Event } from "@/helpers/track-player-compat"
 
 let lastSaved = 0
 

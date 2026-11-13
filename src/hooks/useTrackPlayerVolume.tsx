@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import TrackPlayer from 'react-native-track-player'
+import TrackPlayer from '@/helpers/track-player-compat'
 
 export const useTrackPlayerVolume = () => {
     const [volume, setVolume] = useState<number | undefined>(undefined)

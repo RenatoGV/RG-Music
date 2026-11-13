@@ -1,7 +1,7 @@
 import { colors, fontSize } from '@/constants/tokens'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View, ScrollView, NativeScrollEvent, NativeSyntheticEvent, Dimensions, TouchableOpacity } from 'react-native'
-import { useProgress } from 'react-native-track-player'
+import { ActivityIndicator, StyleSheet, Text, View, ScrollView, NativeScrollEvent, NativeSyntheticEvent, Dimensions, TouchableOpacity, type ScrollViewInstance } from 'react-native'
+import { useProgress } from '@/helpers/track-player-compat'
 import { useLyricStore } from '@/store/lyrics'
 import { showToast } from '@/helpers/toast'
 import { Animated } from 'react-native'
@@ -218,8 +218,8 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
   const [isUserScrolling, setIsUserScrolling] = useState(false)
   
   const lyricLines = parseLRC(lyrics)
-  const scrollViewRef = useRef<ScrollView>(null)
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const scrollViewRef = useRef<ScrollViewInstance | null>(null)
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastActiveIndexRef = useRef(0)
   const LINE_HEIGHT = 120
   const screenHeight = Dimensions.get('window').height

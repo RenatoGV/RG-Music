@@ -11,7 +11,7 @@ interface Props {
 export default function SplashScreen({ onFinish }: Props) {
   return (
     <LinearGradient colors={['#fc3c44', '#383838']} style={styles.container}>
-      <StatusBar backgroundColor='transparent' style='light' />
+      <StatusBar style='light' />
       <LottieView source={require('@/assets/lottie/splash.json')} style={{width: '100%', height: '100%'}} autoPlay loop={false} 
         onAnimationFinish={onFinish}
       />

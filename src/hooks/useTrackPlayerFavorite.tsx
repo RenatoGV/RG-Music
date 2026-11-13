@@ -1,7 +1,7 @@
 import { showToast } from '@/helpers/toast'
 import { useLibraryStore } from '@/store/library'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import TrackPlayer, { useActiveTrack } from 'react-native-track-player'
+import { useActiveTrack } from '@/helpers/track-player-compat'
 
 export const useTrackPlayerFavorite = () => {
     const activeTrack = useActiveTrack()
@@ -11,7 +11,7 @@ export const useTrackPlayerFavorite = () => {
     
     const [ isFavorite, setIsFavorite ] = useState(false)
 
-    const debounceRef = useRef<NodeJS.Timeout | null>(null)
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const lastUrlRef = useRef<string | null>(null)
 
     useEffect(() => {
@@ -34,13 +34,6 @@ export const useTrackPlayerFavorite = () => {
 
         debounceRef.current = setTimeout(async () => {
             if (lastUrlRef.current !== activeTrack.url) return
-
-            const index = await TrackPlayer.getActiveTrackIndex()
-            if (index == null) return
-
-            await TrackPlayer.updateMetadataForTrack(index, {
-                rating: next ? 1 : 0,
-            })
 
             toggleTrackFavorite(activeTrack)
 

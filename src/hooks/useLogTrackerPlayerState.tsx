@@ -1,4 +1,4 @@
-import { Event, useTrackPlayerEvents } from "react-native-track-player";
+import { Event, useTrackPlayerEvents } from "@/helpers/track-player-compat";
 
 const events = [Event.PlaybackState, Event.PlaybackError, Event.PlaybackActiveTrackChanged]
 

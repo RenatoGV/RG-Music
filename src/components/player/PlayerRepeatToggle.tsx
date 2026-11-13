@@ -1,5 +1,5 @@
 import { ComponentProps, useEffect, useState } from 'react'
-import { RepeatMode } from 'react-native-track-player'
+import { RepeatMode } from '@/helpers/track-player-compat'
 import { match } from 'ts-pattern'
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { colors, fontSize } from '@/constants/tokens'

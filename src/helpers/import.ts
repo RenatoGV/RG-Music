@@ -5,10 +5,9 @@ import { saveData } from "./storage"
 import { getAudioMetadata } from "@missingcore/audio-metadata"
 import { AppState } from "react-native"
 import { scheduleAlarmNotification } from "./notifications"
-import { StorageAccessFramework } from 'expo-file-system';
+import { StorageAccessFramework } from 'expo-file-system/legacy';
 import { createTempSessionDir, deleteTempSessionDir, getTemporaryFile, getTemporaryFileName } from "./temporary-file"
-import { unlink } from "react-native-fs"
-import * as FileSystem from "expo-file-system"
+import * as FileSystem from "expo-file-system/legacy"
 
 const audioExtensions = ['.mp3', '.wav', '.aac', '.m4a']
 const MAX_METADATA_SIZE = 20 * 1024 * 1024 // 20 MB
@@ -34,21 +33,32 @@ export const importTracks = async (uri: string | null) => {
   resetProgressLoading()
   let tempDir = ''
 
+  console.info('[IMPORT] Inicio de importación', { directoryUri: uri })
+
   try {
     if (uri !== null) {
       tempDir = await createTempSessionDir()
       setIsLoading(true)
       
       const files = await StorageAccessFramework.readDirectoryAsync(uri)
+      console.info('[IMPORT] Archivos encontrados en la carpeta', { count: files.length })
       const audioFiles = files.filter(name =>
         audioExtensions.some(ext => name.toLowerCase().endsWith(ext))
       )
+      console.info('[IMPORT] Archivos de audio detectados', {
+        count: audioFiles.length,
+        extensions: audioFiles.map(file => getTemporaryFileName(file).split('.').pop()?.toLowerCase()),
+      })
       let tracks = [...(savedTracks ?? [])]
       tracks = tracks.filter(track => audioFiles.includes(track.url))
 
       const newAudioFiles = audioFiles.filter(
         file => !savedTracks?.some(track => track.url === file)
       )
+      console.info('[IMPORT] Resultado de deduplicación', {
+        alreadyImported: audioFiles.length - newAudioFiles.length,
+        newFilesToProcess: newAudioFiles.length,
+      })
 
       const totalAssets = newAudioFiles.length
       let currentProgress = 0
@@ -61,15 +71,28 @@ export const importTracks = async (uri: string | null) => {
           if (!audio) throw new Error('URI no existe')
 
           const fileName = getTemporaryFileName(audio)
+          console.info('[IMPORT] Procesando archivo', {
+            fileName,
+            uriScheme: audio.split(':')[0],
+          })
 
           const info = await FileSystem.getInfoAsync(audio)
           let artist = 'Desconocido'
           let artwork = unknownTrackImageUri
           let tempPath: string | null = null
+          console.info('[IMPORT] Información del archivo', {
+            fileName,
+            exists: info.exists,
+            size: info.exists && 'size' in info ? info.size : null,
+          })
 
           if (info.exists && 'size' in info && typeof info.size === 'number' && info.size <= MAX_METADATA_SIZE) {
             try {
               tempPath = await getTemporaryFile(audio, fileName, tempDir)
+              console.info('[IMPORT] Copia temporal lista; leyendo metadatos', {
+                fileName,
+                tempPath,
+              })
               if (tempPath) {
                 const { metadata } = await getAudioMetadata(
                   `file://${tempPath}`,
@@ -77,13 +100,23 @@ export const importTracks = async (uri: string | null) => {
                 )
                 artist = metadata.artist || 'Desconocido'
                 artwork = metadata.artwork || unknownTrackImageUri
+                console.info('[IMPORT] Resultado de lectura de metadatos', {
+                  fileName,
+                  name: metadata.name ?? null,
+                  artist: metadata.artist ?? null,
+                  hasArtwork: Boolean(metadata.artwork),
+                  artworkBase64Length: metadata.artwork?.length ?? 0,
+                })
               }
             } catch (metaErr) {
-              console.warn("Error leyendo metadata o creando temp, usando fallback:", metaErr)
+              console.warn('[IMPORT] Error leyendo metadatos o creando temporal; se usará fallback', {
+                fileName,
+                error: metaErr,
+              })
             } finally {
               if (tempPath) {
                 try {
-                  await unlink(tempPath)
+                  await FileSystem.deleteAsync(`file://${tempPath}`, { idempotent: true })
                 } catch (unlinkError) {
                   console.warn('Error al eliminar temporal:', unlinkError)
                 }
@@ -100,8 +133,17 @@ export const importTracks = async (uri: string | null) => {
             artist,
             artwork
           })
+          console.info('[IMPORT] Track agregado', {
+            fileName,
+            artist,
+            hasArtwork: artwork !== unknownTrackImageUri,
+          })
         } catch (error) {
-          console.log('Error procesando track:', audio, error)
+          console.error('[IMPORT] Error procesando archivo; se agregará con valores de fallback', {
+            fileName: getTemporaryFileName(audio),
+            uriScheme: audio.split(':')[0],
+            error,
+          })
           
           tracks.push({
             title: removeExtension(getTemporaryFileName(audio)),
@@ -115,6 +157,10 @@ export const importTracks = async (uri: string | null) => {
       setTracks(tracks)
       saveData('tracks', tracks)
       saveData('selectedAlbum', uri)
+      console.info('[IMPORT] Importación completada', {
+        added: newAudioFiles.length,
+        totalTracks: tracks.length,
+      })
 
       if(AppState.currentState === 'active'){
         showToast(`${newAudioFiles.length} canciones agregadas`)
@@ -125,7 +171,7 @@ export const importTracks = async (uri: string | null) => {
       setIsLoading(false)
     }
   } catch (error) {
-    console.error('Error loading selectedAlbum', error)
+    console.error('[IMPORT] Error cargando la carpeta seleccionada', { uri, error })
   } finally {
     if(tempDir) {
       await deleteTempSessionDir(tempDir)

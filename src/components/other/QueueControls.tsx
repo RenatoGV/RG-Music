@@ -1,7 +1,7 @@
 import { colors } from "@/constants/tokens"
 import { defaultStyles } from "@/styles"
 import { StyleSheet, Text, TouchableOpacity, View, ViewProps } from "react-native"
-import TrackPlayer from "react-native-track-player"
+import TrackPlayer from "@/helpers/track-player-compat"
 import { Track } from "@/helpers/types"
 import { Ionicons } from "@expo/vector-icons"
 

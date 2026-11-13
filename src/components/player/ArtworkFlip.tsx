@@ -79,7 +79,7 @@ export const ArtworkFlip = ({ artwork, unknownTrackImageUri, onPress }: Props) =
                   uri: artwork ?? unknownTrackImageUri,
                   priority: FastImage.priority.high,
                 }}
-                resizeMode={FastImage.resizeMode.cover}
+                objectFit="cover"
                 style={[
                   styles.artworkImage,
                   {
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'black',
     borderRadius: 12,
     alignItems: 'center',

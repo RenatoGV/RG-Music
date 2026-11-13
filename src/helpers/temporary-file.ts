@@ -1,18 +1,16 @@
-import { readFile, writeFile, CachesDirectoryPath, mkdir, readDir, unlink } from 'react-native-fs'
+import * as FileSystem from 'expo-file-system/legacy'
 
 const generateSessionId = () => `${Date.now()}_${Math.random().toString(36).slice(2)}`
 
 export const createTempSessionDir = async () => {
   const sessionId = generateSessionId();
-  const tempDir = `${CachesDirectoryPath}/temp_${sessionId}`;
-  await mkdir(tempDir);
-  return tempDir;
+  const tempDirUri = `${FileSystem.cacheDirectory}temp_${sessionId}/`;
+  await FileSystem.makeDirectoryAsync(tempDirUri, { intermediates: true });
+  return tempDirUri.replace(/^file:\/\//, '').replace(/\/$/, '');
 }
 
 export const deleteTempSessionDir = async (tempDir: string) => {
-  const files = await readDir(tempDir);
-  await Promise.all(files.map(file => unlink(file.path)));
-  await unlink(tempDir)
+  await FileSystem.deleteAsync(`file://${tempDir}`, { idempotent: true });
 }
 
 export const getTemporaryFile = async (uri: string, fileName: string, tempDir: string): Promise<string> => {
@@ -20,10 +18,12 @@ export const getTemporaryFile = async (uri: string, fileName: string, tempDir: s
   const safeName = fileName.replace(/[^a-z0-9_.-]/gi, '_')
   const destPath = `${tempDir}/${safeName}`
 
-  const content = await readFile(uri, 'base64')
-  
-  
-  await writeFile(destPath, content, 'base64')
+  const content = await FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  })
+  await FileSystem.writeAsStringAsync(`file://${destPath}`, content, {
+    encoding: FileSystem.EncodingType.Base64,
+  })
   return destPath
 }
 

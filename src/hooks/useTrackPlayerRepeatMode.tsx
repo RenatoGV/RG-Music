@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import TrackPlayer, { RepeatMode } from "react-native-track-player"
+import TrackPlayer, { RepeatMode } from "@/helpers/track-player-compat"
 
 export const useTrackPlayerRepeatMode = () => {
     const [repeatMode, setRepeatMode] = useState<RepeatMode>()

@@ -1,5 +1,5 @@
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native"
-import TrackPlayer, { useIsPlaying } from "react-native-track-player"
+import TrackPlayer, { useIsPlaying } from "@/helpers/track-player-compat"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { colors } from "@/constants/tokens"
 
