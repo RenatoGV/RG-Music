@@ -2,12 +2,12 @@
   "expo": {
     "name": "RG Music",
     "slug": "music-player",
-    "version": "2.9.31",
+    "version": "3.9.31",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "trackplayer",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -17,15 +17,12 @@
       "supportsTablet": true
     },
     "android": {
-      "buildProperties": {
-        "kotlinVersion": "1.9.25"
-      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
       "package": "com.rengv.rgmusic",
-      "versionCode": 38,
+      "versionCode": 39,
       "permissions": [
         "SCHEDULE_EXACT_ALARM",
         "SYSTEM_ALERT_WINDOW",
@@ -56,15 +53,18 @@
         }
       ],
       "expo-asset",
-      "expo-font",[
-      "expo-build-properties",
-      {
-        "android": {
-          "kotlinVersion": "1.9.25",
-          "usesCleartextTraffic": true
+      "expo-font",
+      "expo-system-ui",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.2.10",
+            "usesCleartextTraffic": true
+          }
         }
-      }
-    ]
+      ],
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,

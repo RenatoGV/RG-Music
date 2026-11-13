@@ -18,7 +18,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   children,
   dropdownWidth = 150,
 }) => {
-  const triggerRef = useRef<View>(null)
+  const triggerRef = useRef<React.ComponentRef<typeof View> | null>(null)
   const [position, setPosition] = useState({x: 0, y: 0, width: 0})
 
   useEffect(() => {

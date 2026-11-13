@@ -15,7 +15,7 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
     const search = useNavigationSearch({
         searchBarOptions: {
             placeholder: 'Buscar en sus canciones',
-      	    shouldShowHintSearchIcon: false
+            shouldShowHintSearchIcon: false
         }
     })
 
@@ -31,8 +31,7 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
                 <View style={styles.artworkImageContainer}>
                     <FastImage
                         source={{
-                            uri: unknownArtistImageUri,
-                            priority: FastImage.priority.high
+                            uri: unknownArtistImageUri
                         }}
                         style={styles.artistImage}
                     />

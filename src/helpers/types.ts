@@ -1,8 +1,6 @@
-import { Track as TrackPlayer } from "react-native-track-player";
+import { Track } from '@/helpers/track-player-compat'
 
-export type Track = TrackPlayer & {
-    lyric_id?: string
-}
+export type { Track }
 
 export type Playlist = {
     name: string

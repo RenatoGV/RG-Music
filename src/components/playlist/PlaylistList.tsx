@@ -10,8 +10,8 @@ import { PlaylistListItem } from './PlaylistListItem'
 import { DeletePlaylist } from '@/components/modals/DeletePlaylist'
 
 type PlaylistsListProps = {
-    playlists: Playlist[]
-    onPlaylistPress: (playlist: Playlist) => void
+	playlists: Playlist[]
+	onPlaylistPress: (playlist: Playlist) => void
 } & Partial<FlatListProps<Playlist>>
 
 const ItemDivider = () => {
@@ -21,16 +21,15 @@ const ItemDivider = () => {
 export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, ...flatListProps} : PlaylistsListProps) => {
 	const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
 
-    const search = useNavigationSearch({
-        searchBarOptions: {
-            placeholder: 'Buscar playlist'
-        }
-    })
-	
+	const search = useNavigationSearch({
+		searchBarOptions: {
+			placeholder: 'Buscar playlist'
+		}
+	})
 
-    const filteredPlaylist = useMemo(() => {
-        return playlists.filter(playlistsNameFilter(search))
-    }, [playlists, search])
+	const filteredPlaylist = useMemo(() => {
+		return playlists.filter(playlistsNameFilter(search))
+	}, [playlists, search])
 
 	const handlePlaylistLongPress = (playlist : Playlist) => {
 		setSelectedPlaylist(playlist)
@@ -48,7 +47,7 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 						<Text style={utilsStyles.emptyContentText}>No se encontraron Playlist</Text>
 
 						<FastImage
-							source={{ uri: unknownPlaylistImageUri, priority: FastImage.priority.normal }}
+							source={{ uri: unknownPlaylistImageUri }}
 							style={utilsStyles.emptyContentImage}
 						/>
 					</View>

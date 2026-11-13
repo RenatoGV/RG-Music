@@ -9,7 +9,7 @@ import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { useMemo } from 'react'
 import { trackTitleFilter } from '@/helpers/filter'
 
-const addTracksToPlaylistModal = () => {
+const AddTracksToPlaylistModal = () => {
    const { playlist : playlistName } = useLocalSearchParams<{ playlist: string }>()
 
    const tracks = useTracks()
@@ -30,28 +30,28 @@ const addTracksToPlaylistModal = () => {
    const currentPlaylist = playlists?.find((playlist) => playlist.name === playlistName )
 
    const availableTracks = tracks?.filter(
-      (track) => !currentPlaylist?.tracksUri.some((trackItem) => track.url === trackItem)
+      (track) => !currentPlaylist?.tracksUri.includes(track.url)
    )
 
    const filteredTracks = useMemo(() => {
-         if(!availableTracks) return []
+      if(!availableTracks) return []
 
-         return availableTracks.filter(trackTitleFilter(search))
-       }, [availableTracks, search])
+      return availableTracks.filter(trackTitleFilter(search))
+   }, [availableTracks, search])
 
-  return (
-    <View style={[styles.modalContainer]}>
-      <Stack.Screen options={{ headerTitle: `Agregar a ${playlistName}` }} />
-      <SelectTrackList tracks={filteredTracks || []} playlist={currentPlaylist} />
-    </View>
-  )
+   return (
+      <View style={[styles.modalContainer]}>
+         <Stack.Screen options={{ headerTitle: `Agregar a ${playlistName}` }} />
+         <SelectTrackList tracks={filteredTracks || []} playlist={currentPlaylist} />
+      </View>
+   )
 }
 
 const styles = StyleSheet.create({
-    modalContainer: {
-        ...defaultStyles.container,
-        paddingHorizontal: screenPadding.horizontal
-    }
+   modalContainer: {
+      ...defaultStyles.container,
+      paddingHorizontal: screenPadding.horizontal
+   }
 })
 
-export default addTracksToPlaylistModal
+export default AddTracksToPlaylistModal

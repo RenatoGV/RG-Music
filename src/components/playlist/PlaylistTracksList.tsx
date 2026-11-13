@@ -18,7 +18,10 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
 
     const tracks = useTracks()
 
-    const currentTracks = tracks?.filter((track) => playlist.tracksUri.includes(track.url))
+    const currentTracks = useMemo(
+        () => tracks?.filter((track) => playlist.tracksUri.includes(track.url)),
+        [tracks, playlist.tracksUri]
+    )
 
     const search = useNavigationSearch({
         searchBarOptions: {
@@ -35,7 +38,7 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
         if(!currentTracks) return []
 
         return currentTracks?.filter(trackTitleFilter(search))
-    }, [playlist.tracksUri, search])
+    }, [currentTracks, search])
 
     return (
         <TracksList
@@ -49,8 +52,7 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
                     <View style={styles.artworkImageContainer}>
                         <FastImage
                             source={{
-                                uri: unknownPlaylistImageUri,
-                                priority: FastImage.priority.high
+                                uri: unknownPlaylistImageUri
                             }}
                             style={styles.artworkImage}
                         />

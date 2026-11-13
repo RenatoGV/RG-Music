@@ -17,33 +17,33 @@ export const PlayerVolumenbar = ({style} : ViewProps) => {
 
     useEffect(() => {
         progress.value = volume ?? 0
-    }, [volume])
+    }, [progress, volume])
     
-  return (
-    <View style={style}>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Ionicons name='volume-low' size={20} color={colors.icon} style={{ opacity: 0.8 }} />
+    return (
+        <View style={style}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <Ionicons name='volume-low' size={20} color={colors.icon} style={{ opacity: 0.8 }} />
 
-            <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 10 }}>
-                <Slider
-                    progress={progress}
-                    minimumValue={min}
-                    containerStyle={utilsStyles.slider}
-                    onValueChange={(value) => {
-                        updateVolume(value)
-                    }}
-                    renderBubble={() => null}
-                    theme={{
-                        maximumTrackTintColor: colors.maximumTrackTintColor,
-                        minimumTrackTintColor: colors.minimumTrackTintColor
-                    }}
-                    thumbWidth={0}
-                    maximumValue={max}
-                />
+                <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 10 }}>
+                    <Slider
+                        progress={progress}
+                        minimumValue={min}
+                        containerStyle={utilsStyles.slider}
+                        onValueChange={(value) => {
+                            updateVolume(value)
+                        }}
+                        renderBubble={() => null}
+                        theme={{
+                            maximumTrackTintColor: colors.maximumTrackTintColor,
+                            minimumTrackTintColor: colors.minimumTrackTintColor
+                        }}
+                        thumbWidth={0}
+                        maximumValue={max}
+                    />
+                </View>
+
+                <Ionicons name='volume-high' size={20} color={colors.icon} style={{ opacity: 0.8 }} />
             </View>
-
-            <Ionicons name='volume-high' size={20} color={colors.icon} style={{ opacity: 0.8 }} />
         </View>
-    </View>
-  )
+    )
 }

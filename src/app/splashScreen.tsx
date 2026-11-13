@@ -3,16 +3,17 @@ import { StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import LottieView from 'lottie-react-native';
+import splashAnimation from '@/assets/lottie/splash.json'
 
 interface Props {
   onFinish: () => void
 }
 
-export default function SplashScreen({ onFinish }: Props) {
+export default function SplashScreen({ onFinish }: Readonly<Props>) {
   return (
     <LinearGradient colors={['#fc3c44', '#383838']} style={styles.container}>
-      <StatusBar backgroundColor='transparent' style='light' />
-      <LottieView source={require('@/assets/lottie/splash.json')} style={{width: '100%', height: '100%'}} autoPlay loop={false} 
+      <StatusBar style='light' />
+      <LottieView source={splashAnimation} style={{width: '100%', height: '100%'}} autoPlay loop={false}
         onAnimationFinish={onFinish}
       />
     </LinearGradient>

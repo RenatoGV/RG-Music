@@ -3,7 +3,7 @@ import { defaultStyles } from "@/styles"
 import React, { useEffect, useRef, useState } from "react"
 import { Animated, PanResponder, StyleSheet, View, ViewProps } from "react-native"
 import FastImage from "react-native-fast-image"
-import TrackPlayer, { useActiveTrack } from "react-native-track-player"
+import TrackPlayer, { useActiveTrack } from "@/helpers/track-player-compat"
 import { PlayPauseButton, SkipToNextButton } from "@/components/player/PlayerControls"
 import { useLastActiveTrack } from "@/hooks/useLastActiveTrack"
 import { BlurView } from "expo-blur"
@@ -22,12 +22,23 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
     const {setActiveQueueId} = useQueue()
 
     useEffect(() => {
-        // if(!activeTrack) return setCurrentTrack(undefined)
+        // Keep the last track as the initial display value, but don't restore it
+        // after the queue has been cleared (for example, after swiping away).
+        if (!activeTrack) return
 
-        if (activeTrack || lastActiveTrack && currentTrack) {
-          setCurrentTrack(activeTrack ?? lastActiveTrack);
-        }
-      }, [activeTrack, lastActiveTrack])
+        setCurrentTrack((previousTrack) => {
+            if (
+                previousTrack?.url === activeTrack.url &&
+                previousTrack.title === activeTrack.title &&
+                previousTrack.artist === activeTrack.artist &&
+                previousTrack.artwork === activeTrack.artwork
+            ) {
+                return previousTrack
+            }
+
+            return activeTrack
+        })
+    }, [activeTrack])
 
     // Swipe Action
     const translateX = useRef(new Animated.Value(0)).current
@@ -35,38 +46,36 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
 
     const panResponder = useRef(
         PanResponder.create({
-          onStartShouldSetPanResponder: () => true,
-          onPanResponderMove: (_, gestureState) => {
-            translateX.setValue(gestureState.dx);
-          },
-          onPanResponderRelease: (_, gestureState) => {
-            if (Math.abs(gestureState.dx) > swipeThreshold) {
-              Animated.timing(translateX, {
-                toValue: gestureState.dx > 0 ? 500 : -500,
-                duration: 200,
-                useNativeDriver: true,
-              }).start(async () => {
-                await TrackPlayer.reset()
-                setActiveQueueId(null)
-                setCurrentTrack(undefined)
-                saveData('playback_queue', '')
-                saveData('playback_position', '')
-                
-                translateX.setValue(0);
-              });
-            } else {
-                if (
-                    Math.abs(gestureState.dx) < 5 &&
-                    Math.abs(gestureState.dy) < 5
-                  ) {
-                    router.navigate("/player");
-                  }
-                  Animated.spring(translateX, {
-                    toValue: 0,
+            onStartShouldSetPanResponder: () => true,
+            onPanResponderMove: (_, gestureState) => {
+                translateX.setValue(gestureState.dx);
+            },
+            onPanResponderRelease: (_, gestureState) => {
+                if (Math.abs(gestureState.dx) > swipeThreshold) {
+                Animated.timing(translateX, {
+                    toValue: gestureState.dx > 0 ? 500 : -500,
+                    duration: 200,
                     useNativeDriver: true,
-                  }).start()
-            }
-          },
+                }).start(() => {
+                    TrackPlayer.reset()
+
+                    setActiveQueueId(null)
+                    setCurrentTrack(undefined)
+                    saveData('playback_queue', '')
+                    saveData('playback_position', '')
+                    
+                    translateX.setValue(0);
+                });
+                } else {
+                    if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5) {
+                        router.navigate("/player");
+                    }
+                    Animated.spring(translateX, {
+                        toValue: 0,
+                        useNativeDriver: true,
+                    }).start()
+                }
+            },
         })
     ).current
     

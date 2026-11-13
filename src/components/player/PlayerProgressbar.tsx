@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { StyleSheet, Text, View, ViewProps } from 'react-native'
 import { Slider } from 'react-native-awesome-slider'
 import { useSharedValue } from 'react-native-reanimated'
-import TrackPlayer, { useProgress } from 'react-native-track-player'
+import TrackPlayer, { useProgress } from '@/helpers/track-player-compat'
 
 export const PlayerProgressbar = ({style} : ViewProps) => {
 
@@ -39,15 +39,15 @@ export const PlayerProgressbar = ({style} : ViewProps) => {
                 maximumTrackTintColor: colors.maximumTrackTintColor
             }}
             onSlidingStart={() => (isSliding.value = true)}
-            onValueChange={async(value) => {
-                await TrackPlayer.seekTo(value * duration)
+            onValueChange={(value) => {
+                TrackPlayer.seekTo(value * duration)
             }}
-            onSlidingComplete={async(value) => {
+            onSlidingComplete={(value) => {
                 if(!isSliding.value) return
 
                 isSliding.value = false
 
-                await TrackPlayer.seekTo(value * duration)
+                TrackPlayer.seekTo(value * duration)
             }}
         />
 

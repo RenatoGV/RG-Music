@@ -1,7 +1,7 @@
 import { colors } from "@/constants/tokens"
 import { defaultStyles } from "@/styles"
 import { StyleSheet, Text, TouchableOpacity, View, ViewProps } from "react-native"
-import TrackPlayer from "react-native-track-player"
+import TrackPlayer from "@/helpers/track-player-compat"
 import { Track } from "@/helpers/types"
 import { Ionicons } from "@expo/vector-icons"
 
@@ -10,16 +10,16 @@ type QueueControlsProps = {
 } & ViewProps
 
 export const QueueControls = ({tracks, style, ...viewProps} : QueueControlsProps) => {
-    const handlePlay = async() => {
-        await TrackPlayer.setQueue(tracks)
-        await TrackPlayer.play()
+    const handlePlay = () => {
+        TrackPlayer.setQueue(tracks)
+        TrackPlayer.play()
     }
 
-    const handleShufflePlay = async() => {
+    const handleShufflePlay = () => {
         const shuffledTracks = [...tracks].sort(() => Math.random() - 0.5 )
 
-        await TrackPlayer.setQueue(shuffledTracks)
-        await TrackPlayer.play()
+        TrackPlayer.setQueue(shuffledTracks)
+        TrackPlayer.play()
     }
 
     return (

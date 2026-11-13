@@ -11,6 +11,7 @@ const TabsNavigation = () => {
     <>
       <Tabs screenOptions={{
         tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: {
           fontSize: fontSize.xs,
           fontWeight: '500'
@@ -29,7 +30,7 @@ const TabsNavigation = () => {
             intensity={100}
             tint="dark"
             style={{
-              ...StyleSheet.absoluteFillObject,
+              ...StyleSheet.absoluteFill,
               overflow: 'hidden',
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
@@ -40,19 +41,19 @@ const TabsNavigation = () => {
       }}>
           <Tabs.Screen name="favorites" options={{
             title: 'Favoritos',
-            tabBarIcon: ({ color }) => <FontAwesome name="heart" size={20} color={color} />
+            tabBarIcon: ({ color }) => <FontAwesome name="heart" size={20} color={(color ?? colors.primary) as string} />
           }} />
           <Tabs.Screen name="playlists" options={{
             title: 'Playlists',
-            tabBarIcon: ({ color }) => <MaterialCommunityIcons name="playlist-play" size={28} color={color} />
+            tabBarIcon: ({ color }) => <MaterialCommunityIcons name="playlist-play" size={28} color={(color ?? colors.primary) as string} />
           }} />
           <Tabs.Screen name="(songs)" options={{
             title: 'Canciones',
-            tabBarIcon: ({ color }) => <FontAwesome name="music" size={24} color={color} />
+            tabBarIcon: ({ color }) => <FontAwesome name="music" size={24} color={(color ?? colors.primary) as string} />
           }} />
           <Tabs.Screen name="artists" options={{
             title: 'Artistas',
-            tabBarIcon: ({ color }) => <FontAwesome6 name="users-line" size={20} color={color} />
+            tabBarIcon: ({ color }) => <FontAwesome6 name="users-line" size={20} color={(color ?? colors.primary) as string} />
           }} />
       </Tabs>
 

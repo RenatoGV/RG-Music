@@ -1,15 +1,14 @@
 import { unknownTrackImageUri } from '@/constants/images';
 import { colors, fontSize } from '@/constants/tokens';
 import { defaultStyles } from '@/styles';
-import { Modal, StyleSheet, Text, TouchableHighlight, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableHighlight, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
-import TrackPlayer, { useActiveTrack, useIsPlaying } from 'react-native-track-player';
-import { Track } from '@/helpers/types';
+import TrackPlayer, { useActiveTrack, useIsPlaying } from '@/helpers/track-player-compat';
+import { Track, Playlist } from '@/helpers/types';
 import { Entypo, Ionicons } from "@expo/vector-icons"
-import LoaderKit from "react-native-loader-kit"
+import { LoaderKitView } from "react-native-loader-kit"
 import { StopPropagation } from '@/components/utils/StopPropagation';
-import { Playlist } from '@/helpers/types';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { DropdownMenu, MenuOption } from '../other/DropdownMenu';
@@ -28,27 +27,26 @@ export type TrackListItemProps = {
 export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPlaylist} : TrackListItemProps) => {
     const router = useRouter()
     const { playing } = useIsPlaying()
-    const [isActiveTrack, setIsActiveTrack] = useState(false)
+    const activeTrack = useActiveTrack();
+    const isActiveTrack = activeTrack?.url === track.url
 
     const [visible, setVisible] = useState(false)
 
-    const activeTrack = useActiveTrack();
-    
     const { toggleTrackFavorite } = useLibraryStore()
     const { activeQueueId } = useQueue()
     const { removeToPlaylist } = usePlaylistStore()
 
-    const handleToggleFavorite = async () => {
+    const handleToggleFavorite = () => {
         setVisible(false)
         if(track.rating === 1){
             toggleTrackFavorite(track)
             
             if(activeQueueId?.startsWith('favorites')) {
-                const queue = await TrackPlayer.getQueue()
+                const queue = TrackPlayer.getQueue()
 
-                const trackToRemove = queue.findIndex(queueTrack => queueTrack.url = track.url)
+                const trackToRemove = queue.findIndex(queueTrack => queueTrack.url === track.url)
 
-                await TrackPlayer.remove(trackToRemove)
+                TrackPlayer.remove(trackToRemove)
             }
 
             showToast('Eliminado de Favoritos')
@@ -56,7 +54,7 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
             toggleTrackFavorite(track)
             
             if(activeQueueId?.startsWith('favorites')) {
-                await TrackPlayer.add(track)
+                TrackPlayer.add(track)
             }
     
             showToast('Agregado a Favoritos')
@@ -74,18 +72,13 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
         showToast(`Eliminado de ${fromPlaylist!.name}`)
     }
 
-    useEffect(() => {
-        setIsActiveTrack(activeTrack?.url === track.url)
-    }, [activeTrack])
-
   return (
     <TouchableHighlight onPress={() => handleTrackSelect(track)}>
         <View style={styles.trackItemContainer}>
             <View>
                 <FastImage
                     source={{
-                        uri: track.artwork ?? unknownTrackImageUri,
-                        priority: FastImage.priority.normal
+                        uri: track.artwork ?? unknownTrackImageUri
                     }}
                     style={{
                         ...styles.trackArtworkImage,
@@ -96,7 +89,7 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
                 {
                     isActiveTrack &&
                         (playing
-                            ? <LoaderKit style={styles.trackPlayingIconIndicator} name='LineScaleParty' color={colors.icon} />
+                            ? <LoaderKitView style={styles.trackPlayingIconIndicator} name='LineScaleParty' color={colors.icon} />
                             : <Ionicons style={styles.trackPausedIndicator} name='play' size={24} color={colors.icon} />
                         )
                 }

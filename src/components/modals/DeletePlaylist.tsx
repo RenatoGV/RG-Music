@@ -25,7 +25,7 @@ export const DeletePlaylist = ({selectedPlaylist, setSelectedPlaylist} : Props) 
       setSelectedPlaylist(null)
    }
 
-  return (
+   return (
       <Modal
          animationType="fade"
          transparent={true}

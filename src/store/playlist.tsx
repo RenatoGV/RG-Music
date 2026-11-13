@@ -16,7 +16,7 @@ type PlaylistState = {
 export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
     playlists: null,
     setPlaylists: (playlists) => set({playlists: playlists}),
-    addPlaylist: async(playlistName) =>{
+    addPlaylist: (playlistName) =>{
       set((state) => {
         const newPlaylist : Playlist = {
           name: playlistName,
@@ -31,21 +31,21 @@ export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
       
       saveData('playlists', get().playlists)
     },
-    removePlaylist: async(playlistToRemove) =>{
+    removePlaylist: (playlistToRemove) =>{
       set((state) => ({
         playlists: state.playlists!.filter((playlist) => playlist !== playlistToRemove)
       }))
       
       saveData('playlists', get().playlists)
     },
-    addToPlaylist: async(uri, playlist) => {
+    addToPlaylist: (uri, playlist) => {
         set((state) => ({
             playlists: state.playlists
-                ? state.playlists.map((currentPlaylist) => 
+                ? state.playlists.map((currentPlaylist) =>
                     currentPlaylist === playlist
                         ? {
                             ...currentPlaylist,
-                            tracksUri: currentPlaylist.tracksUri.some((currentUri) => currentUri === uri)
+                            tracksUri: currentPlaylist.tracksUri.includes(uri)
                                 ? currentPlaylist.tracksUri
                                 : [...currentPlaylist.tracksUri, uri]
                         }
@@ -56,7 +56,7 @@ export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
       
         saveData('playlists', get().playlists)
     },
-    removeToPlaylist: async(uri, playlist) => {
+    removeToPlaylist: (uri, playlist) => {
         set((state) => ({
             playlists: state.playlists
               ? state.playlists.map((currentPlaylist) =>
@@ -83,9 +83,7 @@ export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
                       ...currentPlaylist.tracksUri,
                       ...trackList.filter(
                         (track) =>
-                          !currentPlaylist.tracksUri.some(
-                            (currentUri) => currentUri === track
-                          )
+                          !currentPlaylist.tracksUri.includes(track)
                       ),
                     ],
                   }

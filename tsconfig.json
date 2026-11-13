@@ -3,15 +3,14 @@
 	"compilerOptions": {
 		"strict": true,
 		"target": "ES6",
-		"module": "CommonJS",
-		"moduleResolution": "node",
+		"module": "preserve",
+		"moduleResolution": "bundler",
 		"jsx": "react-native",
 		"lib": ["DOM", "ESNext"],
 		"noEmit": true,
 		"allowSyntheticDefaultImports": true,
 		"skipLibCheck": true,
 		"resolveJsonModule": true,
-		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"],
 			"@/assets/*": ["./assets/*"]

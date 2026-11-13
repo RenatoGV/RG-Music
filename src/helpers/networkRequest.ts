@@ -31,12 +31,12 @@ export const createLyricsAxiosInstance = (): AxiosInstance => {
     async (error) => {
       const config = error.config;
       
-      if (!config) return Promise.reject(error);
+      if (!config) throw error;
       
       if (!config.retryCount) config.retryCount = 0;
-      if (config.retryCount >= 3) return Promise.reject(error);
+      if (config.retryCount >= 3) throw error;
       
-      if (error.code !== 'ERR_NETWORK') return Promise.reject(error);
+      if (error.code !== 'ERR_NETWORK') throw error;
       
       config.retryCount++;
       const delay = config.retryCount * 1500;

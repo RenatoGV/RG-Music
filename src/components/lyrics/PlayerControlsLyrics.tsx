@@ -1,9 +1,8 @@
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native"
-import TrackPlayer, { useIsPlaying } from "react-native-track-player"
-import { FontAwesome6 } from "@expo/vector-icons"
+import TrackPlayer, { useIsPlaying } from "@/helpers/track-player-compat"
+import { FontAwesome, FontAwesome6 } from "@expo/vector-icons"
 import { colors } from "@/constants/tokens"
 import { useLyricStore } from "@/store/lyrics"
-import { FontAwesome } from '@expo/vector-icons'
 
 type PlayerControlsProps = {
     style?: ViewStyle
@@ -15,18 +14,16 @@ type PlayerButtonProps = {
 }
 
 export const PlayerControlsLyrics = ({style}: PlayerControlsProps) => {
+    const {setShowLyrics, setSyncedLyrics, syncedLyrics} = useLyricStore()
 
-   const {setShowLyrics, setSyncedLyrics, syncedLyrics} = useLyricStore()
-
-   return (
-    
+    return (
         <View style={[styles.container, style]}>
             <View style={styles.row}>
                 <TouchableOpacity onPress={() => setShowLyrics(false)}>
                     <FontAwesome6
-                            name={'angle-down'}
-                            size={30}
-                            color={colors.icon}
+                        name={'angle-down'}
+                        size={30}
+                        color={colors.icon}
                     />
                 </TouchableOpacity>
 
@@ -38,14 +35,14 @@ export const PlayerControlsLyrics = ({style}: PlayerControlsProps) => {
 
                 <TouchableOpacity onPress={() => setSyncedLyrics(!syncedLyrics)} style={styles.btnContainer}>
                     <FontAwesome
-                            name={(syncedLyrics) ? 'microphone' : 'microphone-slash'}
-                            size={30}
-                            color={colors.icon}
+                        name={(syncedLyrics) ? 'microphone' : 'microphone-slash'}
+                        size={30}
+                        color={colors.icon}
                     />
                 </TouchableOpacity>
             </View>
         </View>
-   )
+    )
 }
 
 export const PlayPauseButton = ({style, iconSize = 70} : PlayerButtonProps) => {
@@ -63,9 +60,10 @@ export const PlayPauseButton = ({style, iconSize = 70} : PlayerButtonProps) => {
     )
 }
 
-export const SkipToNextButton = ({iconSize = 30} : PlayerButtonProps) => {
+export const SkipToNextButton = ({style, iconSize = 30} : PlayerButtonProps) => {
     return (
         <TouchableOpacity
+            style={style}
             activeOpacity={0.7}
             onPress={() => TrackPlayer.skipToNext()}
         >
@@ -74,9 +72,10 @@ export const SkipToNextButton = ({iconSize = 30} : PlayerButtonProps) => {
     )
 }
 
-export const SkipToPreviousButton = ({iconSize = 30} : PlayerButtonProps) => {
+export const SkipToPreviousButton = ({style, iconSize = 30} : PlayerButtonProps) => {
     return (
         <TouchableOpacity
+            style={style}
             activeOpacity={0.7}
             onPress={() => TrackPlayer.skipToPrevious()}
         >

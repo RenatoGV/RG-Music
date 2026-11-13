@@ -1,12 +1,11 @@
 import { FlatList, FlatListProps, Text, View } from 'react-native'
 import { utilsStyles } from '@/styles'
-import TrackPlayer from 'react-native-track-player'
-import { Track } from '@/helpers/types'
+import TrackPlayer from '@/helpers/track-player-compat'
+import { Track, Playlist } from '@/helpers/types'
 import FastImage from 'react-native-fast-image'
 import { unknownTrackImageUri } from '@/constants/images'
 import { useQueue } from '@/store/queue'
 import { useRef } from 'react'
-import { Playlist } from '@/helpers/types'
 import { QueueControls } from '../other/QueueControls'
 import { TrackListItem } from './TrackListItem'
 
@@ -24,7 +23,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
   const queueOffset = useRef(0)
   const {activeQueueId, setActiveQueueId} = useQueue()
 
-  const handleTrackSelect = async(selectedTrack: Track) => {
+  const handleTrackSelect = (selectedTrack: Track) => {
     const trackIndex = tracks.findIndex(track => track.url === selectedTrack.url)
 
     if(trackIndex === -1) return
@@ -37,17 +36,17 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
       const afterTracks = tracks.slice(trackIndex + 1)
 
       // Reiniciaremos el reproductor
-      await TrackPlayer.reset()
+      TrackPlayer.reset()
 
       // Agregaremos la canción a reproducir
-      await TrackPlayer.add(selectedTrack)
+      TrackPlayer.add(selectedTrack)
       // Agregaremos a la lista las canciones que le seguían según la lista
-      await TrackPlayer.add(afterTracks)
+      TrackPlayer.add(afterTracks)
       // Y agregaremos a la lista las canciones que le estaban previas según la lista para que se reproduzca la lista entera
-      await TrackPlayer.add(beforeTracks)
+      TrackPlayer.add(beforeTracks)
 
       // Reproducimos la nueva lista
-      await TrackPlayer.play()
+      TrackPlayer.play()
 
       queueOffset.current = trackIndex
       setActiveQueueId(id)
@@ -56,9 +55,9 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
         ? tracks.length + trackIndex - queueOffset.current
         : trackIndex - queueOffset.current
       
-        await TrackPlayer.skip(nextTrackIndex)
+        TrackPlayer.skip(nextTrackIndex)
 
-        await TrackPlayer.play()
+        TrackPlayer.play()
     }
   }
 
@@ -79,7 +78,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
           <View>
             <Text style={utilsStyles.emptyContentText}>No se encontraron canciones</Text>
             <FastImage
-              source={{ uri: unknownTrackImageUri, priority: FastImage.priority.normal }}
+              source={{ uri: unknownTrackImageUri }}
               style={utilsStyles.emptyContentImage}
             />
           </View>
