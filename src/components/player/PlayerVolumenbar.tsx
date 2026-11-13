@@ -30,7 +30,7 @@ export const PlayerVolumenbar = ({style} : ViewProps) => {
                         minimumValue={min}
                         containerStyle={utilsStyles.slider}
                         onValueChange={(value) => {
-                            void updateVolume(value)
+                            updateVolume(value)
                         }}
                         renderBubble={() => null}
                         theme={{

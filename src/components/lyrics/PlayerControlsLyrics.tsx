@@ -60,9 +60,10 @@ export const PlayPauseButton = ({style, iconSize = 70} : PlayerButtonProps) => {
     )
 }
 
-export const SkipToNextButton = ({iconSize = 30} : PlayerButtonProps) => {
+export const SkipToNextButton = ({style, iconSize = 30} : PlayerButtonProps) => {
     return (
         <TouchableOpacity
+            style={style}
             activeOpacity={0.7}
             onPress={() => TrackPlayer.skipToNext()}
         >
@@ -71,9 +72,10 @@ export const SkipToNextButton = ({iconSize = 30} : PlayerButtonProps) => {
     )
 }
 
-export const SkipToPreviousButton = ({iconSize = 30} : PlayerButtonProps) => {
+export const SkipToPreviousButton = ({style, iconSize = 30} : PlayerButtonProps) => {
     return (
         <TouchableOpacity
+            style={style}
             activeOpacity={0.7}
             onPress={() => TrackPlayer.skipToPrevious()}
         >
