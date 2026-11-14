@@ -1,13 +1,15 @@
+import { useFonts } from 'expo-font';
 import { colors, fontSize } from '@/constants/tokens'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, StyleSheet, Text, View, ScrollView, NativeScrollEvent, NativeSyntheticEvent, Dimensions, TouchableOpacity, type ScrollViewInstance } from 'react-native'
 import { useProgress } from '@/helpers/track-player-compat'
 import { useLyricStore } from '@/store/lyrics'
-import { showToast } from '@/helpers/toast'
 import { Animated } from 'react-native'
-import { createLyricsAxiosInstance, logNetworkError } from '@/helpers/networkRequest'
+import { LyricsData, lyricsService } from '@/services/lyricsService'
+import { isAxiosError } from 'axios'
 
 type Props = {
+  trackUrl: string
   artist: string | undefined
   track: string | undefined
   lyricId: string | undefined
@@ -31,137 +33,67 @@ const parseLRC = (lrcText: string): LyricLine[] => {
       const centiseconds = Number.parseInt(timeMatch[3])
       const time = minutes * 60 + seconds + centiseconds / 100
       const content = line.replace(/\[\d{2}:\d{2}\.\d{2}\]/g, '').trim()
+
+      const text = content || '♪'
+      const previousLine = lyricLines.at(-1)
+
+      if(text === '♪' && previousLine?.content === '♪') return
       
-      lyricLines.push({ time, content })
+      lyricLines.push({ time, content: text })
     }
   })
 
-  return lyricLines
+  return lyricLines.filter((line, index) => {
+    if(line.content !== '♪') return true
+
+    const nextLine = lyricLines[index + 1]
+
+    // Si es la última línea, su duración depende del final del track
+    if(!nextLine) return true
+
+    const durationMs = Math.round((nextLine.time - line.time) * 1000)
+
+    return durationMs >= 5000
+  })
 }
 
-export const Lyrics = ({artist, track, lyricId} : Props) => {
-  const [lyric, setLyric] = useState<string | null>(null)
-  const [syncedLyrics, setSyncedLyrics] = useState<string | null>(null)
-  const [plainLyrics, setPlainLyrics] = useState<string | null>(null)
+export const Lyrics = ({trackUrl, track, artist, lyricId} : Props) => {
+  const [lyrics, setLyrics] = useState<LyricsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isLRC, setIsLRC] = useState(false)
-  const {syncedLyrics : SL, setSyncedLyrics : setSL} = useLyricStore()
-  const lastRequestRef = useRef(0)
-  
   const [retryKey, setRetryKey] = useState(0)
 
-  const getVariants = (artist?: string, track?: string) => {
-    if (!track) return []
-    const variants = [{ artist: artist?.trim() ?? '', track: track.trim() }]
-
-    const parts = track.split('-')
-    if (parts.length === 2) {
-      const [first, second] = parts.map(p => p.trim())
-      variants.push(
-        { artist: first, track: second },
-        { artist: second, track: first }
-      )
-    }
-
-    if(artist?.includes('/')) {
-      const artists = artist.split('/')
-      artists.forEach(a => {
-        variants.push({
-          artist: a,
-          track: track
-        })
-      })
-    }
-
-    return variants
-  }
-
-  const applyLyrics = useCallback((data: any) => {
-    const plainLyrics = data.plainLyrics?.replace(/\n+/g, (match : any) => match + '\n') ?? null
-
-    setLyric((data.syncedLyrics && SL) ? data.syncedLyrics : plainLyrics)
-
-    if (!data.syncedLyrics) setSL(false)
-
-    setSyncedLyrics(data.syncedLyrics ?? null)
-    setPlainLyrics(plainLyrics)
-    setIsLRC(!!data.syncedLyrics)
-    setLoading(false)
-  }, [SL, setSL])
+  const prefersSyncedLyrics = useLyricStore((state) => state.syncedLyrics)
 
   useEffect(() => {
     if (!track) return
 
-    setLyric(null)
-    setSyncedLyrics(null)
-    setPlainLyrics(null)
-    setIsLRC(false)
+    const controller = new AbortController()
+
+    setLyrics(null)
     setError(null)
     setLoading(true)
 
-    const requestId = ++lastRequestRef.current
-    const controller = new AbortController()
-
     const fetchLyrics = async () => {
       try {
-        
-        await new Promise(r => setTimeout(r, 300))
+        const data = await lyricsService.getLyrics({ trackUrl, track, artist, lyricId, signal: controller.signal})
 
-        if (requestId !== lastRequestRef.current) return
-
-        const axiosInstance = createLyricsAxiosInstance()
-
-        if (lyricId) {
-          const url = `https://lrclib.net/api/get/${lyricId}`
-
-          const { data } = await axiosInstance.get(url, {
-            signal: controller.signal
-          })
-
-          console.log(`[RGMUSIC] LyricId: ${url}`)
-
-          if (data?.syncedLyrics || data?.plainLyrics) {
-            applyLyrics(data)
-            return
-          }
-
-          showToast("No se encontró lyrics por Id")
-        }
-
-        const variants = getVariants(artist, track)
-
-        for (const v of variants) {
-          if (requestId !== lastRequestRef.current) return
-
-          const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(v.artist)}&track_name=${encodeURIComponent(v.track)}`
-
-          const { data } = await axiosInstance.get(url, {
-            signal: controller.signal
-          })
-
-          console.warn(`[RGMUSIC] Variants: ${url}`)
-          if (data?.syncedLyrics || data?.plainLyrics) {
-            applyLyrics(data)
-            return
-          }
-        }
-
-        setError('No lyrics found')
-      } catch (e : any) {
-        logNetworkError(e)
-        
         if (controller.signal.aborted) return
-        
-        if (e?.code === 'ECONNABORTED') {
-          setError('Timeout - la conexión tardó mucho')
-        } else if (e?.message?.includes('Network Error') || e?.code === 'ERR_NETWORK') {
-          setError('Error de red - verifica tu conexión a internet')
+
+        if (data) setLyrics(data)
+        else setError('No se encontró la letra')
+      } catch (error) {
+        if (controller.signal.aborted) return
+
+        if (isAxiosError(error) && error.code === 'ECONNABORTED') {
+          setError('La conexión tardó demasiado')
+        } else if (isAxiosError(error) && error.code === 'ERR_NETWORK') {
+          setError('Error de red. Verifica tu conexión a internet')
         } else {
-          setError('Error al cargar lyrics')
+          setError('Error al cargar la letra')
         }
       } finally {
-        if (requestId === lastRequestRef.current) {
+        if (!controller.signal.aborted) {
           setLoading(false)
         }
       }
@@ -170,13 +102,9 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
     void fetchLyrics()
 
     return () => controller.abort()
-  }, [track, artist, lyricId, retryKey, applyLyrics])
+  }, [track, artist, lyricId, retryKey])
 
-  useEffect(() => {
-    if(syncedLyrics != null) {
-      setLyric( (SL) ? syncedLyrics : plainLyrics )
-    }
-  }, [SL, syncedLyrics, plainLyrics])
+  if (!track) return null
 
   if (loading) {
     return (
@@ -186,7 +114,7 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
     )
   }
 
-  if (!lyric) {
+  if (!lyrics) {
     return (
       <View style={styles.container}>
         <Text style={styles.textError}>{error}</Text>
@@ -198,20 +126,21 @@ export const Lyrics = ({artist, track, lyricId} : Props) => {
     )
   }
 
+  const { syncedLyrics, plainLyrics } = lyrics
+
   return (
       <View style={{flex: 1}}>
         {
-          (isLRC && SL) ?
-            <SyncedLyricsView lyrics={lyric} />
+          (syncedLyrics && (prefersSyncedLyrics || !plainLyrics)) ?
+            <SyncedLyricsView key={syncedLyrics} lyrics={syncedLyrics} />
           :
-            <PlainLyricsView lyrics={lyric} />
+            <PlainLyricsView lyrics={plainLyrics ?? ''} />
         }
       </View>
   )
 }
 
 const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
-  
   const { position } = useProgress(250)
   const [autoPlayLineIndex, setAutoPlayLineIndex] = useState(0)
   const [scrollOffset, setScrollOffset] = useState(0)
@@ -221,9 +150,19 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
   const scrollViewRef = useRef<ScrollViewInstance | null>(null)
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastActiveIndexRef = useRef(0)
-  const LINE_HEIGHT = 120
   const screenHeight = Dimensions.get('window').height
-  const isAutoScrollingRef = useRef(false)
+  const minLineHeight = 64
+  const [viewportHeight, setViewportHeight] = useState(0)
+  const [lineCenters, setLineCenters] = useState<Record<number, number>>({})
+  const anchorY = Math.min(screenHeight / 3.5, viewportHeight / 2)
+  const snapOffsets = useMemo(
+    () => Object.values(lineCenters).map((center) => Math.max(0, center - anchorY)),
+    [lineCenters, anchorY]
+  )
+  const activeCenter = lineCenters[autoPlayLineIndex]
+  const activeOffset = activeCenter === undefined
+    ? undefined
+    : Math.max(0, activeCenter - anchorY)
 
   const [animatedScales, setAnimatedScales] = useState<Animated.Value[]>([])
 
@@ -244,19 +183,13 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
   }, [position, lyricLines])
 
   useEffect(() => {
-    if (!isUserScrolling && scrollViewRef.current) {
-      isAutoScrollingRef.current = true
-
-      scrollViewRef.current.scrollTo({
-        y: autoPlayLineIndex * LINE_HEIGHT,
+    if (!isUserScrolling && viewportHeight > 0 && activeOffset !== undefined) {
+      scrollViewRef.current?.scrollTo({
+        y: activeOffset,
         animated: true
       })
-
-      setTimeout(() => {
-        isAutoScrollingRef.current = false
-      }, 300)
     }
-  }, [autoPlayLineIndex, isUserScrolling])
+  }, [activeOffset, isUserScrolling, viewportHeight])
 
   useEffect(() => {
     return () => {
@@ -266,16 +199,16 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
     }
   }, [])
 
-  const handleScrollBeginDrag = () => {
+  const handleScrollBeginDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current)
     }
+    setScrollOffset(event.nativeEvent.contentOffset.y)
     setIsUserScrolling(true)
   }
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (isAutoScrollingRef.current) return
-    setScrollOffset(event.nativeEvent.contentOffset.y)
+    if (isUserScrolling) setScrollOffset(event.nativeEvent.contentOffset.y)
   }
 
   const handleScrollEndDrag = () => {
@@ -288,9 +221,19 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
     }, 1000)
   }
 
-  const activeLineIndex = isUserScrolling
-    ? Math.round(scrollOffset / LINE_HEIGHT)
-    : autoPlayLineIndex
+  const hasMeasuredLines = lyricLines.length > 0 && snapOffsets.length === lyricLines.length
+  let activeLineIndex = autoPlayLineIndex
+
+  if (isUserScrolling && hasMeasuredLines) {
+    let closestDistance = Infinity
+    snapOffsets.forEach((offset, index) => {
+      const distance = Math.abs(offset - scrollOffset)
+      if (distance < closestDistance) {
+        closestDistance = distance
+        activeLineIndex = index
+      }
+    })
+  }
 
   useEffect(() => {
     if (!animatedScales.length) return
@@ -299,8 +242,11 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
       const distance = Math.abs(index - activeLineIndex)
 
       let targetScale = 1
-      if (distance === 1) targetScale = 0.85
-      else targetScale = 0.75
+      if (distance === 1) {
+        targetScale = 0.8
+      } else if (distance >= 2) {
+        targetScale = 0.55
+      }
 
       Animated.spring(anim, {
         toValue: targetScale,
@@ -313,27 +259,20 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
 
   const getLineStyles = (distanceFromActive: number) => {
     const distance = Math.abs(distanceFromActive)
-    let fontWeightValue: any = '400'
     let opacityValue = 0.3
 
     if (distance === 0) {
-      fontWeightValue = '900'
       opacityValue = 1
     } else if (distance === 1) {
-      fontWeightValue = '700'
       opacityValue = 0.65
     } else if (distance === 2) {
-      fontWeightValue = '500'
       opacityValue = 0.4
     }
 
     return {
-      fontWeightValue,
       opacityValue
     }
   }
-
-  const centerPaddingHeight = (screenHeight / 3.5) - (LINE_HEIGHT / 2)
 
   useEffect(() => {
     setAnimatedScales(
@@ -341,54 +280,68 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
     )
   }, [lyricLines])
 
+  const [fontsLoaded] = useFonts({
+    LibertineBold: require('@/assets/fonts/LinLibertine_RB.ttf'),
+  })
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView
         ref={scrollViewRef}
+        onLayout={({ nativeEvent }) => setViewportHeight(nativeEvent.layout.height)}
         scrollEventThrottle={16}
         onScrollBeginDrag={handleScrollBeginDrag}
         onScroll={handleScroll}
         onScrollEndDrag={handleScrollEndDrag}
         showsVerticalScrollIndicator={false}
         scrollEnabled={true}
-        snapToInterval={LINE_HEIGHT}
+        snapToOffsets={hasMeasuredLines ? snapOffsets : undefined}
+        snapToStart={false}
+        snapToEnd={false}
         decelerationRate="fast"
       >
-        <View style={{ height: centerPaddingHeight }} />
+        <View style={{ height: Math.max(0, anchorY - minLineHeight / 2) }} />
         {lyricLines.map((line, index) => {
           const distanceFromActive = index - activeLineIndex
-          const { fontWeightValue, opacityValue } = getLineStyles(distanceFromActive)
+          const { opacityValue } = getLineStyles(distanceFromActive)
           const isVisible = Math.abs(distanceFromActive) <= 2
 
           return (
             <View
               key={`${line.time}-${line.content}`}
+              accessibilityElementsHidden={!isVisible}
+              importantForAccessibility={isVisible ? 'auto' : 'no-hide-descendants'}
+              onLayout={({ nativeEvent: { layout } }) => {
+                const center = layout.y + layout.height / 2
+                setLineCenters((previous) => previous[index] === center
+                  ? previous
+                  : { ...previous, [index]: center })
+              }}
               style={{
-                height: LINE_HEIGHT,
+                minHeight: minLineHeight,
+                paddingVertical: 20,
                 justifyContent: 'center',
                 opacity: isVisible ? opacityValue : 0
               }}
             >
-              {isVisible && (
-                <Animated.Text
-                  numberOfLines={4}
-                  adjustsFontSizeToFit
-                  style={{
-                    color: colors.text,
-                    fontSize: fontSize.xl,
-                    fontWeight: fontWeightValue,
-                    textAlign: 'center',
-                    opacity: opacityValue,
-                    transform: [{ scale: animatedScales[index] ?? 1 }]
-                  }}
-                >
-                  {line.content}
-                </Animated.Text>
-              )}
+              <Animated.Text
+                numberOfLines={4}
+                style={{
+                  fontFamily: fontsLoaded ? 'LibertineBold' : undefined,
+                  color: colors.text,
+                  fontSize: line.content === '♪' ? fontSize.xl * 2 : fontSize.xl,
+                  fontWeight: '700',
+                  textAlign: 'center',
+                  opacity: opacityValue,
+                  transform: [{ scale: animatedScales[index] ?? 1 }]
+                }}
+              >
+                {line.content}
+              </Animated.Text>
             </View>
           )
         })}
-        <View style={{ height: centerPaddingHeight }} />
+        <View style={{ height: Math.max(0, viewportHeight - anchorY - minLineHeight / 2) }} />
       </ScrollView>
     </View>
     
@@ -401,7 +354,9 @@ const PlainLyricsView = ({ lyrics }: { lyrics: string }) => {
     <ScrollView
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.lyrics}>{lyrics}</Text>
+      <Text style={styles.lyrics}>
+        {lyrics.replace(/\n+/g, (lineBreaks) => `${lineBreaks}\n`)}
+      </Text>
     </ScrollView>
   )
 }
