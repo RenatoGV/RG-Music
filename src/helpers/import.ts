@@ -22,7 +22,9 @@ const removeExtension = (fileName : string) => {
   return fileName
 }
 
-export const importTracks = async (uri: string | null) => {
+type ImportMode = 'refresh' | 'replace'
+
+export const importTracks = async (uri: string | null, mode: ImportMode = 'refresh') => {
   const { tracks : savedTracks, setTracks, setIsLoading, setProgressLoading, resetProgressLoading } = useLibraryStore.getState()
 
   resetProgressLoading()
@@ -41,44 +43,29 @@ export const importTracks = async (uri: string | null) => {
       )
 
       const audioFileSet = new Set(audioFiles)
-      const savedTracksByUrl = new Map((savedTracks ?? []).map(track => [track.url, track] as const))
+      const previousTracks = savedTracks ?? []
+      const isReplacing = mode === 'replace'
 
-      let tracks = (savedTracks ?? []).filter(track => audioFileSet.has(track.url))
+      const tracks = isReplacing ? [] : previousTracks.filter(track => audioFileSet.has(track.url))
 
-      const newAudioFiles = audioFiles.filter(
-        file => !savedTracksByUrl.has(file)
-      )
+      const savedTrackUrls = new Set(tracks.map((track) => track.url))
+      const filesToImport = audioFiles.filter((file) => !savedTrackUrls.has(file))
+      const removedCount = previousTracks.filter((track) => !audioFileSet.has(track.url)).length
 
-      const incompleteMetadataFiles = new Set(
-        (savedTracks ?? []).filter(track =>
-            audioFiles.includes(track.url) &&
-            (!track.title || track.title === removeExtension(getTemporaryFileName(track.url)) || !track.artist || track.artist === 'Desconocido'
-            || !track.artwork || track.artwork === unknownTrackImageUri)
-          )
-          .map(track => track.url)
-      )
-
-      const filesToProcess = audioFiles.filter(
-        file => !savedTracksByUrl.has(file) || incompleteMetadataFiles.has(file)
-      )
-
-      tracks = tracks.filter(track => !incompleteMetadataFiles.has(track.url))
-
-      const totalAssets = filesToProcess.length
+      const totalAssets = filesToImport.length
       let currentProgress = 0
       
       /* eslint-disable no-await-in-loop */
-      for(const audio of filesToProcess){
+      for(const audio of filesToImport){
         try {
           if (!audio) throw new Error('URI no existe')
 
           const fileName = getTemporaryFileName(audio)
-          const existingTrack = savedTracksByUrl.get(audio)
-
           const info = await FileSystem.getInfoAsync(audio)
-          let title = existingTrack?.title || removeExtension(fileName)
-          let artist = existingTrack?.artist || 'Desconocido'
-          let artwork = existingTrack?.artwork || unknownTrackImageUri
+
+          let title = removeExtension(fileName)
+          let artist = 'Desconocido'
+          let artwork = unknownTrackImageUri
           let tempPath: string | null = null
 
           if (info.exists && 'size' in info && typeof info.size === 'number' && info.size <= MAX_METADATA_SIZE) {
@@ -120,15 +107,13 @@ export const importTracks = async (uri: string | null) => {
             artwork
           })
         } catch (error) {
-          const existingTrack = savedTracks?.find(track => track.url === audio)
-          
           console.error('[IMPORT] Error procesando archivo; se agregará con valores de fallback', {
             fileName: getTemporaryFileName(audio),
             uriScheme: audio.split(':')[0],
             error,
           })
           
-          tracks.push(existingTrack ?? {
+          tracks.push({
             title: removeExtension(getTemporaryFileName(audio)),
             url: audio,
             artist: 'Desconocido',
@@ -153,17 +138,22 @@ export const importTracks = async (uri: string | null) => {
         }
       }
 
+      let message = 'La biblioteca ya está actualizada'
+
+      if(isReplacing) message = `${tracks.length} canciones importadas`
+      else if(totalAssets > 0 || removedCount > 0) message = `Importadas: ${totalAssets} · Retiradas: ${removedCount}`
+
       console.info('[IMPORT] Importación completada', {
-        added: newAudioFiles.length,
-        updated: incompleteMetadataFiles.size,
-        processed: filesToProcess.length,
-        totalTracks: tracks.length,
+        mode,
+        imported: totalAssets,
+        removed: removedCount,
+        totalTracks: tracks.length
       })
 
       if(AppState.currentState === 'active'){
-        showToast(`${filesToProcess.length} canciones importadas o actualizadas`)
+        showToast(message)
       } else {
-        await scheduleAlarmNotification({title: 'Canciones importadas', message: `${filesToProcess.length} canciones importadas o actualizadas`})
+        await scheduleAlarmNotification({title: 'Biblioteca de música', message})
       }
     }
   } catch (error) {
