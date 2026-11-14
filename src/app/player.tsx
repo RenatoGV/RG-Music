@@ -33,7 +33,7 @@ const PlayerScreen = () => {
     const activeTrackRaw = useActiveTrack()
     const tracks = useLibraryStore(state => state.tracks)
     
-    const activeTrack = activeTrackRaw && tracks 
+    const activeTrack = activeTrackRaw && tracks
         ? tracks.find(t => t.url === activeTrackRaw.url) ?? (activeTrackRaw as Track)
         : (activeTrackRaw as Track | undefined)
     
@@ -81,125 +81,126 @@ const PlayerScreen = () => {
         )
     }
 
-  return (
-    <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
-        <Modal
-            animationType="fade"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => {
-                setModalVisible(!modalVisible)
-            }}
-        >
-            <View style={styles.centeredView}>
-                <View style={styles.modalView}>
-                    <TouchableOpacity onPress={closeModal} style={styles.buttonClose}>
-                        <FontAwesome6 name="circle-xmark" size={22} color={colors.primary} />
-                    </TouchableOpacity>
-                    <Text style={styles.modalText}>Establecer Lyric ID</Text>
-                    <TextInput
-                        style={styles.modalInput}
-                        placeholder="Ingrese el ID"
-                        selectionColor={colors.primary}
-                        placeholderTextColor={colors.textMuted}
-                        onChangeText={handleChangeText}
-                        value={lyricId}
-                    />
-                    <TouchableOpacity
-                        style={[styles.button, styles.buttonSave, { opacity: 1 }]}
-                        onPress={handleSave}
-                    >
-                        <Text style={styles.textStyle}>Guardar</Text>
-                    </TouchableOpacity>
+    return (
+        <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible)
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <TouchableOpacity onPress={closeModal} style={styles.buttonClose}>
+                            <FontAwesome6 name="circle-xmark" size={22} color={colors.primary} />
+                        </TouchableOpacity>
+                        <Text style={styles.modalText}>Establecer Lyric ID</Text>
+                        <TextInput
+                            style={styles.modalInput}
+                            placeholder="Ingrese el ID"
+                            selectionColor={colors.primary}
+                            placeholderTextColor={colors.textMuted}
+                            onChangeText={handleChangeText}
+                            value={lyricId}
+                        />
+                        <TouchableOpacity
+                            style={[styles.button, styles.buttonSave, { opacity: 1 }]}
+                            onPress={handleSave}
+                        >
+                            <Text style={styles.textStyle}>Guardar</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
-        </Modal>
-        <View style={styles.overlayContainer}>
-            {(showLyrics) ? <></> : <DismissPlayerSymbol />}
+            </Modal>
+            <View style={styles.overlayContainer}>
+                {(showLyrics) ? <></> : <DismissPlayerSymbol />}
 
-            <View style={{flex: 1, marginTop: (showLyrics) ? top : top + 70, marginBottom: bottom}}>
-                {
-                    (showLyrics)
-                    ? 
-                        <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
-                            <View style={{marginBottom: 30}}>
-                                <AnimatedTitle text={activeTrack.title ?? ''} />
-                                <TouchableOpacity  onPress={
-                                    () => router.navigate((activeTrack.artist?.includes('/')) ? '/(tabs)/artists' : `/(tabs)/artists/${activeTrack.artist}`)
-                                }>
-                                    <AnimatedSubitle text={activeTrack.artist ?? ''} />
-                                </TouchableOpacity>
-                                
+                <View style={{flex: 1, marginTop: (showLyrics) ? top : top + 70, marginBottom: bottom}}>
+                    {
+                        (showLyrics)
+                        ?
+                            <View style={{flex: 1, justifyContent: 'space-between', paddingBottom: 20}}>
+                                <View style={{marginBottom: 30}}>
+                                    <AnimatedTitle text={activeTrack.title ?? ''} />
+                                    <TouchableOpacity  onPress={
+                                        () => router.navigate((activeTrack.artist?.includes('/')) ? '/(tabs)/artists' : `/(tabs)/artists/${activeTrack.artist}`)
+                                    }>
+                                        <AnimatedSubitle text={activeTrack.artist ?? ''} />
+                                    </TouchableOpacity>
+                                    
+                                </View>
+                                <Lyrics
+                                    trackUrl={activeTrack.url}
+                                    artist={activeTrack.artist}
+                                    track={activeTrack.title}
+                                    lyricId={activeTrack.lyric_id}
+                                />
+                                <View style={{marginTop: 30}}>
+                                    <PlayerProgressbar />
+                                    <PlayerControlsLyrics />
+                                </View>
                             </View>
-                            <Lyrics 
-                                artist={activeTrack.artist} 
-                                track={activeTrack.title}
-                                lyricId={activeTrack.lyric_id}
-                            />
-                            <View style={{marginTop: 30}}>
-                                <PlayerProgressbar />
-                                <PlayerControlsLyrics />
-                            </View>
-                        </View>
-                    : <>
-                        <ArtworkFlip artwork={activeTrack.artwork} unknownTrackImageUri={unknownTrackImageUri} onPress={() => setShowLyrics(true)} />
+                        : <>
+                            <ArtworkFlip artwork={activeTrack.artwork} unknownTrackImageUri={unknownTrackImageUri} onPress={() => setShowLyrics(true)} />
 
-                        <View style={{flex: 1}}>
-                            <View style={{marginTop: 'auto'}}>
-                                <View style={{height: 60}}>
-                                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                                        <View style={styles.trackTitleContainer}>
-                                            <MovingText text={activeTrack.title ?? ''} animationThreshold={30} style={styles.trackTitleText} />
+                            <View style={{flex: 1}}>
+                                <View style={{marginTop: 'auto'}}>
+                                    <View style={{height: 60}}>
+                                        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                                            <View style={styles.trackTitleContainer}>
+                                                <MovingText text={activeTrack.title ?? ''} animationThreshold={30} style={styles.trackTitleText} />
+                                            </View>
+
+                                            <TouchableOpacity onPress={() => {setModalVisible(true)}}>
+                                                <MaterialIcons
+                                                    name="info-outline"
+                                                    size={30} 
+                                                    color={colors.icon}
+                                                    style={{marginHorizontal: 14}}
+                                                />
+                                            </TouchableOpacity>
+
+                                            <TouchableOpacity onPress={toggleFavorite}>
+                                                <FontAwesome
+                                                    name={isFavorite ? 'heart' : 'heart-o'}
+                                                    size={30}
+                                                    color={isFavorite ? colors.primary : colors.icon}
+                                                    style={{marginHorizontal: 14}}
+                                                />
+                                            </TouchableOpacity>
                                         </View>
 
-                                        <TouchableOpacity onPress={() => {setModalVisible(true)}}>
-                                            <MaterialIcons
-                                                name="info-outline"
-                                                size={30} 
-                                                color={colors.icon}
-                                                style={{marginHorizontal: 14}}
-                                            />
-                                        </TouchableOpacity>
-
-                                        <TouchableOpacity onPress={toggleFavorite}>
-                                            <FontAwesome
-                                                name={isFavorite ? 'heart' : 'heart-o'}
-                                                size={30}
-                                                color={isFavorite ? colors.primary : colors.icon}
-                                                style={{marginHorizontal: 14}}
-                                            />
-                                        </TouchableOpacity>
+                                        {activeTrack.artist && (
+                                            <TouchableOpacity
+                                                onPress={() => router.navigate((activeTrack.artist?.includes('/')) ? '/(tabs)/artists' : `/(tabs)/artists/${activeTrack.artist}`)}
+                                            >
+                                                <Text 
+                                                    numberOfLines={1} 
+                                                    style={[styles.trackArtistText, {marginTop: 6}]}
+                                                    >
+                                                {activeTrack.artist}</Text>
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
 
-                                    {activeTrack.artist && (
-                                        <TouchableOpacity
-                                            onPress={() => router.navigate((activeTrack.artist?.includes('/')) ? '/(tabs)/artists' : `/(tabs)/artists/${activeTrack.artist}`)}
-                                        >
-                                            <Text 
-                                                numberOfLines={1} 
-                                                style={[styles.trackArtistText, {marginTop: 6}]}
-                                                >
-                                            {activeTrack.artist}</Text>
-                                        </TouchableOpacity>
-                                    )}
+                                    <PlayerProgressbar style={{marginTop: 32}} />
+                                    <PlayerControls style={{marginTop: 40}} />
                                 </View>
 
-                                <PlayerProgressbar style={{marginTop: 32}} />
-                                <PlayerControls style={{marginTop: 40}} />
-                            </View>
+                                <PlayerVolumenbar style={{marginTop: 'auto', marginBottom: 30}} />
 
-                            <PlayerVolumenbar style={{marginTop: 'auto', marginBottom: 30}} />
-
-                            <View style={utilsStyles.centeredRow}>
-                                <PlayerRepeatToggle size={30} style={{marginBottom: 6}} />
+                                <View style={utilsStyles.centeredRow}>
+                                    <PlayerRepeatToggle size={30} style={{marginBottom: 6}} />
+                                </View>
                             </View>
-                        </View>
-                    </>
-                }
+                        </>
+                    }
+                </View>
             </View>
-        </View>
-    </LinearGradient>
-  )
+        </LinearGradient>
+    )
 }
 
 const DismissPlayerSymbol = () => {

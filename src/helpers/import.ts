@@ -8,6 +8,7 @@ import { scheduleAlarmNotification } from "./notifications"
 import { StorageAccessFramework } from 'expo-file-system/legacy';
 import { createTempSessionDir, deleteTempSessionDir, getTemporaryFile, getTemporaryFileName } from "./temporary-file"
 import * as FileSystem from "expo-file-system/legacy"
+import { lyricsService } from "@/services/lyricsService"
 
 const audioExtensions = ['.mp3', '.wav', '.aac', '.m4a']
 const MAX_METADATA_SIZE = 20 * 1024 * 1024 // 20 MB
@@ -143,6 +144,15 @@ export const importTracks = async (uri: string | null) => {
       setTracks(tracks)
       saveData('tracks', tracks)
       saveData('selectedAlbum', uri)
+
+      /* Eliminar lyrics antiguas */
+      const importedUrls = new Set(tracks.map((track) => track.url))
+      for(const previousTrack of savedTracks ?? []) {
+        if(!importedUrls.has(previousTrack.url)) {
+          lyricsService.removeCachedLyrics(previousTrack.url)
+        }
+      }
+
       console.info('[IMPORT] Importación completada', {
         added: newAudioFiles.length,
         updated: incompleteMetadataFiles.size,

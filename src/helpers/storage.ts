@@ -15,3 +15,7 @@ export const loadData = <T = any>(key: string): T | null => {
 		return null
 	}
 }
+
+export const removeData = (key: string): boolean => {
+	return storage.removeItem(key)
+}
