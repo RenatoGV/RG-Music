@@ -158,6 +158,13 @@ export const importTracks = async (uri: string | null, mode: ImportMode = 'refre
     }
   } catch (error) {
     console.error('[IMPORT] Error cargando la carpeta seleccionada', { uri, error })
+    const message = 'No se pudo completar la importación'
+
+    if (AppState.currentState === 'active') {
+      showToast(message)
+    } else {
+      await scheduleAlarmNotification({ title: 'Biblioteca de música', message })
+    }
   } finally {
     try {
       if(tempDir) {
