@@ -1,0 +1,25 @@
+import { colors, fontSize } from "@/constants/tokens"
+import { ScrollView, StyleSheet, Text } from "react-native"
+
+const PlainLyricsView = ({ lyrics }: { lyrics: string }) => {
+   return (
+      <ScrollView
+         showsVerticalScrollIndicator={false}
+      >
+         <Text style={styles.lyrics}>
+         {lyrics.replace(/\n+/g, (lineBreaks) => `${lineBreaks}\n`)}
+         </Text>
+      </ScrollView>
+   )
+}
+
+const styles = StyleSheet.create({
+   lyrics: {
+      textAlign: 'center',
+      fontSize: fontSize.lg,
+      color: colors.text
+   }
+})
+
+
+export default PlainLyricsView
