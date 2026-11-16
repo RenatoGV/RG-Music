@@ -7,6 +7,7 @@ import { unknownTrackImageUri } from '@/constants/images'
 import { useQueue } from '@/store/queue'
 import { QueueControls } from '../other/QueueControls'
 import { TrackListItem } from './TrackListItem'
+import { shuffleTracks } from '@/helpers/shuffleTracks'
 
 export type TrackListProps = Partial<FlatListProps<Track>> & {
   id: string
@@ -19,12 +20,27 @@ export type TrackListProps = Partial<FlatListProps<Track>> & {
 const ItemDivider = () => <View style={{...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60}} />
 
 export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
-  const { activeQueueId, setActiveQueueId } = useQueue()
+  const { activeQueueId, setActiveQueueId, shuffleEnabled } = useQueue()
 
   const handleTrackSelect = (selectedTrack: Track) => {
     const trackIndex = tracks.findIndex(track => track.url === selectedTrack.url)
 
     if(trackIndex === -1) return
+
+    if (shuffleEnabled) {
+      const remainingTracks = tracks.filter((_, index) => index !== trackIndex)
+
+      TrackPlayer.setShuffleEnabled(false)
+      TrackPlayer.setQueue([
+          selectedTrack,
+          ...shuffleTracks(remainingTracks),
+        ])
+
+      setActiveQueueId(id)
+      TrackPlayer.play()
+
+      return
+    }
 
     if (id === activeQueueId) {
       const queueIndex = TrackPlayer.getQueue().findIndex(
@@ -38,41 +54,40 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
       }
     }
 
-    const beforeTracks = tracks.slice(0, trackIndex)
-    const afterTracks = tracks.slice(trackIndex + 1)
+    TrackPlayer.setShuffleEnabled(false)
+    TrackPlayer.setQueue(tracks)
+    TrackPlayer.skip(trackIndex)
 
-    TrackPlayer.setQueue([selectedTrack, ...afterTracks, ...beforeTracks])
     setActiveQueueId(id)
     TrackPlayer.play()
   }
 
   return (
     <FlatList
-        data={filteredTracks}
-        contentContainerStyle={{paddingTop: 10, paddingBottom: 128}}
-        ListHeaderComponent={
-          (!hideQueueControls && tracks.length > 0) ? <QueueControls queueId={id} tracks={tracks} style={{paddingBottom: 20}}/>
-            : undefined
-        }
-        ItemSeparatorComponent={ItemDivider}
-        initialNumToRender={15}
-        maxToRenderPerBatch={15}
-        windowSize={5}
-        removeClippedSubviews={true}
-        ListEmptyComponent={
-          <View>
-            <Text style={utilsStyles.emptyContentText}>No se encontraron canciones</Text>
-            <FastImage
-              source={{ uri: unknownTrackImageUri }}
-              style={utilsStyles.emptyContentImage}
-            />
-          </View>
-        }
-        renderItem={({item : track}) => (
-            <TrackListItem track={track} onTrackSelect={handleTrackSelect} fromPlaylist={fromPlaylist} />
+      data={filteredTracks}
+      contentContainerStyle={{paddingTop: 10, paddingBottom: 128}}
+      ListHeaderComponent={
+        (!hideQueueControls && tracks.length > 0) ? <QueueControls queueId={id} tracks={tracks} style={{paddingBottom: 20}}/> : undefined
+      }
+      ItemSeparatorComponent={ItemDivider}
+      initialNumToRender={15}
+      maxToRenderPerBatch={15}
+      windowSize={5}
+      removeClippedSubviews={true}
+      ListEmptyComponent={
+        <View>
+          <Text style={utilsStyles.emptyContentText}>No se encontraron canciones</Text>
+          <FastImage
+            source={{ uri: unknownTrackImageUri }}
+            style={utilsStyles.emptyContentImage}
+          />
+        </View>
+      }
+      renderItem={({item : track}) => (
+          <TrackListItem track={track} onTrackSelect={handleTrackSelect} fromPlaylist={fromPlaylist} />
         )}
-        showsVerticalScrollIndicator={false}
-        {...flatlistProps}
+      showsVerticalScrollIndicator={false}
+      {...flatlistProps}
     />
   )
 }
