@@ -1,7 +1,7 @@
 import { colors, fontSize } from "@/constants/tokens"
 import { ScrollView, StyleSheet, Text } from "react-native"
 
-const PlainLyricsView = ({ lyrics }: { lyrics: string }) => {
+export const PlainLyricsView = ({ lyrics }: { lyrics: string }) => {
    return (
       <ScrollView
          showsVerticalScrollIndicator={false}
@@ -20,6 +20,3 @@ const styles = StyleSheet.create({
       color: colors.text
    }
 })
-
-
-export default PlainLyricsView

@@ -5,7 +5,7 @@ import { useFonts } from "expo-font"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Animated, Dimensions, NativeScrollEvent, NativeSyntheticEvent, ScrollView, ScrollViewInstance, View } from "react-native"
 
-const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
+export const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
    const { position } = useProgress(250)
    const [autoPlayLineIndex, setAutoPlayLineIndex] = useState(0)
    const [scrollOffset, setScrollOffset] = useState(0)
@@ -211,6 +211,4 @@ const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
       </View>
       
    )
-   }
-
-export default SyncedLyricsView
+}

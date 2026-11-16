@@ -1,8 +1,8 @@
 import { colors, fontSize } from '@/constants/tokens';
 import { ActivityIndicator, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { useLyricStore } from '@/store/lyrics';
-import SyncedLyricsView from '../lyrics/SyncedLyricsView';
-import PlainLyricsView from '../lyrics/PlainLyricsView';
+import { PlainLyricsView } from '@/components/lyrics/PlainLyricsView'
+import { SyncedLyricsView } from '@/components/lyrics/SyncedLyricsView'
 import { useLyrics } from './useLyrics';
 
 type Props = {
