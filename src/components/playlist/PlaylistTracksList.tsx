@@ -1,4 +1,4 @@
-import { trackTitleFilter } from '@/helpers/filter'
+import { filterTrackByTitle } from '@/helpers/filter'
 import { Playlist } from '@/helpers/types'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { useMemo } from 'react'
@@ -37,26 +37,20 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
         })
     }
 
-    const filteredPlaylistTracks = useMemo(() => {
-        if(!currentTracks) return []
-
-        return currentTracks?.filter(trackTitleFilter(search))
-    }, [currentTracks, search])
+    const filteredPlaylistTracks = filterTrackByTitle(currentTracks ?? [], search)
 
     return (
         <TracksList
             id={queueId}
             fromPlaylist={playlist}
-            scrollEnabled={false}
+            contentInsetAdjustmentBehavior='automatic'
             hideQueueControls={true}
             ListHeaderComponentStyle={styles.playlistHeaderContainer}
             ListHeaderComponent={
                 <View>
                     <View style={styles.artworkImageContainer}>
                         <FastImage
-                            source={{
-                                uri: unknownPlaylistImageUri
-                            }}
+                            source={{ uri: unknownPlaylistImageUri }}
                             style={styles.artworkImage}
                         />
                     </View>

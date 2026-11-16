@@ -3,7 +3,7 @@ import { screenPadding } from '@/constants/tokens'
 import { usePlaylistStore } from '@/store/playlist'
 import { defaultStyles } from '@/styles'
 import { Redirect, Stack, useLocalSearchParams } from 'expo-router'
-import { ScrollView, View } from 'react-native'
+import { View } from 'react-native'
 
 const PlaylistScreen = () => {
     const { id } = useLocalSearchParams<{ id: string }>()
@@ -18,14 +18,9 @@ const PlaylistScreen = () => {
     }
 
     return (
-        <View style={defaultStyles.container}>
+        <View style={[defaultStyles.container, { paddingHorizontal: screenPadding.horizontal }]}>
             <Stack.Screen options={{ headerTitle: playlist.name }}/>
-            <ScrollView
-                contentInsetAdjustmentBehavior='automatic'
-                style={{ paddingHorizontal: screenPadding.horizontal }}
-            >
-                <PlaylistTracksList playlist={playlist} />
-            </ScrollView>
+            <PlaylistTracksList playlist={playlist} />
         </View>
     )
 }
