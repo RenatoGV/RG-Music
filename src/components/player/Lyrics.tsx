@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View, TouchableOpacity } from 'rea
 import { useLyricStore } from '@/store/lyrics';
 import { PlainLyricsView } from '@/components/lyrics/PlainLyricsView'
 import { SyncedLyricsView } from '@/components/lyrics/SyncedLyricsView'
-import { useLyrics } from './useLyrics';
+import { useLyrics } from '@/hooks/useLyrics';
 
 type Props = {
   trackUrl: string

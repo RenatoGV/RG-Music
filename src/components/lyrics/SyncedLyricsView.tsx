@@ -1,19 +1,16 @@
 import { colors, fontSize } from "@/constants/tokens"
 import { parseLRC } from "@/helpers/parseLRC"
 import { useProgress } from "@/helpers/track-player-compat"
+import { useLyricsAutoScroll } from "@/hooks/useLyricsAutoScroll"
 import { useFonts } from "expo-font"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Animated, Dimensions, NativeScrollEvent, NativeSyntheticEvent, ScrollView, ScrollViewInstance, View } from "react-native"
+import { Animated, Dimensions, ScrollView, View } from "react-native"
 
 export const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
    const { position } = useProgress(250)
    const [autoPlayLineIndex, setAutoPlayLineIndex] = useState(0)
-   const [scrollOffset, setScrollOffset] = useState(0)
-   const [isUserScrolling, setIsUserScrolling] = useState(false)
    
    const lyricLines = useMemo(() => parseLRC(lyrics), [lyrics])
-   const scrollViewRef = useRef<ScrollViewInstance | null>(null)
-   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
    const lastActiveIndexRef = useRef(0)
    const screenHeight = Dimensions.get('window').height
    const minLineHeight = 64
@@ -47,47 +44,10 @@ export const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
       }
    }, [position, lyricLines])
 
-   useEffect(() => {
-      if (!isUserScrolling && viewportHeight > 0 && activeOffset !== undefined) {
-         scrollViewRef.current?.scrollTo({
-         y: activeOffset,
-         animated: true
-         })
-      }
-   }, [activeOffset, isUserScrolling, viewportHeight])
-
-   useEffect(() => {
-      return () => {
-         if (scrollTimeoutRef.current) {
-         clearTimeout(scrollTimeoutRef.current)
-         }
-      }
-   }, [])
-
-   const handleScrollBeginDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (scrollTimeoutRef.current) {
-         clearTimeout(scrollTimeoutRef.current)
-      }
-      setScrollOffset(event.nativeEvent.contentOffset.y)
-      setIsUserScrolling(true)
-   }
-
-   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isUserScrolling) setScrollOffset(event.nativeEvent.contentOffset.y)
-   }
-
-   const handleScrollEndDrag = () => {
-      if (scrollTimeoutRef.current) {
-         clearTimeout(scrollTimeoutRef.current)
-      }
-
-      scrollTimeoutRef.current = setTimeout(() => {
-         setIsUserScrolling(false)
-      }, 1000)
-   }
-
    const hasMeasuredLines = lyricLines.length > 0 && snapOffsets.length === lyricLines.length
    let activeLineIndex = autoPlayLineIndex
+
+   const { scrollViewRef, scrollOffset, isUserScrolling, handleScrollBeginDrag, handleScroll, handleScrollEndDrag } = useLyricsAutoScroll({ activeOffset, viewportHeight })
 
    if (isUserScrolling && hasMeasuredLines) {
       let closestDistance = Infinity
