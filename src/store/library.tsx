@@ -1,7 +1,8 @@
-import { Track, Artist } from "@/helpers/types";
+import { Track } from "@/helpers/types";
 import { create } from "zustand";
 import { useMemo } from "react";
 import { saveData } from "@/helpers/storage";
+import { groupTracksByArtist } from "@/helpers/groupTracksByArtist";
 
 interface LibraryState {
     tracks: Track[] | null
@@ -71,25 +72,5 @@ export const useTracks = () => useLibraryStore(state => state.tracks)
 export const useArtists = () => {
     const tracks = useLibraryStore(state => state.tracks)
 
-    return useMemo(() => {
-        return tracks?.reduce((acc, track) => {
-            const artistField = track.artist || 'Desconocido'
-            const artistNames = artistField.split(/[/,;]+/).map(name => name.trim()).filter(Boolean)
-
-            artistNames.forEach(artistName => {
-                const existingArtist = acc.find((artist: Artist) => artist.name.toLowerCase() === artistName.toLowerCase())
-
-                if (existingArtist) {
-                    existingArtist.tracks.push(track)
-                } else {
-                    acc.push({
-                        name: artistName,
-                        tracks: [track]
-                    })
-                }
-            })
-            return acc
-        }, [] as Artist[])
-    },[tracks]
-    )
+    return useMemo(() => groupTracksByArtist(tracks ?? []), [tracks])
 }

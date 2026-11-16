@@ -66,9 +66,9 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
         router.push({pathname: '/(modals)/addToPlaylist', params: { trackUrl: track.url }})
     }
 
-    if(!fromPlaylist) return
-
     const handleFromToPlaylist = () => {
+        if(!fromPlaylist) return
+
         setVisible(false)
         removeToPlaylist(track.url, fromPlaylist.id)
         showToast(`Eliminado de ${fromPlaylist!.name}`)

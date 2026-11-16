@@ -24,8 +24,9 @@ export const filterPlaylistsByName = (playlists: Playlist[], search: string) => 
     )
 }
 
-export const trackTitleFilter = (title: string) => (track: any) =>
-    track.title?.toLowerCase().includes(title.toLowerCase())
+export const filterArtistsByName = (artists: Artist[], search: string) => {
+    const query = normalizeSearchText(search)
+    if(!query) return artists
 
-export const artistNameFilter = (name: string) => (artist: Artist) =>
-    artist.name.toLowerCase().includes(name.toLowerCase())
+    return artists.filter((artist) => normalizeSearchText(artist.name).includes(query))
+}
