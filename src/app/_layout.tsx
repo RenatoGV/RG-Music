@@ -16,11 +16,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { loadData, saveData } from '@/helpers/storage';
 import { configureNotificationChannel, requestNotificationPermission } from '@/helpers/notifications';
 import { useLyricStore } from '@/store/lyrics';
+import { randomUUID } from 'expo-crypto';
 
 const CustomStack = Stack
 
 void SplashScreen.preventAutoHideAsync().catch(() => {})
-
 
 const App = () => {
 	//const initialized = useRef(false)
@@ -40,9 +40,9 @@ const App = () => {
 
 		let interval: ReturnType<typeof setInterval> | null = null
 
-		interval = setInterval(async () => {
+		interval = setInterval(() => {
 			try {
-				const playBackState = await getPlaybackState()
+				const playBackState = getPlaybackState()
 				if (playBackState.state !== 'playing') return
 
 				const position = TrackPlayer.getProgress().position
@@ -64,7 +64,7 @@ const App = () => {
 			let hasActivePlayback = false
 			if (isPlayerReady) {
 				try {
-					const playbackState = await getPlaybackState()
+					const playbackState = getPlaybackState()
 					hasActivePlayback = playbackState.state !== 'none'
 				} catch (error) {
 					console.error('Error checking playback state', error)
@@ -73,12 +73,22 @@ const App = () => {
 			setSkipAnimation(hasActivePlayback)
 
 			const storedTracks = loadData<Track[]>('tracks')
-			const storedPlaylists = loadData<Playlist[]>('playlists')
 			const storedPlaybackQueue = loadData<StoredPlayback | string>('playback_queue')
 			const storedPlaybackPosition = loadData<number>('playback_position')
 
+			type StoredPlaylist = Omit<Playlist, 'id'> & { id?: string }
+			const storedPlaylists = loadData<StoredPlaylist[]>('playlists')
+			const migratedPlaylists = storedPlaylists?.map((playlist) => ({
+				...playlist,
+				id: playlist.id || randomUUID()
+			})) ?? null
+
+			if(migratedPlaylists && storedPlaylists?.some((playlist) => !playlist.id)) {
+				saveData('playlists', migratedPlaylists)
+			}
+
 			setTracks(storedTracks)
-			setPlaylists(storedPlaylists)
+			setPlaylists(migratedPlaylists)
 
 			if (isPlayerReady && storedPlaybackQueue) {
 				try {

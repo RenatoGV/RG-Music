@@ -1,48 +1,53 @@
 import { unknownTrackImageUri } from "@/constants/images"
 import { saveData } from "@/helpers/storage"
 import { Playlist } from "@/helpers/types"
+import { randomUUID } from "expo-crypto"
 import { create } from "zustand"
 
 type PlaylistState = {
-    playlists: Playlist[] | null
-    setPlaylists: (playlists: Playlist[] | null) => void
-    addPlaylist: (playlistName: string) => void
-    removePlaylist: (playlist: Playlist) => void
-    addToPlaylist: (track: string, playlist: Playlist) => void
-    removeToPlaylist: (track: string, playlist: Playlist) => void
-    addMultipleToPlaylist: (track: string[], playlist: Playlist) => void
+  playlists: Playlist[] | null
+  setPlaylists: (playlists: Playlist[] | null) => void
+  addPlaylist: (playlistName: string) => boolean
+  removePlaylist: (playlistId: string) => void
+  addToPlaylist: (trackUri: string, playlistId: string) => void
+  removeToPlaylist: (trackUri: string, playlistId: string) => void
+  addMultipleToPlaylist: (trackUris: string[], playlistId: string) => void
 }
 
 export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
     playlists: null,
     setPlaylists: (playlists) => set({playlists: playlists}),
-    addPlaylist: (playlistName) =>{
-      set((state) => {
-        const newPlaylist : Playlist = {
-          name: playlistName,
-          tracksUri: [],
-          artworkPreview: unknownTrackImageUri
-        }
+    addPlaylist: (playlistName) => {
+      const name = playlistName.trim()
+      const playlists = get().playlists ?? []
 
-        return {
-          playlists: state.playlists ? [...state.playlists, newPlaylist] : [newPlaylist]
-        }
-      })
-      
-      saveData('playlists', get().playlists)
+      const alreadyExists = playlists.some(
+          (playlist) => playlist.name.trim().toLowerCase() === name.toLowerCase()
+      )
+
+      if (!name || alreadyExists) return false
+
+      const updatedPlaylists = [
+          ...playlists,
+          { id: randomUUID(), name, tracksUri: [], artworkPreview: unknownTrackImageUri },
+      ]
+
+      saveData('playlists', updatedPlaylists)
+      set({ playlists: updatedPlaylists })
+      return true
     },
-    removePlaylist: (playlistToRemove) =>{
+    removePlaylist: (playlistId) =>{
       set((state) => ({
-        playlists: state.playlists!.filter((playlist) => playlist !== playlistToRemove)
+        playlists: state.playlists?.filter((playlist) => playlist.id !== playlistId) ?? null
       }))
       
       saveData('playlists', get().playlists)
     },
-    addToPlaylist: (uri, playlist) => {
+    addToPlaylist: (uri, playlistId) => {
         set((state) => ({
             playlists: state.playlists
                 ? state.playlists.map((currentPlaylist) =>
-                    currentPlaylist === playlist
+                    currentPlaylist.id === playlistId
                         ? {
                             ...currentPlaylist,
                             tracksUri: currentPlaylist.tracksUri.includes(uri)
@@ -56,11 +61,11 @@ export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
       
         saveData('playlists', get().playlists)
     },
-    removeToPlaylist: (uri, playlist) => {
+    removeToPlaylist: (uri, playlistId) => {
         set((state) => ({
             playlists: state.playlists
               ? state.playlists.map((currentPlaylist) =>
-                currentPlaylist === playlist
+                currentPlaylist.id === playlistId
                     ? {
                         ...currentPlaylist,
                         tracksUri: currentPlaylist.tracksUri.filter((currentUri) => currentUri !== uri),
@@ -72,11 +77,11 @@ export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
       
           saveData('playlists', get().playlists)
     },
-    addMultipleToPlaylist: (trackList, playlist) => {
+    addMultipleToPlaylist: (trackList, playlistId) => {
       set((state) => ({
         playlists: state.playlists
           ? state.playlists.map((currentPlaylist) =>
-              currentPlaylist === playlist
+              currentPlaylist.id === playlistId
                 ? {
                     ...currentPlaylist,
                     tracksUri: [

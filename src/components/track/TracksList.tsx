@@ -5,7 +5,6 @@ import { Track, Playlist } from '@/helpers/types'
 import FastImage from 'react-native-fast-image'
 import { unknownTrackImageUri } from '@/constants/images'
 import { useQueue } from '@/store/queue'
-import { useRef } from 'react'
 import { QueueControls } from '../other/QueueControls'
 import { TrackListItem } from './TrackListItem'
 
@@ -20,53 +19,39 @@ export type TrackListProps = Partial<FlatListProps<Track>> & {
 const ItemDivider = () => <View style={{...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60}} />
 
 export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
-  const queueOffset = useRef(0)
-  const {activeQueueId, setActiveQueueId} = useQueue()
+  const { activeQueueId, setActiveQueueId } = useQueue()
 
   const handleTrackSelect = (selectedTrack: Track) => {
     const trackIndex = tracks.findIndex(track => track.url === selectedTrack.url)
 
     if(trackIndex === -1) return
 
-    const isChangingQueue = id !== activeQueueId
+    if (id === activeQueueId) {
+      const queueIndex = TrackPlayer.getQueue().findIndex(
+          (track) => track.url === selectedTrack.url
+      )
 
-    if(isChangingQueue) {
-      // Al cambiar de canción en otra Pantalla, obtendremos las canciones que seguian o estaban previa a su posición en la lista
-      const beforeTracks = tracks.slice(0, trackIndex)
-      const afterTracks = tracks.slice(trackIndex + 1)
-
-      // Reiniciaremos el reproductor
-      TrackPlayer.reset()
-
-      // Agregaremos la canción a reproducir
-      TrackPlayer.add(selectedTrack)
-      // Agregaremos a la lista las canciones que le seguían según la lista
-      TrackPlayer.add(afterTracks)
-      // Y agregaremos a la lista las canciones que le estaban previas según la lista para que se reproduzca la lista entera
-      TrackPlayer.add(beforeTracks)
-
-      // Reproducimos la nueva lista
-      TrackPlayer.play()
-
-      queueOffset.current = trackIndex
-      setActiveQueueId(id)
-    } else {
-      const nextTrackIndex = trackIndex - queueOffset.current < 0
-        ? tracks.length + trackIndex - queueOffset.current
-        : trackIndex - queueOffset.current
-      
-        TrackPlayer.skip(nextTrackIndex)
-
-        TrackPlayer.play()
+      if (queueIndex >= 0) {
+          TrackPlayer.skip(queueIndex)
+          TrackPlayer.play()
+          return
+      }
     }
+
+    const beforeTracks = tracks.slice(0, trackIndex)
+    const afterTracks = tracks.slice(trackIndex + 1)
+
+    TrackPlayer.setQueue([selectedTrack, ...afterTracks, ...beforeTracks])
+    setActiveQueueId(id)
+    TrackPlayer.play()
   }
 
   return (
-    <FlatList 
+    <FlatList
         data={filteredTracks}
         contentContainerStyle={{paddingTop: 10, paddingBottom: 128}}
         ListHeaderComponent={
-          (!hideQueueControls && tracks.length > 0) ? <QueueControls tracks={tracks} style={{paddingBottom: 20}}/>
+          (!hideQueueControls && tracks.length > 0) ? <QueueControls queueId={id} tracks={tracks} style={{paddingBottom: 20}}/>
             : undefined
         }
         ItemSeparatorComponent={ItemDivider}

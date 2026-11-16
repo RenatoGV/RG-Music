@@ -2,7 +2,6 @@ import { trackTitleFilter } from '@/helpers/filter'
 import { Playlist } from '@/helpers/types'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { useMemo } from 'react'
-import { generateTrackListId } from '@/helpers/miscellaneous'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { colors, fontSize } from '@/constants/tokens'
 import FastImage from 'react-native-fast-image'
@@ -14,8 +13,9 @@ import { useRouter } from 'expo-router'
 import { useTracks } from '@/store/library'
 
 export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
-    const router = useRouter()
+    const queueId = `playlist:${playlist.id}`
 
+    const router = useRouter()
     const tracks = useTracks()
 
     const currentTracks = useMemo(
@@ -31,7 +31,10 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
     })
 
     const handlePress = () => {
-        router.push({pathname: '/(modals)/addTracksToPlaylist', params: { playlist: playlist.name }})
+        router.push({
+            pathname: '/(modals)/addTracksToPlaylist',
+            params: { playlistId: playlist.id },
+        })
     }
 
     const filteredPlaylistTracks = useMemo(() => {
@@ -42,7 +45,7 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
 
     return (
         <TracksList
-            id={generateTrackListId(playlist.name, search)}
+            id={queueId}
             fromPlaylist={playlist}
             scrollEnabled={false}
             hideQueueControls={true}
@@ -65,7 +68,7 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
                     </View>
                     
                     {currentTracks && currentTracks.length > 0 && (
-                        <QueueControls style={{paddingTop: 24}} tracks={currentTracks || []} />
+                        <QueueControls queueId={queueId} style={{paddingTop: 24}} tracks={currentTracks || []} />
                     )}
                 </View>
             }

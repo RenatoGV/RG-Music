@@ -4,14 +4,19 @@ import { StyleSheet, Text, TouchableOpacity, View, ViewProps } from "react-nativ
 import TrackPlayer from "@/helpers/track-player-compat"
 import { Track } from "@/helpers/types"
 import { Ionicons } from "@expo/vector-icons"
+import { useQueue } from "@/store/queue"
 
 type QueueControlsProps = {
+    queueId: string
     tracks: Track[]
 } & ViewProps
 
-export const QueueControls = ({tracks, style, ...viewProps} : QueueControlsProps) => {
+export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueControlsProps) => {
+    const { setActiveQueueId } = useQueue()
+
     const handlePlay = () => {
         TrackPlayer.setQueue(tracks)
+        setActiveQueueId(queueId)
         TrackPlayer.play()
     }
 
@@ -19,6 +24,7 @@ export const QueueControls = ({tracks, style, ...viewProps} : QueueControlsProps
         const shuffledTracks = [...tracks].sort(() => Math.random() - 0.5 )
 
         TrackPlayer.setQueue(shuffledTracks)
+        setActiveQueueId(queueId)
         TrackPlayer.play()
     }
 

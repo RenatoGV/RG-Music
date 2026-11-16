@@ -10,10 +10,18 @@ const normalizeSearchText = (text: string) =>
 
 export const filterTrackByTitle = (tracks: Track[], search: string): Track[] => {
     const query = normalizeSearchText(search)
-
     if(!query) return tracks
 
     return tracks.filter((track) => normalizeSearchText(track.title).includes(query))
+}
+
+export const filterPlaylistsByName = (playlists: Playlist[], search: string) => {
+    const query = normalizeSearchText(search)
+    if (!query) return playlists
+
+    return playlists.filter((playlist) =>
+        normalizeSearchText(playlist.name).includes(query)
+    )
 }
 
 export const trackTitleFilter = (title: string) => (track: any) =>
@@ -21,6 +29,3 @@ export const trackTitleFilter = (title: string) => (track: any) =>
 
 export const artistNameFilter = (name: string) => (artist: Artist) =>
     artist.name.toLowerCase().includes(name.toLowerCase())
-
-export const playlistsNameFilter = (name: string) => (playlist: Playlist) =>
-    playlist.name.toLowerCase().includes(name.toLowerCase())

@@ -6,21 +6,20 @@ import { Redirect, Stack, useLocalSearchParams } from 'expo-router'
 import { ScrollView, View } from 'react-native'
 
 const PlaylistScreen = () => {
-    const { name: playlistName } = useLocalSearchParams<{name: string}>()
-
+    const { id } = useLocalSearchParams<{ id: string }>()
     const { playlists } = usePlaylistStore()
 
-    const playlist = playlists?.find((playlists) => playlists.name === playlistName)
+    const playlist = playlists?.find((playlists) => playlists.id === id)
 
     if(!playlist) {
-        console.warn(`Playlist ${playlistName} was not found!`)
+        console.warn(`Playlist ${id} was not found!`)
 
         return <Redirect href={'/(tabs)/playlists'} />
     }
 
     return (
         <View style={defaultStyles.container}>
-            <Stack.Screen options={{ headerTitle: playlistName }}/>
+            <Stack.Screen options={{ headerTitle: playlist.name }}/>
             <ScrollView
                 contentInsetAdjustmentBehavior='automatic'
                 style={{ paddingHorizontal: screenPadding.horizontal }}

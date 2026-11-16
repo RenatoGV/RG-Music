@@ -23,7 +23,7 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
         return artist.tracks.filter(trackTitleFilter(search))
     }, [artist.tracks, search])
 
-    return <TracksList id={generateTrackListId(artist.name, search)} 
+    return <TracksList id={generateTrackListId(artist.name, search)}
         hideQueueControls={true}
         ListHeaderComponentStyle={styles.artistHeaderContainer}
         ListHeaderComponent={
@@ -40,7 +40,7 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
                 <Text numberOfLines={1} style={styles.artistNameText}>{artist.name}</Text>
 
                 {artist.tracks.length > 0 && (
-                    <QueueControls tracks={artist.tracks} style={{paddingTop: 24}} />
+                    <QueueControls queueId={generateTrackListId(artist.name, search)} tracks={artist.tracks} style={{paddingTop: 24}} />
                 )}
             </View>
         }

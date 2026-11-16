@@ -66,91 +66,93 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
         router.push({pathname: '/(modals)/addToPlaylist', params: { trackUrl: track.url }})
     }
 
+    if(!fromPlaylist) return
+
     const handleFromToPlaylist = () => {
         setVisible(false)
-        removeToPlaylist(track.url, fromPlaylist!)
+        removeToPlaylist(track.url, fromPlaylist.id)
         showToast(`Eliminado de ${fromPlaylist!.name}`)
     }
 
-  return (
-    <TouchableHighlight onPress={() => handleTrackSelect(track)}>
-        <View style={styles.trackItemContainer}>
-            <View>
-                <FastImage
-                    source={{
-                        uri: track.artwork ?? unknownTrackImageUri
-                    }}
-                    style={{
-                        ...styles.trackArtworkImage,
-                        opacity: isActiveTrack ? 0.6 : 1
-                    }}
-                />
-
-                {
-                    isActiveTrack &&
-                        (playing
-                            ? <LoaderKitView style={styles.trackPlayingIconIndicator} name='LineScaleParty' color={colors.icon} />
-                            : <Ionicons style={styles.trackPausedIndicator} name='play' size={24} color={colors.icon} />
-                        )
-                }
-            </View>
-
-            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                {/* Track title + artist */}
-                <View style={{flex: 1}}>
-                    <Text
-                        numberOfLines={1}
-                        style={{
-                            ...styles.trackTitleText,
-                            color: isActiveTrack ? colors.primary : colors.text
+    return (
+        <TouchableHighlight onPress={() => handleTrackSelect(track)}>
+            <View style={styles.trackItemContainer}>
+                <View>
+                    <FastImage
+                        source={{
+                            uri: track.artwork ?? unknownTrackImageUri
                         }}
-                    >{track.title}</Text>
+                        style={{
+                            ...styles.trackArtworkImage,
+                            opacity: isActiveTrack ? 0.6 : 1
+                        }}
+                    />
 
-                    {track.artist && (
-                        <Text numberOfLines={1} style={styles.trackArtistText} >{track.artist}</Text>
-                    )}
+                    {
+                        isActiveTrack &&
+                            (playing
+                                ? <LoaderKitView style={styles.trackPlayingIconIndicator} name='LineScaleParty' color={colors.icon} />
+                                : <Ionicons style={styles.trackPausedIndicator} name='play' size={24} color={colors.icon} />
+                            )
+                    }
                 </View>
-                
-                <StopPropagation>
-                    <DropdownMenu
-                        visible={visible}
-                        handleOpen={() => setVisible(true)}
-                        handleClose={() => setVisible(false)}
-                        trigger={
-                            <View style={{padding: 15, flex: 1}}>
-                                <Entypo name='dots-three-horizontal' size={18} color={colors.icon} />
-                            </View>
-                        }
-                        dropdownWidth={220}
-                    >
-                        <MenuOption onSelect={handleToggleFavorite}>
-                            <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-                                {(track.rating === 1) ? <FontAwesome6 name="heart-crack" size={18} color={colors.primary} /> : <FontAwesome name="heart" size={15} color={colors.primary} />}
-                                <Text style={{color: colors.primary, fontSize: 18}}>{(track.rating === 1) ? 'Quitar de Favoritos' : 'Agregar a Favoritos'}</Text>
-                            </View>
-                        </MenuOption>
-                        <MenuOption onSelect={handleAddToPlaylist}>
-                            <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-                                <FontAwesome6 name="compact-disc" size={18} color="#2367A2" />
-                                <Text style={{color: '#2367A2', fontSize: 18}}>Agregar a PlayList</Text>
-                            </View>
-                        </MenuOption>
-                        {(fromPlaylist) ?
-                            <MenuOption onSelect={handleFromToPlaylist}>
+
+                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                    {/* Track title + artist */}
+                    <View style={{flex: 1}}>
+                        <Text
+                            numberOfLines={1}
+                            style={{
+                                ...styles.trackTitleText,
+                                color: isActiveTrack ? colors.primary : colors.text
+                            }}
+                        >{track.title}</Text>
+
+                        {track.artist && (
+                            <Text numberOfLines={1} style={styles.trackArtistText} >{track.artist}</Text>
+                        )}
+                    </View>
+                    
+                    <StopPropagation>
+                        <DropdownMenu
+                            visible={visible}
+                            handleOpen={() => setVisible(true)}
+                            handleClose={() => setVisible(false)}
+                            trigger={
+                                <View style={{padding: 15, flex: 1}}>
+                                    <Entypo name='dots-three-horizontal' size={18} color={colors.icon} />
+                                </View>
+                            }
+                            dropdownWidth={220}
+                        >
+                            <MenuOption onSelect={handleToggleFavorite}>
                                 <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-                                    <FontAwesome name="remove" size={18} color="#9ca3af" />
-                                    <Text style={{color: '#9ca3af', fontSize: 18}}>Quitar de PlayList</Text>
+                                    {(track.rating === 1) ? <FontAwesome6 name="heart-crack" size={18} color={colors.primary} /> : <FontAwesome name="heart" size={15} color={colors.primary} />}
+                                    <Text style={{color: colors.primary, fontSize: 18}}>{(track.rating === 1) ? 'Quitar de Favoritos' : 'Agregar a Favoritos'}</Text>
                                 </View>
                             </MenuOption>
-                            :
-                            null
-                        }
-                    </DropdownMenu>
-                </StopPropagation>
+                            <MenuOption onSelect={handleAddToPlaylist}>
+                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                                    <FontAwesome6 name="compact-disc" size={18} color="#2367A2" />
+                                    <Text style={{color: '#2367A2', fontSize: 18}}>Agregar a PlayList</Text>
+                                </View>
+                            </MenuOption>
+                            {(fromPlaylist) ?
+                                <MenuOption onSelect={handleFromToPlaylist}>
+                                    <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                                        <FontAwesome name="remove" size={18} color="#9ca3af" />
+                                        <Text style={{color: '#9ca3af', fontSize: 18}}>Quitar de PlayList</Text>
+                                    </View>
+                                </MenuOption>
+                                :
+                                null
+                            }
+                        </DropdownMenu>
+                    </StopPropagation>
+                </View>
             </View>
-        </View>
-    </TouchableHighlight>
-  )
+        </TouchableHighlight>
+    )
 }
 
 const styles = StyleSheet.create({
