@@ -39,7 +39,7 @@ const ArtistsScreen = () => {
 				ItemSeparatorComponent={ItemSeparatorComponent}
 				ListEmptyComponent={
 					<View>
-						<Text>No se encontraron artistas</Text>
+						<Text style={utilsStyles.emptyContentText}>No se encontraron artistas</Text>
 						<FastImage
 							source={{ uri: unknownArtistImageUri }}
 							style={utilsStyles.emptyContentImage}

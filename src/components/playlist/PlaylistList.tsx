@@ -31,7 +31,6 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 			<FlatList
 				contentContainerStyle={{ paddingTop: 10, paddingBottom: contentBottomPadding }}
 				ItemSeparatorComponent={ItemDivider}
-				// ListFooterComponent={ItemDivider}
 				ListEmptyComponent={
 					<View>
 						<Text style={utilsStyles.emptyContentText}>No se encontraron Playlist</Text>
