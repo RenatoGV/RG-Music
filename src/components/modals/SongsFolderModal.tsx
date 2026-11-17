@@ -24,13 +24,13 @@ export const SongsFolderModal = ({visible, onClose, onRefresh, onSelectFolder}: 
                </TouchableOpacity>
                <View style={{ gap: 15 }}>
                   <TouchableOpacity
-                     style={[styles.bodalButton, styles.buttonSave]}
+                     style={[styles.modalButton, styles.buttonSave]}
                      onPress={onRefresh}
                   >
                      <Text style={styles.textStyle}>Actualizar lista de canciones</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                     style={[styles.bodalButton, styles.buttonSave]}
+                     style={[styles.modalButton, styles.buttonSave]}
                      onPress={onSelectFolder}
                   >
                      <Text style={styles.textStyle}>Seleccionar carpeta de canciones</Text>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
       shadowRadius: 4,
       elevation: 5,
    },
-   bodalButton: {
+   modalButton: {
       borderRadius: 10,
       padding: 10,
       elevation: 2,
