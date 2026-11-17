@@ -11,7 +11,7 @@ import { defaultStyles, utilsStyles } from '@/styles'
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons'
 import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import PlayerLyricsView from '@/screens/PlayerLyricsView'
-import Animated, { Easing, FadeIn, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import Animated, { Easing, FadeIn, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
 import { scheduleOnRN } from 'react-native-worklets'
 import { useEffect, useRef, useState } from 'react'
 
@@ -28,39 +28,68 @@ interface PlayerArtworkViewProps {
 }
 
 const layoutTransition = LinearTransition.duration(650).easing(Easing.inOut(Easing.cubic))
+const transitionDelayMs = 200
+const transitionDurationMs = 650
 
 const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, onEditLyricId, onArtistPress, showLyrics, syncedLyrics, onToggleLyricsType }: Readonly<PlayerArtworkViewProps>) => {
    const [layoutSize, setLayoutSize] = useState({ width: 0, height: 0 })
    const [transitionComplete, setTransitionComplete] = useState(showLyrics)
+   const [headerCompact, setHeaderCompact] = useState(showLyrics)
+   const [lyricsSpaceVisible, setLyricsSpaceVisible] = useState(showLyrics)
    const previousShowLyrics = useRef(showLyrics)
-   const transitionProgress = useSharedValue(showLyrics ? 1 : 0)
+   const artworkProgress = useSharedValue(showLyrics ? 1 : 0)
+   const infoProgress = useSharedValue(showLyrics ? 1 : 0)
 
    useEffect(() => {
       if (previousShowLyrics.current === showLyrics) return
       previousShowLyrics.current = showLyrics
       setTransitionComplete(false)
 
-      transitionProgress.value = withTiming(showLyrics ? 1 : 0, {
-         duration: 650,
+      if (showLyrics) {
+         const headerDelay = setTimeout(() => {
+            setHeaderCompact(true)
+            setLyricsSpaceVisible(true)
+         }, transitionDelayMs)
+         artworkProgress.value = withTiming(1, {
+            duration: transitionDurationMs,
+            easing: Easing.inOut(Easing.cubic)
+         })
+         infoProgress.value = withDelay(transitionDelayMs, withTiming(1, {
+            duration: transitionDurationMs,
+            easing: Easing.inOut(Easing.cubic)
+         }, (finished) => {
+            if (finished) scheduleOnRN(setTransitionComplete, true)
+         }))
+
+         return () => clearTimeout(headerDelay)
+      }
+
+      setHeaderCompact(false)
+      const spaceRelease = setTimeout(() => setLyricsSpaceVisible(false), transitionDurationMs + 50)
+      artworkProgress.value = withDelay(transitionDelayMs, withTiming(0, {
+         duration: transitionDurationMs,
          easing: Easing.inOut(Easing.cubic)
-      }, (finished) => {
-         if (finished && showLyrics) scheduleOnRN(setTransitionComplete, true)
+      }))
+      infoProgress.value = withTiming(0, {
+         duration: transitionDurationMs,
+         easing: Easing.inOut(Easing.cubic)
       })
-   }, [showLyrics, transitionProgress])
+      return () => clearTimeout(spaceRelease)
+   }, [showLyrics, artworkProgress, infoProgress])
 
    const artworkAnimatedStyle = useAnimatedStyle(() => {
       const compactSize = layoutSize.width * 0.2
       const expandedHeight = layoutSize.height * 0.6 * 0.75
-      const progress = transitionProgress.value
+      const progress = artworkProgress.value
 
       return {
          width: layoutSize.width + (compactSize - layoutSize.width) * progress,
          height: expandedHeight + (compactSize - expandedHeight) * progress
       }
-   }, [layoutSize])
+   }, [layoutSize, artworkProgress])
 
    const trackInfoAnimatedStyle = useAnimatedStyle(() => {
-      const progress = transitionProgress.value
+      const progress = infoProgress.value
       const expandedHeaderHeight = layoutSize.height * 0.6
       const expandedInfoHeight = expandedHeaderHeight * 0.25
       const compactInfoLeft = layoutSize.width * 0.2 + 12
@@ -72,7 +101,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
          width: layoutSize.width - compactInfoLeft * progress,
          height: expandedInfoHeight + (compactInfoHeight - expandedInfoHeight) * progress
       }
-   }, [layoutSize])
+   }, [layoutSize, infoProgress])
 
    const handleLayout = (event: LayoutChangeEvent) => {
       const { width, height } = event.nativeEvent.layout
@@ -81,7 +110,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
 
    return (
       <View style={styles.container} onLayout={handleLayout}>
-         <Animated.View layout={layoutTransition} style={[styles.header, showLyrics && styles.compactHeader]}>
+         <Animated.View layout={layoutTransition} style={[styles.header, headerCompact && styles.compactHeader]}>
             <Animated.View style={[styles.artworkSlot, artworkAnimatedStyle]}>
                <PlayerArtwork
                   artwork={track.artwork}
@@ -116,10 +145,10 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
             </Animated.View>
          </Animated.View>
 
-         {showLyrics && transitionComplete
+         {lyricsSpaceVisible && (showLyrics && transitionComplete
             ? <PlayerLyricsView track={track} />
-            : showLyrics && <View style={styles.lyricsSpace} />
-         }
+            : <View style={styles.lyricsSpace} />
+         )}
 
          <View style={styles.playbackControls}>
             <PlayerProgressbar style={{marginTop: 18}} />
@@ -147,12 +176,12 @@ const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId }: { isFavor
 const styles = StyleSheet.create({
    container: { flex: 1 },
    header: {
-      flex: 1,
+      flex: 0,
+      height: '60%',
       justifyContent: 'space-between',
       alignItems: 'center'
    },
    compactHeader: {
-      flex: 0,
       height: '20%',
       flexDirection: 'row',
       justifyContent: 'flex-start',

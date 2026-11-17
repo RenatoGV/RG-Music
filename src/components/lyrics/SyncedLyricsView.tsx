@@ -37,7 +37,7 @@ export const SyncedLyricsView = ({ lyrics, onPositioned }: { lyrics: string; onP
       )
       
       const lastLineIndex = Math.max(0, lyricLines.length - 1)
-      const lastLineTime = lyricLines[lyricLines.length - 1]?.time ?? Infinity
+      const lastLineTime = lyricLines.at(-1)?.time ?? Infinity
       const validIndex = activeIndex >= 0
          ? activeIndex
          : position >= lastLineTime
@@ -83,16 +83,16 @@ export const SyncedLyricsView = ({ lyrics, onPositioned }: { lyrics: string; onP
 
          let targetScale = 1
          if (distance === 1) {
-         targetScale = 0.8
+            targetScale = 0.8
          } else if (distance >= 2) {
-         targetScale = 0.55
+            targetScale = 0.55
          }
 
          Animated.spring(anim, {
-         toValue: targetScale,
-         useNativeDriver: true,
-         speed: 20,
-         bounciness: 6
+            toValue: targetScale,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 6
          }).start()
       })
    }, [activeLineIndex, animatedScales])
@@ -121,7 +121,7 @@ export const SyncedLyricsView = ({ lyrics, onPositioned }: { lyrics: string; onP
    }, [lyricLines])
 
    const [fontsLoaded] = useFonts({
-      LibertineBold: require('@/assets/fonts/LinLibertine_RB.ttf'),
+      SourceSansPro: require('@/assets/fonts/source-sans-pro-cyrillic-700-normal.ttf')
    })
 
    return (
@@ -159,7 +159,7 @@ export const SyncedLyricsView = ({ lyrics, onPositioned }: { lyrics: string; onP
                }}
                style={{
                   minHeight: minLineHeight,
-                  paddingVertical: 20,
+                  paddingVertical: 15,
                   justifyContent: 'center',
                   opacity: isVisible ? opacityValue : 0
                }}
@@ -167,7 +167,7 @@ export const SyncedLyricsView = ({ lyrics, onPositioned }: { lyrics: string; onP
                <Animated.Text
                   numberOfLines={4}
                   style={{
-                     fontFamily: fontsLoaded ? 'LibertineBold' : undefined,
+                     fontFamily: fontsLoaded ? 'SourceSansPro' : undefined,
                      color: colors.text,
                      fontSize: line.content === '♪' ? fontSize.xl * 2 : fontSize.xl,
                      fontWeight: '700',
