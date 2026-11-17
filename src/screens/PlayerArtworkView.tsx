@@ -78,7 +78,6 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
          duration: transitionDurationMs,
          easing: Easing.inOut(Easing.cubic)
       })
-      return
    }, [showLyrics, artworkProgress, infoProgress])
 
    const artworkAnimatedStyle = useAnimatedStyle(() => {
