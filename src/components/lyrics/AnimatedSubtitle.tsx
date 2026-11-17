@@ -1,4 +1,4 @@
-import { colors } from "@/constants/tokens";
+import { colors, fontSize } from "@/constants/tokens";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import TextTicker from "react-native-text-ticker";
@@ -35,6 +35,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontWeight: 'semibold',
     textAlign: 'center',
-    fontSize: 24
+    fontSize: fontSize.lg
   },
 });

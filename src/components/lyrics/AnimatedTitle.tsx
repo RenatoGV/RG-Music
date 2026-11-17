@@ -1,3 +1,4 @@
+import { colors, fontSize } from "@/constants/tokens";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import TextTicker from "react-native-text-ticker";
@@ -31,9 +32,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   text: {
-    fontSize: 48,
+    fontSize: fontSize.xxl,
     fontWeight: "bold",
-    color: "white",
+    color: colors.text,
     textAlign: "center",
   },
 });
