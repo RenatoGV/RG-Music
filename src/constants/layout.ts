@@ -11,7 +11,6 @@ export const StackScreenWithSearchBar: NativeStackNavigationOptions = {
     },
     headerTintColor: colors.text,
     headerTransparent: false,
-    // headerBackground: () => <Text>asd</Text>, // TODO: Transparencia
     headerStyle: {
         backgroundColor: colors.background
     },

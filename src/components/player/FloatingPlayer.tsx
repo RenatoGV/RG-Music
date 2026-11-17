@@ -55,40 +55,38 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
 
     return (
         <Animated.View style={[style, {transform: [{ translateX }]}]} {...panHandlers}>
-            {/* <TouchableOpacity onPress={handlePress} activeOpacity={0.9}> */}
-                <BlurView
-                intensity={100}
-                tint="dark"
-                style={{
-                    overflow: 'hidden',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: 8,
-                    borderRadius: 12,
-                    paddingVertical: 10,
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)'
-                }}
-                >
-                    <FastImage
-                        source={{
-                            uri: currentTrack.artwork ?? unknownTrackImageUri
-                        }}
-                        style={styles.trackArtworkImage}
+            <BlurView
+            intensity={100}
+            tint="dark"
+            style={{
+                overflow: 'hidden',
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 8,
+                borderRadius: 12,
+                paddingVertical: 10,
+                backgroundColor: 'rgba(0, 0, 0, 0.7)'
+            }}
+            >
+                <FastImage
+                    source={{
+                        uri: currentTrack.artwork ?? unknownTrackImageUri
+                    }}
+                    style={styles.trackArtworkImage}
+                />
+
+                <View style={styles.trackTitleContainer}>
+                    <MovingText style={styles.trackTitle}
+                        text={currentTrack.title ?? ''}
+                        animationThreshold={25}
                     />
+                </View>
 
-                    <View style={styles.trackTitleContainer}>
-                        <MovingText style={styles.trackTitle}
-                            text={currentTrack.title ?? ''}
-                            animationThreshold={25}
-                        />
-                    </View>
-
-                    <View style={styles.trackControlsContainer}>
-                        <PlayPauseButton iconSize={24} />
-                        <SkipToNextButton iconSize={22} />
-                    </View>
-                </BlurView>
-            {/* </TouchableOpacity> */}
+                <View style={styles.trackControlsContainer}>
+                    <PlayPauseButton iconSize={24} />
+                    <SkipToNextButton iconSize={22} />
+                </View>
+            </BlurView>
         </Animated.View>
     )
 }

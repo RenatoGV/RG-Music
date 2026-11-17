@@ -33,7 +33,7 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 				ItemSeparatorComponent={ItemDivider}
 				ListEmptyComponent={
 					<View>
-						<Text style={utilsStyles.emptyContentText}>No se encontraron Playlist</Text>
+						<Text style={utilsStyles.emptyContentText}>No se encontraron Playlists</Text>
 
 						<FastImage
 							source={{ uri: unknownPlaylistImageUri }}
