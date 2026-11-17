@@ -7,7 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack, TransitionPresets } from 'expo-router/js-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '@/constants/tokens';
-import { StoredPlayback, Track, Playlist } from '@/helpers/types';
+import { Track, Playlist } from '@/helpers/types';
 import { useLibraryStore } from '@/store/library';
 import { usePlaylistStore } from '@/store/playlist';
 import SplashScreenView from './splashScreen';
@@ -17,6 +17,7 @@ import { loadData, saveData } from '@/helpers/storage';
 import { configureNotificationChannel, requestNotificationPermission } from '@/helpers/notifications';
 import { useLyricStore } from '@/store/lyrics';
 import { randomUUID } from 'expo-crypto';
+import { restorePlaybackSession } from '@/services/playbackSessionService';
 
 const CustomStack = Stack
 
@@ -73,8 +74,6 @@ const App = () => {
 			setSkipAnimation(hasActivePlayback)
 
 			const storedTracks = loadData<Track[]>('tracks')
-			const storedPlaybackQueue = loadData<StoredPlayback | string>('playback_queue')
-			const storedPlaybackPosition = loadData<number>('playback_position')
 
 			type StoredPlaylist = Omit<Playlist, 'id'> & { id?: string }
 			const storedPlaylists = loadData<StoredPlaylist[]>('playlists')
@@ -90,32 +89,9 @@ const App = () => {
 			setTracks(storedTracks)
 			setPlaylists(migratedPlaylists)
 
-			if (isPlayerReady && storedPlaybackQueue) {
+			if (isPlayerReady) {
 				try {
-					const playback = (typeof storedPlaybackQueue === 'string'
-						? JSON.parse(storedPlaybackQueue)
-						: storedPlaybackQueue) as StoredPlayback
-
-					if (playback.queue?.length > 0) {
-						const index =
-							typeof playback.currentTrackIndex === 'number'
-								? playback.currentTrackIndex
-								: 0
-
-						const safeIndex =
-							index >= 0 && index < playback.queue.length
-								? index
-								: 0
-
-						TrackPlayer.reset()
-						TrackPlayer.add(playback.queue)
-						TrackPlayer.skip(safeIndex)
-
-						if (typeof storedPlaybackPosition === 'number' && storedPlaybackPosition > 0) {
-							await new Promise(r => setTimeout(r, 300))
-							TrackPlayer.seekTo(storedPlaybackPosition)
-						}
-					}
+					await restorePlaybackSession()
 				} catch (e) {
 					console.error('Error restoring playback', e)
 				}
@@ -142,7 +118,7 @@ const App = () => {
 			requestNotificationPermission()
 		}
 	}, [isLoading])*/
-  const showApp = appReady && (skipAnimation || animationFinished)
+	const showApp = appReady && (skipAnimation || animationFinished)
 
 	return(
 		<SafeAreaProvider>
@@ -154,7 +130,7 @@ const App = () => {
 						<RootNavigation />
 						<StatusBar style='light' />
 					</GestureHandlerRootView>
-			}			
+			}
 		</SafeAreaProvider>
 	)
 }
