@@ -2,12 +2,11 @@ import { MovingText } from '@/components/other/MovingText'
 import { PlayerArtwork } from '@/components/player/PlayerArtwork'
 import { PlayerControls } from '@/components/player/PlayerControls'
 import { PlayerProgressbar } from '@/components/player/PlayerProgressbar'
-import { PlayerRepeatToggle } from '@/components/player/PlayerRepeatToggle'
 import { PlayerVolumenbar } from '@/components/player/PlayerVolumenbar'
 import { colors, fontSize } from '@/constants/tokens'
 import { unknownTrackImageUri } from '@/constants/images'
 import type { Track } from '@/helpers/types'
-import { defaultStyles, utilsStyles } from '@/styles'
+import { defaultStyles } from '@/styles'
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons'
 import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import PlayerLyricsView from '@/screens/PlayerLyricsView'
@@ -35,10 +34,17 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
    const [layoutSize, setLayoutSize] = useState({ width: 0, height: 0 })
    const [transitionComplete, setTransitionComplete] = useState(showLyrics)
    const [headerCompact, setHeaderCompact] = useState(showLyrics)
-   const [lyricsSpaceVisible, setLyricsSpaceVisible] = useState(showLyrics)
    const previousShowLyrics = useRef(showLyrics)
    const artworkProgress = useSharedValue(showLyrics ? 1 : 0)
    const infoProgress = useSharedValue(showLyrics ? 1 : 0)
+   const playbackControlsHeight = useSharedValue(showLyrics ? 30 : 40)
+
+   useEffect(() => {
+      playbackControlsHeight.value = withTiming(showLyrics ? 30 : 40, {
+         duration: transitionDurationMs,
+         easing: Easing.inOut(Easing.cubic)
+      })
+   }, [showLyrics, playbackControlsHeight])
 
    useEffect(() => {
       if (previousShowLyrics.current === showLyrics) return
@@ -48,7 +54,6 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
       if (showLyrics) {
          const headerDelay = setTimeout(() => {
             setHeaderCompact(true)
-            setLyricsSpaceVisible(true)
          }, transitionDelayMs)
          artworkProgress.value = withTiming(1, {
             duration: transitionDurationMs,
@@ -65,7 +70,6 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
       }
 
       setHeaderCompact(false)
-      const spaceRelease = setTimeout(() => setLyricsSpaceVisible(false), transitionDurationMs + 50)
       artworkProgress.value = withDelay(transitionDelayMs, withTiming(0, {
          duration: transitionDurationMs,
          easing: Easing.inOut(Easing.cubic)
@@ -74,7 +78,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
          duration: transitionDurationMs,
          easing: Easing.inOut(Easing.cubic)
       })
-      return () => clearTimeout(spaceRelease)
+      return
    }, [showLyrics, artworkProgress, infoProgress])
 
    const artworkAnimatedStyle = useAnimatedStyle(() => {
@@ -102,6 +106,10 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
          height: expandedInfoHeight + (compactInfoHeight - expandedInfoHeight) * progress
       }
    }, [layoutSize, infoProgress])
+
+   const playbackControlsAnimatedStyle = useAnimatedStyle(() => ({
+      height: `${playbackControlsHeight.value}%` as `${number}%`
+   }), [playbackControlsHeight])
 
    const handleLayout = (event: LayoutChangeEvent) => {
       const { width, height } = event.nativeEvent.layout
@@ -145,19 +153,15 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
             </Animated.View>
          </Animated.View>
 
-         {lyricsSpaceVisible && (showLyrics && transitionComplete
-            ? <PlayerLyricsView track={track} />
-            : <View style={styles.lyricsSpace} />
-         )}
+         <View style={styles.lyricsSpace}>
+            {showLyrics && transitionComplete && <PlayerLyricsView track={track} />}
+         </View>
 
-         <View style={styles.playbackControls}>
+         <Animated.View style={[styles.playbackControls, playbackControlsAnimatedStyle]}>
             <PlayerProgressbar style={{marginTop: 18}} />
             <PlayerControls style={{marginTop: 15}} />
             <PlayerVolumenbar style={{marginTop: 35, marginBottom: 14}} />
-            <View style={utilsStyles.centeredRow}>
-               <PlayerRepeatToggle size={30} style={{marginBottom: 12}} />
-            </View>
-         </View>
+         </Animated.View>
       </View>
    )
 }
@@ -182,7 +186,7 @@ const styles = StyleSheet.create({
       alignItems: 'center'
    },
    compactHeader: {
-      height: '20%',
+      height: '12%',
       flexDirection: 'row',
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
@@ -216,8 +220,7 @@ const styles = StyleSheet.create({
    actionIcon: { marginLeft: 10, marginRight: 0 },
    lyricsSpace: { flex: 1 },
    playbackControls: {
-      height: '40%',
-      justifyContent: 'flex-end'
+      justifyContent: 'center'
    }
 })
 

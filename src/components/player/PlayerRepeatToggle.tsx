@@ -1,13 +1,11 @@
-import { ComponentProps, useEffect, useState } from 'react'
+import { ComponentProps } from 'react'
 import { RepeatMode } from '@/helpers/track-player-compat'
 import { match } from 'ts-pattern'
 import { MaterialCommunityIcons } from "@expo/vector-icons"
-import { colors, fontSize } from '@/constants/tokens'
+import { colors } from '@/constants/tokens'
 import { useTrackPlayerRepeatMode } from '@/hooks/useTrackPlayerRepeatMode'
-import { View } from 'react-native'
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
 
-type IconProps = Omit<ComponentProps<typeof MaterialCommunityIcons>, 'name'>
+type IconProps = Omit<ComponentProps<typeof MaterialCommunityIcons>, 'name' | 'onPress'>
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name']
 
 const repeatOrder = [
@@ -18,30 +16,6 @@ const repeatOrder = [
 
 export const PlayerRepeatToggle = ({...iconProps} : IconProps) => {
     const { repeatMode, changeRepeatMode } = useTrackPlayerRepeatMode()
-    const [repeatModeText, setRepeatModeText] = useState('No repetir')
-
-    const opacity = useSharedValue(0)
-
-    useEffect(() => {
-        match(repeatMode)
-            .with(RepeatMode.Off, () => setRepeatModeText('No Repetir'))
-            .with(RepeatMode.Track, () => setRepeatModeText('Bucle'))
-            .with(RepeatMode.Queue, () => setRepeatModeText('Normal'))
-
-            opacity.value = 0
-            opacity.value = withTiming(1, { duration: 180, easing: Easing.out(Easing.ease) }, (finished) => {
-                if(finished) {
-                    opacity.value = withDelay(500, withTiming(0, { duration: 240, easing: Easing.in(Easing.ease) }))
-                }
-            })
-    }, [repeatMode, opacity])
-
-    const textStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-        transform: [
-            { translateY: opacity.value === 0 ? 4 : 0 }
-        ]
-    }))
 
     const toggleRepeatMode = () => {
         if(repeatMode == null) return
@@ -59,15 +33,16 @@ export const PlayerRepeatToggle = ({...iconProps} : IconProps) => {
         .with(RepeatMode.Queue, () => 'repeat')
         .otherwise(() => 'repeat-off')
 
-    return (
-        <View style={{alignItems: 'center', gap: 2}}>
-            <Animated.Text style={[{color: colors.text, fontSize: fontSize.sm}, textStyle]}>{repeatModeText}</Animated.Text>
-            <MaterialCommunityIcons
-                name={icon}
-                onPress={toggleRepeatMode}
-                color={colors.icon}
-                {...iconProps}
-            />
-        </View>
-    )
+    return <MaterialCommunityIcons
+        name={icon}
+        onPress={toggleRepeatMode}
+        accessibilityRole="button"
+        accessibilityLabel={match(repeatMode)
+            .with(RepeatMode.Off, () => 'Repetición desactivada')
+            .with(RepeatMode.Track, () => 'Repetir canción')
+            .with(RepeatMode.Queue, () => 'Repetir cola')
+            .otherwise(() => 'Cambiar repetición')}
+        color={colors.icon}
+        {...iconProps}
+    />
 }

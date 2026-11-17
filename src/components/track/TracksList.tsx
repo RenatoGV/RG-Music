@@ -22,7 +22,7 @@ const ItemDivider = () => <View style={{...utilsStyles.itemSeparator, marginVert
 
 export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
   const contentBottomPadding = useTabContentBottomPadding()
-  const { activeQueueId, setActiveQueueId, shuffleEnabled } = useQueue()
+  const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleOriginalQueue } = useQueue()
 
   const handleTrackSelect = (selectedTrack: Track) => {
     const trackIndex = tracks.findIndex(track => track.url === selectedTrack.url)
@@ -31,6 +31,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
 
     if (shuffleEnabled) {
       const remainingTracks = tracks.filter((_, index) => index !== trackIndex)
+      setShuffleOriginalQueue([selectedTrack, ...remainingTracks].map((track) => track.url))
 
       TrackPlayer.setShuffleEnabled(false)
       TrackPlayer.setQueue([
@@ -56,6 +57,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
       }
     }
 
+    setShuffleOriginalQueue(null)
     TrackPlayer.setShuffleEnabled(false)
     TrackPlayer.setQueue(tracks)
     TrackPlayer.skip(trackIndex)

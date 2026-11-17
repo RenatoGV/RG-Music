@@ -13,9 +13,10 @@ type QueueControlsProps = {
 } & ViewProps
 
 export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueControlsProps) => {
-    const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleEnabled } = useQueue()
+    const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleEnabled, setShuffleOriginalQueue } = useQueue()
 
     const handlePlay = () => {
+        setShuffleOriginalQueue(shuffleEnabled ? tracks.map((track) => track.url) : null)
         TrackPlayer.setShuffleEnabled(false)
         TrackPlayer.setQueue(shuffleEnabled ? shuffleTracks(tracks) : tracks)
 
@@ -27,7 +28,12 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
         const enabled = !shuffleEnabled
         setShuffleEnabled(enabled)
 
-        if (activeQueueId !== queueId || getPlaybackState().state !== 'playing') return
+        if (activeQueueId !== queueId || getPlaybackState().state !== 'playing') {
+            setShuffleOriginalQueue(null)
+            return
+        }
+
+        setShuffleOriginalQueue(enabled ? tracks.map((track) => track.url) : null)
 
         const queue = TrackPlayer.getQueue()
         const currentIndex = TrackPlayer.getActiveTrackIndex()
