@@ -7,17 +7,16 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack, TransitionPresets } from 'expo-router/js-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '@/constants/tokens';
-import { Track, Playlist } from '@/helpers/types';
 import { useLibraryStore } from '@/store/library';
 import { usePlaylistStore } from '@/store/playlist';
 import SplashScreenView from './splashScreen';
 import TrackPlayer, { getPlaybackState } from '@/helpers/track-player-compat';
 import * as SplashScreen from 'expo-splash-screen';
-import { loadData, saveData } from '@/helpers/storage';
+import { saveData } from '@/helpers/storage';
 import { configureNotificationChannel, requestNotificationPermission } from '@/helpers/notifications';
 import { useLyricStore } from '@/store/lyrics';
-import { randomUUID } from 'expo-crypto';
 import { restorePlaybackSession } from '@/services/playbackSessionService';
+import { loadPersistedAppData } from '@/services/appDataService';
 
 const CustomStack = Stack
 
@@ -73,21 +72,10 @@ const App = () => {
 			}
 			setSkipAnimation(hasActivePlayback)
 
-			const storedTracks = loadData<Track[]>('tracks')
+			const { tracks, playlists } = loadPersistedAppData()
 
-			type StoredPlaylist = Omit<Playlist, 'id'> & { id?: string }
-			const storedPlaylists = loadData<StoredPlaylist[]>('playlists')
-			const migratedPlaylists = storedPlaylists?.map((playlist) => ({
-				...playlist,
-				id: playlist.id || randomUUID()
-			})) ?? null
-
-			if(migratedPlaylists && storedPlaylists?.some((playlist) => !playlist.id)) {
-				saveData('playlists', migratedPlaylists)
-			}
-
-			setTracks(storedTracks)
-			setPlaylists(migratedPlaylists)
+			setTracks(tracks)
+			setPlaylists(playlists)
 
 			if (isPlayerReady) {
 				try {
