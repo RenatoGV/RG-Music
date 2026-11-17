@@ -1,4 +1,4 @@
-import { AnimatedSubitle } from '@/components/lyrics/AnimatedSubtitle'
+import { AnimatedSubtitle } from '@/components/lyrics/AnimatedSubtitle'
 import { AnimatedTitle } from '@/components/lyrics/AnimatedTitle'
 import { PlayerControlsLyrics } from '@/components/lyrics/PlayerControlsLyrics'
 import { Lyrics } from '@/components/player/Lyrics'
@@ -17,7 +17,7 @@ const PlayerLyricsView = ({ track, onArtistPress }: Readonly<PlayerLyricsViewPro
          <View style={{marginBottom: 30}}>
             <AnimatedTitle text={track.title ?? ''} />
             <TouchableOpacity  onPress={onArtistPress}>
-                  <AnimatedSubitle text={track.artist ?? ''} />
+                  <AnimatedSubtitle text={track.artist ?? ''} />
             </TouchableOpacity>
          </View>
 

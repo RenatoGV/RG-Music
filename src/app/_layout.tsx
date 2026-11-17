@@ -1,4 +1,3 @@
-//import 'react-native-gesture-handler';
 import { useLogTrackPlayerState } from '@/hooks/useLogTrackerPlayerState';
 import { useSetupTrackPlayer } from '@/hooks/useSetupTrackPlayer';
 import { StatusBar } from 'expo-status-bar';

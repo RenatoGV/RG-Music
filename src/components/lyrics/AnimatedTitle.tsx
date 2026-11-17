@@ -1,7 +1,7 @@
 import { colors, fontSize } from "@/constants/tokens";
 import React from "react";
-import { StyleSheet, View } from "react-native";
-import TextTicker from "react-native-text-ticker";
+import { StyleSheet } from "react-native";
+import { AnimatedTickerText } from "./AnimatedTickerText";
 
 type Props = {
   text: string;
@@ -9,28 +9,11 @@ type Props = {
 
 export const AnimatedTitle = ({ text }: Props) => {
   return (
-    <View style={styles.container}>
-      <TextTicker
-        style={styles.text}
-        duration={10000}
-        loop
-        bounce={false}
-        repeatSpacer={80}
-        marqueeDelay={1000}
-      >
-        {text}
-      </TextTicker>
-    </View>
+    <AnimatedTickerText text={text} style={styles.text} />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   text: {
     fontSize: fontSize.xxl,
     fontWeight: "bold",
