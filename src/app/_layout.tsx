@@ -2,7 +2,7 @@
 import { useLogTrackPlayerState } from '@/hooks/useLogTrackerPlayerState';
 import { useSetupTrackPlayer } from '@/hooks/useSetupTrackPlayer';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack, TransitionPresets } from 'expo-router/js-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -23,7 +23,7 @@ const CustomStack = Stack
 void SplashScreen.preventAutoHideAsync().catch(() => {})
 
 const App = () => {
-	//const initialized = useRef(false)
+	const notificationsStarted = useRef(false)
 	const { setTracks } = useLibraryStore()
 	const { setPlaylists } = usePlaylistStore()
 	const [appReady, setAppReady] = useState(false)
@@ -64,9 +64,6 @@ const App = () => {
 					console.error('Error restoring playback', e)
 				}
 			}
-
-			await configureNotificationChannel()
-			await requestNotificationPermission()
 		} catch (error) {
 			console.error('Error loading app data', error)
 		} finally {
@@ -74,19 +71,28 @@ const App = () => {
 		}
 	}, [setPlaylists, setTracks])
 
+	const showApp = appReady && (skipAnimation || animationFinished)
+
+	useEffect(() => {
+		if(!showApp || notificationsStarted.current) return
+
+		notificationsStarted.current = true;
+
+		void (async () => {
+			try {
+				await configureNotificationChannel()
+				await requestNotificationPermission()
+			} catch (error) {
+				console.error('Error configuring notifications', error)
+			}
+		})()
+	}, [showApp])
+
 	useSetupTrackPlayer({
 		onLoad: handleTrackPlayerLoaded
 	})
 	
 	useLogTrackPlayerState()
-
-	/*useEffect(() => {
-		if(!isLoading) {
-			SplashScreen.hideAsync()
-			requestNotificationPermission()
-		}
-	}, [isLoading])*/
-	const showApp = appReady && (skipAnimation || animationFinished)
 
 	return(
 		<SafeAreaProvider>
