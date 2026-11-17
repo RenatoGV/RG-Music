@@ -8,6 +8,7 @@ import { useQueue } from '@/store/queue'
 import { QueueControls } from '../other/QueueControls'
 import { TrackListItem } from './TrackListItem'
 import { shuffleTracks } from '@/helpers/shuffleTracks'
+import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 
 export type TrackListProps = Partial<FlatListProps<Track>> & {
   id: string
@@ -20,6 +21,7 @@ export type TrackListProps = Partial<FlatListProps<Track>> & {
 const ItemDivider = () => <View style={{...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60}} />
 
 export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
+  const contentBottomPadding = useTabContentBottomPadding()
   const { activeQueueId, setActiveQueueId, shuffleEnabled } = useQueue()
 
   const handleTrackSelect = (selectedTrack: Track) => {
@@ -65,7 +67,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
   return (
     <FlatList
       data={filteredTracks}
-      contentContainerStyle={{paddingTop: 10, paddingBottom: 128}}
+      contentContainerStyle={{paddingTop: 10, paddingBottom: contentBottomPadding}}
       ListHeaderComponent={
         (!hideQueueControls && tracks.length > 0) ? <QueueControls queueId={id} tracks={tracks} style={{paddingBottom: 20}}/> : undefined
       }

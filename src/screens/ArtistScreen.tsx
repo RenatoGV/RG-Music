@@ -2,6 +2,7 @@ import { unknownArtistImageUri } from '@/constants/images'
 import { screenPadding } from '@/constants/tokens'
 import { filterArtistsByName } from '@/helpers/filter'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
+import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 import { useArtists } from '@/store/library'
 import { defaultStyles, utilsStyles } from '@/styles'
 import { Link } from 'expo-router'
@@ -14,6 +15,7 @@ const ItemSeparatorComponent = () => {
 }
 
 const ArtistsScreen = () => {
+	const contentBottomPadding = useTabContentBottomPadding()
 	const search = useNavigationSearch({
 		searchBarOptions: {
 			placeholder: 'Buscar Artista',
@@ -33,7 +35,7 @@ const ArtistsScreen = () => {
 	return (
 		<View style={{ ...defaultStyles.container, paddingHorizontal: screenPadding.horizontal }}>
 			<FlatList
-				contentContainerStyle={{ paddingTop: 10, paddingBottom: 120 }}
+				contentContainerStyle={{ paddingTop: 10, paddingBottom: contentBottomPadding }}
 				ItemSeparatorComponent={ItemSeparatorComponent}
 				ListEmptyComponent={
 					<View>

@@ -6,6 +6,7 @@ import { FlatList, FlatListProps, Text, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import { PlaylistListItem } from './PlaylistListItem'
 import { DeletePlaylist } from '@/components/modals/DeletePlaylist'
+import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 
 type PlaylistsListProps = {
 	playlists: Playlist[]
@@ -17,6 +18,7 @@ const ItemDivider = () => {
 }
 
 export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, ...flatListProps} : PlaylistsListProps) => {
+	const contentBottomPadding = useTabContentBottomPadding()
 	const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
 
 	const handlePlaylistLongPress = (playlist : Playlist) => {
@@ -27,7 +29,7 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 		<View style={{ flex: 1 }}>
 			<DeletePlaylist selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
 			<FlatList
-				contentContainerStyle={{ paddingTop: 10, paddingBottom: 128 }}
+				contentContainerStyle={{ paddingTop: 10, paddingBottom: contentBottomPadding }}
 				ItemSeparatorComponent={ItemDivider}
 				// ListFooterComponent={ItemDivider}
 				ListEmptyComponent={
