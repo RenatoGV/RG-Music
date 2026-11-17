@@ -4,11 +4,14 @@ import { NativeScrollEvent, NativeSyntheticEvent, ScrollViewInstance } from "rea
 interface UseLyricsAutoScrollParams {
    activeOffset: number | undefined
    viewportHeight: number
+   enabled?: boolean
+   onInitialPositioned?: () => void
 }
 
-export function useLyricsAutoScroll({ activeOffset, viewportHeight }: Readonly<UseLyricsAutoScrollParams>) {
+export function useLyricsAutoScroll({ activeOffset, viewportHeight, enabled = true, onInitialPositioned }: Readonly<UseLyricsAutoScrollParams>) {
    const scrollViewRef = useRef<ScrollViewInstance | null>(null)
    const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+   const hasInitialPositionedRef = useRef(false)
    const [scrollOffset, setScrollOffset] = useState(0)
    const [isUserScrolling, setIsUserScrolling] = useState(false)
 
@@ -35,13 +38,20 @@ export function useLyricsAutoScroll({ activeOffset, viewportHeight }: Readonly<U
    }
 
    useEffect(() => {
-      if (!isUserScrolling && viewportHeight > 0 && activeOffset !== undefined) {
-         scrollViewRef.current?.scrollTo({
-            y: activeOffset,
-            animated: true
-         })
+      if (!enabled || isUserScrolling || viewportHeight <= 0 || activeOffset === undefined) return
+
+      const isInitialPosition = !hasInitialPositionedRef.current
+      if (isInitialPosition) hasInitialPositionedRef.current = true
+
+      scrollViewRef.current?.scrollTo({
+         y: activeOffset,
+         animated: !isInitialPosition
+      })
+
+      if (isInitialPosition && onInitialPositioned) {
+         requestAnimationFrame(onInitialPositioned)
       }
-   }, [activeOffset, isUserScrolling, viewportHeight])
+   }, [activeOffset, enabled, isUserScrolling, onInitialPositioned, viewportHeight])
 
    useEffect(() => {
       return () => {

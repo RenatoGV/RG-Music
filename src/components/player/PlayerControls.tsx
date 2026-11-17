@@ -6,6 +6,7 @@ import { playerControlsStyles } from "@/styles/playerControls"
 
 type PlayerControlsProps = {
     style?: ViewStyle
+    compact?: boolean
 }
 
 type PlayerButtonProps = {
@@ -13,15 +14,15 @@ type PlayerButtonProps = {
     iconSize?: number
 }
 
-export const PlayerControls = ({ style }: PlayerControlsProps) => {
+export const PlayerControls = ({ style, compact = false }: PlayerControlsProps) => {
     return (
         <View style={[playerControlsStyles.container, style]}>
             <View style={playerControlsStyles.row}>
-                <SkipToPreviousButton />
+                <SkipToPreviousButton iconSize={compact ? 20 : 30} />
 
-                <PlayPauseButton />
+                <PlayPauseButton iconSize={compact ? 36 : 70} />
 
-                <SkipToNextButton />
+                <SkipToNextButton iconSize={compact ? 20 : 30} />
             </View>
         </View>
     )

@@ -16,6 +16,8 @@ import { useLyricStore } from '@/store/lyrics';
 import { restorePlaybackSession } from '@/services/playbackSessionService';
 import { loadPersistedAppData } from '@/services/appDataService';
 import { usePersistPlaybackPosition } from '@/hooks/usePersistPlaybackPosition';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
 
 const CustomStack = Stack
 
@@ -110,14 +112,16 @@ const App = () => {
 
 const RootNavigation = () => {
 	const { showLyrics } = useLyricStore()
+	const { top } = useSafeAreaInsets()
 	
 	return (
 		<CustomStack>
 			<CustomStack.Screen name='(tabs)' options={{headerShown: false}} />
 			<CustomStack.Screen name='player' options={{
 				...TransitionPresets.ModalSlideFromBottomIOS,
-				gestureEnabled: !showLyrics,
-				presentation: 'card',
+				gestureEnabled: Platform.OS === 'ios' || !showLyrics,
+				gestureResponseDistance: Platform.OS === 'ios' && showLyrics ? top + 48 : undefined,
+				presentation: Platform.OS === 'android' ? 'transparentModal' : 'card',
 				animationDuration: 400,
 				headerShown: false,
 			}} />

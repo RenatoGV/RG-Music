@@ -6,7 +6,7 @@ import { useFonts } from "expo-font"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Animated, Dimensions, ScrollView, View } from "react-native"
 
-export const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
+export const SyncedLyricsView = ({ lyrics, onPositioned }: { lyrics: string; onPositioned?: () => void }) => {
    const { position } = useProgress(250)
    const [autoPlayLineIndex, setAutoPlayLineIndex] = useState(0)
    
@@ -36,7 +36,13 @@ export const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
          }
       )
       
-      const validIndex = Math.max(0, activeIndex)
+      const lastLineIndex = Math.max(0, lyricLines.length - 1)
+      const lastLineTime = lyricLines[lyricLines.length - 1]?.time ?? Infinity
+      const validIndex = activeIndex >= 0
+         ? activeIndex
+         : position >= lastLineTime
+            ? lastLineIndex
+            : 0
       
       if (validIndex !== lastActiveIndexRef.current) {
          lastActiveIndexRef.current = validIndex
@@ -47,7 +53,16 @@ export const SyncedLyricsView = ({ lyrics }: { lyrics: string }) => {
    const hasMeasuredLines = lyricLines.length > 0 && snapOffsets.length === lyricLines.length
    let activeLineIndex = autoPlayLineIndex
 
-   const { scrollViewRef, scrollOffset, isUserScrolling, handleScrollBeginDrag, handleScroll, handleScrollEndDrag } = useLyricsAutoScroll({ activeOffset, viewportHeight })
+   const { scrollViewRef, scrollOffset, isUserScrolling, handleScrollBeginDrag, handleScroll, handleScrollEndDrag } = useLyricsAutoScroll({
+      activeOffset,
+      viewportHeight,
+      enabled: hasMeasuredLines,
+      onInitialPositioned: onPositioned
+   })
+
+   useEffect(() => {
+      if (viewportHeight > 0 && lyricLines.length === 0) onPositioned?.()
+   }, [lyricLines.length, onPositioned, viewportHeight])
 
    if (isUserScrolling && hasMeasuredLines) {
       let closestDistance = Infinity

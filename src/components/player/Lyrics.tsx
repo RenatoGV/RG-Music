@@ -1,5 +1,6 @@
 import { colors, fontSize } from '@/constants/tokens';
 import { ActivityIndicator, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { useCallback, useState } from 'react';
 import { useLyricStore } from '@/store/lyrics';
 import { PlainLyricsView } from '@/components/lyrics/PlainLyricsView'
 import { SyncedLyricsView } from '@/components/lyrics/SyncedLyricsView'
@@ -21,7 +22,7 @@ export const Lyrics = ({trackUrl, track, artist, lyricId} : Props) => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, styles.fillContainer]}>
         <ActivityIndicator color="white" />
       </View>
     )
@@ -29,7 +30,7 @@ export const Lyrics = ({trackUrl, track, artist, lyricId} : Props) => {
 
   if (!lyrics) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, styles.fillContainer]}>
         <Text style={styles.textError}>{error}</Text>
 
         <TouchableOpacity style={styles.retryButton} onPress={retry}>
@@ -45,7 +46,7 @@ export const Lyrics = ({trackUrl, track, artist, lyricId} : Props) => {
       <View style={{flex: 1}}>
         {
           (syncedLyrics && (prefersSyncedLyrics || !plainLyrics)) ?
-            <SyncedLyricsView key={syncedLyrics} lyrics={syncedLyrics} />
+            <SyncedLyricsContent key={syncedLyrics} lyrics={syncedLyrics} />
           :
             <PlainLyricsView lyrics={plainLyrics ?? ''} />
         }
@@ -53,9 +54,40 @@ export const Lyrics = ({trackUrl, track, artist, lyricId} : Props) => {
   )
 }
 
+const SyncedLyricsContent = ({ lyrics }: { lyrics: string }) => {
+  const [positioned, setPositioned] = useState(false)
+  const handlePositioned = useCallback(() => setPositioned(true), [])
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, opacity: positioned ? 1 : 0 }} pointerEvents={positioned ? 'auto' : 'none'}>
+        <SyncedLyricsView lyrics={lyrics} onPositioned={handlePositioned} />
+      </View>
+      {!positioned && (
+        <View style={styles.initialPositionLoader}>
+          <ActivityIndicator color="white" />
+        </View>
+      )}
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center'
+  },
+  fillContainer: {
+    flex: 1,
+    justifyContent: 'center'
+  },
+  initialPositionLoader: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   textError: {
     color: colors.text,
