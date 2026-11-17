@@ -10,13 +10,13 @@ import { colors } from '@/constants/tokens';
 import { useLibraryStore } from '@/store/library';
 import { usePlaylistStore } from '@/store/playlist';
 import SplashScreenView from './splashScreen';
-import TrackPlayer, { getPlaybackState } from '@/helpers/track-player-compat';
+import { getPlaybackState } from '@/helpers/track-player-compat';
 import * as SplashScreen from 'expo-splash-screen';
-import { saveData } from '@/helpers/storage';
 import { configureNotificationChannel, requestNotificationPermission } from '@/helpers/notifications';
 import { useLyricStore } from '@/store/lyrics';
 import { restorePlaybackSession } from '@/services/playbackSessionService';
 import { loadPersistedAppData } from '@/services/appDataService';
+import { usePersistPlaybackPosition } from '@/hooks/usePersistPlaybackPosition';
 
 const CustomStack = Stack
 
@@ -35,27 +35,7 @@ const App = () => {
 		void SplashScreen.hideAsync().catch(() => {})
 	}, [])
 
-	useEffect(() => {
-		if (!appReady || !playerReady) return
-
-		let interval: ReturnType<typeof setInterval> | null = null
-
-		interval = setInterval(() => {
-			try {
-				const playBackState = getPlaybackState()
-				if (playBackState.state !== 'playing') return
-
-				const position = TrackPlayer.getProgress().position
-				saveData('playback_position', position)
-			} catch (error) {
-				console.error('Error saving playback position', error)
-			}
-		}, 5000)
-
-		return () => {
-			if (interval !== null) clearInterval(interval)
-		}
-	}, [appReady, playerReady])
+	usePersistPlaybackPosition(appReady && playerReady)
 
 	const handleTrackPlayerLoaded = useCallback(async (isPlayerReady: boolean) => {
 		setPlayerReady(isPlayerReady)
