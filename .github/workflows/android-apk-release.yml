@@ -1,0 +1,62 @@
+name: Android APK Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-apk:
+    name: Build Android APK with EAS
+    runs-on: ubuntu-latest
+    concurrency:
+      group: eas-android-release
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build APK on EAS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > eas-build.json
+
+      - name: Download completed EAS build
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          BUILD_ID=$(node -e "const result = require('./eas-build.json'); const builds = Array.isArray(result) ? result : [result]; const build = builds.find((item) => item.platform?.toUpperCase() === 'ANDROID'); if (!build?.id) process.exit(1); process.stdout.write(build.id)")
+          npx --yes eas-cli@latest build:download --build-id "$BUILD_ID" --non-interactive --json > eas-download.json
+          node -e "const fs = require('node:fs'); const result = require('./eas-download.json'); if (!result.path) throw new Error('EAS did not return an APK path'); fs.mkdirSync('dist', { recursive: true }); fs.copyFileSync(result.path, 'dist/RG-Music-' + process.env.GITHUB_REF_NAME + '.apk')"
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rg-music-${{ github.ref_name }}-apk
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish APK to GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: RG Music ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: dist/*.apk
+          fail_on_unmatched_files: true

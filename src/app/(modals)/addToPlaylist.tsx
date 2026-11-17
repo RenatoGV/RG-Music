@@ -9,6 +9,8 @@ import { defaultStyles } from '@/styles'
 import { screenPadding } from '@/constants/tokens'
 import { usePlaylistStore } from '@/store/playlist'
 import { showToast } from '@/helpers/toast'
+import { useNavigationSearch } from '@/hooks/useNavigationSearch'
+import { filterPlaylistsByName } from '@/helpers/filter'
 
 const AddToPlaylistModal = () => {
     const router = useRouter()
@@ -23,6 +25,18 @@ const AddToPlaylistModal = () => {
 
     const track = tracks?.find((currentTrack) => trackUrl === decodeURIComponent(currentTrack.url))
 
+    const search = useNavigationSearch({
+        searchBarOptions: {
+            hideWhenScrolling: true,
+            placeholder: 'Buscar canción',
+            textColor: '#fff',
+            tintColor: '#fff',
+            barTintColor: '#fff',
+            hintTextColor: '#fff',
+            headerIconColor: '#fff'
+        }
+    })
+
     if(!track) {
         return null
     }
@@ -31,23 +45,26 @@ const AddToPlaylistModal = () => {
         (playlist) => !playlist.tracksUri.includes(track.url)
     )
 
+    const filteredPlaylists = filterPlaylistsByName(availablePlaylists ?? [], search)
+
     const handlePlaylistPress = (playlist: Playlist) => {
-        addToPlaylist(track.url, playlist)
+        addToPlaylist(track.url, playlist.id)
 
         router.dismiss()
 
-        if(activeQueueId?.startsWith(playlist.name)){
+        if(activeQueueId === `playlist:${playlist.id}`){
+            TrackPlayer.getQueue().some((item) => item.url === track.url)
             TrackPlayer.add(track)
         }
 
         showToast(`Agregado a ${playlist.name}`)
     }
 
-  return (
-    <View style={[styles.modalContainer, {paddingTop: 10}]}>
-        <PlaylistList playlists={availablePlaylists || []} onPlaylistPress={handlePlaylistPress} />
-    </View>
-  )
+    return (
+        <View style={[styles.modalContainer, {paddingTop: 10}]}>
+            <PlaylistList playlists={filteredPlaylists} onPlaylistPress={handlePlaylistPress} />
+        </View>
+    )
 }
 
 const styles = StyleSheet.create({

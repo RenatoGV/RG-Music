@@ -6,7 +6,6 @@ export const useTrackPlayerRepeatMode = () => {
 
     const changeRepeatMode = useCallback( (repeatMode: RepeatMode) => {
         TrackPlayer.setRepeatMode(repeatMode)
-
         setRepeatMode(repeatMode)
     }, [])
 

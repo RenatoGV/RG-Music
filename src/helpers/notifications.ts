@@ -33,7 +33,8 @@ export async function configureNotificationChannel() {
 
 export async function scheduleAlarmNotification( options: { title: string; message: string; } ) {
    try {
-      await requestNotificationPermission()
+      const { granted } = await Notifications.getPermissionsAsync()
+      if (!granted) return
 
       const notificationId = await Notifications.scheduleNotificationAsync({
          content: {

@@ -80,3 +80,8 @@ yarn-error.*
 *.tsbuildinfo
 
 # @end expo-cli
+
+# custom modules
+/modules/**/build/
+/modules/**/.gradle/
+/modules/**/.kotlin/

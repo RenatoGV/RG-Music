@@ -1,7 +1,7 @@
 import { unknownTrackImageUri } from "@/constants/images"
 import { defaultStyles } from "@/styles"
-import React, { useEffect, useRef, useState } from "react"
-import { Animated, PanResponder, StyleSheet, View, ViewProps } from "react-native"
+import React, { useEffect, useState } from "react"
+import { Animated, StyleSheet, View, ViewProps } from "react-native"
 import FastImage from "react-native-fast-image"
 import TrackPlayer, { useActiveTrack } from "@/helpers/track-player-compat"
 import { PlayPauseButton, SkipToNextButton } from "@/components/player/PlayerControls"
@@ -11,6 +11,7 @@ import { MovingText } from "../other/MovingText"
 import { useRouter } from "expo-router"
 import { useQueue } from "@/store/queue"
 import { saveData } from "@/helpers/storage"
+import { useFloatingPlayerSwipe } from "@/hooks/useFloatingPlayerSwipe"
 
 export const FloatingPlayer = ({ style } : ViewProps) => {
 
@@ -39,84 +40,53 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
             return activeTrack
         })
     }, [activeTrack])
+    
+    const handleDismiss = () => {
+        TrackPlayer.reset()
+        setActiveQueueId(null)
+        setCurrentTrack(undefined)
+        saveData('playback_queue', '')
+        saveData('playback_position', '')
+    }
 
-    // Swipe Action
-    const translateX = useRef(new Animated.Value(0)).current
-    const swipeThreshold = 150
-
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onPanResponderMove: (_, gestureState) => {
-                translateX.setValue(gestureState.dx);
-            },
-            onPanResponderRelease: (_, gestureState) => {
-                if (Math.abs(gestureState.dx) > swipeThreshold) {
-                Animated.timing(translateX, {
-                    toValue: gestureState.dx > 0 ? 500 : -500,
-                    duration: 200,
-                    useNativeDriver: true,
-                }).start(() => {
-                    TrackPlayer.reset()
-
-                    setActiveQueueId(null)
-                    setCurrentTrack(undefined)
-                    saveData('playback_queue', '')
-                    saveData('playback_position', '')
-                    
-                    translateX.setValue(0);
-                });
-                } else {
-                    if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5) {
-                        router.navigate("/player");
-                    }
-                    Animated.spring(translateX, {
-                        toValue: 0,
-                        useNativeDriver: true,
-                    }).start()
-                }
-            },
-        })
-    ).current
+    const { translateX, panHandlers } = useFloatingPlayerSwipe({ onOpen: () => router.navigate('/player'), onDismiss: handleDismiss })
     
     if (!currentTrack) return null
 
     return (
-        <Animated.View style={[style, {transform: [{ translateX }]}]} {...panResponder.panHandlers}>
-            {/* <TouchableOpacity onPress={handlePress} activeOpacity={0.9}> */}
-                <BlurView
-                intensity={100}
-                tint="dark"
-                style={{
-                    overflow: 'hidden',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: 8,
-                    borderRadius: 12,
-                    paddingVertical: 10,
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)'
-                }}
-                >
-                    <FastImage
-                        source={{
-                            uri: currentTrack.artwork ?? unknownTrackImageUri
-                        }}
-                        style={styles.trackArtworkImage}
+        <Animated.View style={[style, {transform: [{ translateX }]}]} {...panHandlers}>
+            <BlurView
+            intensity={100}
+            tint="dark"
+            style={{
+                overflow: 'hidden',
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 8,
+                borderRadius: 12,
+                paddingVertical: 10,
+                backgroundColor: 'rgba(0, 0, 0, 0.7)'
+            }}
+            >
+                <FastImage
+                    source={{
+                        uri: currentTrack.artwork ?? unknownTrackImageUri
+                    }}
+                    style={styles.trackArtworkImage}
+                />
+
+                <View style={styles.trackTitleContainer}>
+                    <MovingText style={styles.trackTitle}
+                        text={currentTrack.title ?? ''}
+                        animationThreshold={25}
                     />
+                </View>
 
-                    <View style={styles.trackTitleContainer}>
-                        <MovingText style={styles.trackTitle}
-                            text={currentTrack.title ?? ''}
-                            animationThreshold={25}
-                        />
-                    </View>
-
-                    <View style={styles.trackControlsContainer}>
-                        <PlayPauseButton iconSize={24} />
-                        <SkipToNextButton iconSize={22} />
-                    </View>
-                </BlurView>
-            {/* </TouchableOpacity> */}
+                <View style={styles.trackControlsContainer}>
+                    <PlayPauseButton iconSize={24} />
+                    <SkipToNextButton iconSize={22} />
+                </View>
+            </BlurView>
         </Animated.View>
     )
 }

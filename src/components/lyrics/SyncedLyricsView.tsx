@@ -1,0 +1,189 @@
+import { colors, fontSize } from "@/constants/tokens"
+import { parseLRC } from "@/helpers/parseLRC"
+import { useProgress } from "@/helpers/track-player-compat"
+import { useLyricsAutoScroll } from "@/hooks/useLyricsAutoScroll"
+import { useFonts } from "expo-font"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Animated, Dimensions, ScrollView, View } from "react-native"
+
+export const SyncedLyricsView = ({ lyrics, onPositioned }: { lyrics: string; onPositioned?: () => void }) => {
+   const { position } = useProgress(250)
+   const [autoPlayLineIndex, setAutoPlayLineIndex] = useState(0)
+   
+   const lyricLines = useMemo(() => parseLRC(lyrics), [lyrics])
+   const lastActiveIndexRef = useRef(0)
+   const screenHeight = Dimensions.get('window').height
+   const minLineHeight = 64
+   const [viewportHeight, setViewportHeight] = useState(0)
+   const [lineCenters, setLineCenters] = useState<Record<number, number>>({})
+   const anchorY = Math.min(screenHeight / 3.5, viewportHeight / 2)
+   const snapOffsets = useMemo(
+      () => Object.values(lineCenters).map((center) => Math.max(0, center - anchorY)),
+      [lineCenters, anchorY]
+   )
+   const activeCenter = lineCenters[autoPlayLineIndex]
+   const activeOffset = activeCenter === undefined
+      ? undefined
+      : Math.max(0, activeCenter - anchorY)
+
+   const [animatedScales, setAnimatedScales] = useState<Animated.Value[]>([])
+
+   useEffect(() => {
+      const activeIndex = lyricLines.findIndex(
+         (line, index) => {
+         const nextLine = lyricLines[index + 1]
+         return line.time <= position && (nextLine ? position < nextLine.time : true)
+         }
+      )
+      
+      const lastLineIndex = Math.max(0, lyricLines.length - 1)
+      const lastLineTime = lyricLines.at(-1)?.time ?? Infinity
+      const validIndex = activeIndex >= 0
+         ? activeIndex
+         : position >= lastLineTime
+            ? lastLineIndex
+            : 0
+      
+      if (validIndex !== lastActiveIndexRef.current) {
+         lastActiveIndexRef.current = validIndex
+         setAutoPlayLineIndex(validIndex)
+      }
+   }, [position, lyricLines])
+
+   const hasMeasuredLines = lyricLines.length > 0 && snapOffsets.length === lyricLines.length
+   let activeLineIndex = autoPlayLineIndex
+
+   const { scrollViewRef, scrollOffset, isUserScrolling, handleScrollBeginDrag, handleScroll, handleScrollEndDrag } = useLyricsAutoScroll({
+      activeOffset,
+      viewportHeight,
+      enabled: hasMeasuredLines,
+      onInitialPositioned: onPositioned
+   })
+
+   useEffect(() => {
+      if (viewportHeight > 0 && lyricLines.length === 0) onPositioned?.()
+   }, [lyricLines.length, onPositioned, viewportHeight])
+
+   if (isUserScrolling && hasMeasuredLines) {
+      let closestDistance = Infinity
+      snapOffsets.forEach((offset, index) => {
+         const distance = Math.abs(offset - scrollOffset)
+         if (distance < closestDistance) {
+         closestDistance = distance
+         activeLineIndex = index
+         }
+      })
+   }
+
+   useEffect(() => {
+      if (!animatedScales.length) return
+
+      animatedScales.forEach((anim, index) => {
+         const distance = Math.abs(index - activeLineIndex)
+
+         let targetScale = 1
+         if (distance === 1) {
+            targetScale = 0.8
+         } else if (distance >= 2) {
+            targetScale = 0.55
+         }
+
+         Animated.spring(anim, {
+            toValue: targetScale,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 6
+         }).start()
+      })
+   }, [activeLineIndex, animatedScales])
+
+   const getLineStyles = (distanceFromActive: number) => {
+      const distance = Math.abs(distanceFromActive)
+      let opacityValue = 0.3
+
+      if (distance === 0) {
+         opacityValue = 1
+      } else if (distance === 1) {
+         opacityValue = 0.65
+      } else if (distance === 2) {
+         opacityValue = 0.4
+      }
+
+      return {
+         opacityValue
+      }
+   }
+
+   useEffect(() => {
+      setAnimatedScales(
+         lyricLines.map(() => new Animated.Value(1))
+      )
+   }, [lyricLines])
+
+   const [fontsLoaded] = useFonts({
+      SourceSansPro: require('@/assets/fonts/source-sans-pro-cyrillic-700-normal.ttf')
+   })
+
+   return (
+      <View style={{ flex: 1 }}>
+         <ScrollView
+         ref={scrollViewRef}
+         onLayout={({ nativeEvent }) => setViewportHeight(nativeEvent.layout.height)}
+         scrollEventThrottle={16}
+         onScrollBeginDrag={handleScrollBeginDrag}
+         onScroll={handleScroll}
+         onScrollEndDrag={handleScrollEndDrag}
+         showsVerticalScrollIndicator={false}
+         scrollEnabled={true}
+         snapToOffsets={hasMeasuredLines ? snapOffsets : undefined}
+         snapToStart={false}
+         snapToEnd={false}
+         decelerationRate="fast"
+         >
+         <View style={{ height: Math.max(0, anchorY - minLineHeight / 2) }} />
+         {lyricLines.map((line, index) => {
+            const distanceFromActive = index - activeLineIndex
+            const { opacityValue } = getLineStyles(distanceFromActive)
+            const isVisible = Math.abs(distanceFromActive) <= 2
+
+            return (
+               <View
+               key={`${line.time}-${line.content}`}
+               accessibilityElementsHidden={!isVisible}
+               importantForAccessibility={isVisible ? 'auto' : 'no-hide-descendants'}
+               onLayout={({ nativeEvent: { layout } }) => {
+                  const center = layout.y + layout.height / 2
+                  setLineCenters((previous) => previous[index] === center
+                     ? previous
+                     : { ...previous, [index]: center })
+               }}
+               style={{
+                  minHeight: minLineHeight,
+                  paddingVertical: 15,
+                  justifyContent: 'center',
+                  opacity: isVisible ? opacityValue : 0
+               }}
+               >
+               <Animated.Text
+                  numberOfLines={4}
+                  style={{
+                     fontFamily: fontsLoaded ? 'SourceSansPro' : undefined,
+                     color: colors.text,
+                     fontSize: line.content === '♪' ? fontSize.xl * 2 : fontSize.xl,
+                     fontWeight: '700',
+                     textAlign: 'center',
+                     opacity: opacityValue,
+                     transform: [{ scale: animatedScales[index] ?? 1 }]
+                  }}
+               >
+                  {line.content}
+               </Animated.Text>
+               </View>
+            )
+         })}
+         <View style={{ height: Math.max(0, viewportHeight - anchorY - minLineHeight / 2) }} />
+         </ScrollView>
+      </View>
+      
+   )
+}

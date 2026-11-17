@@ -5,8 +5,14 @@ import { StyleSheet } from "react-native"
 import { FontAwesome, MaterialCommunityIcons, FontAwesome6 } from "@expo/vector-icons"
 import React from "react"
 import { FloatingPlayer } from "@/components/player/FloatingPlayer"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 const TabsNavigation = () => {
+  const insets = useSafeAreaInsets()
+  const tabBarContentHeight = 60
+  const floatingPlayerGap = 5
+  const tabBarHeight = tabBarContentHeight + insets.bottom
+
   return (
     <>
       <Tabs screenOptions={{
@@ -19,11 +25,13 @@ const TabsNavigation = () => {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
+          bottom: 0,
+          height: tabBarHeight,
+          paddingTop: 4,
+          paddingBottom: insets.bottom,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
-          borderTopWidth: 0,
-          paddingTop: 4,
-          height: 60
+          borderTopWidth: 0
         },
         tabBarBackground: () => (
           <BlurView
@@ -61,7 +69,7 @@ const TabsNavigation = () => {
         position: 'absolute',
         left: 8,
         right: 8,
-        bottom: 65
+        bottom: tabBarHeight + floatingPlayerGap
       }} />
     </>
   )

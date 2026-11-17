@@ -34,7 +34,7 @@ export const SelectTrackList = ({ tracks, playlist, ...flatlistProps } : Props) 
 
    const handleAddToPlaylist = () => {
       if(playlist){
-         addMultipleToPlaylist(selectedTracks, playlist)
+         addMultipleToPlaylist(selectedTracks, playlist.id)
          showToast(`${selectedTracks.length} canciones agregadas`)
       }
       router.dismiss()

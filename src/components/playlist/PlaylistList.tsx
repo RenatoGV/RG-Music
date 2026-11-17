@@ -1,13 +1,12 @@
 import { unknownPlaylistImageUri } from '@/constants/images'
-import { playlistsNameFilter } from '@/helpers/filter'
 import { Playlist } from '@/helpers/types'
-import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { utilsStyles } from '@/styles'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { FlatList, FlatListProps, Text, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import { PlaylistListItem } from './PlaylistListItem'
 import { DeletePlaylist } from '@/components/modals/DeletePlaylist'
+import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 
 type PlaylistsListProps = {
 	playlists: Playlist[]
@@ -19,32 +18,22 @@ const ItemDivider = () => {
 }
 
 export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, ...flatListProps} : PlaylistsListProps) => {
+	const contentBottomPadding = useTabContentBottomPadding()
 	const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
-
-	const search = useNavigationSearch({
-		searchBarOptions: {
-			placeholder: 'Buscar playlist'
-		}
-	})
-
-	const filteredPlaylist = useMemo(() => {
-		return playlists.filter(playlistsNameFilter(search))
-	}, [playlists, search])
 
 	const handlePlaylistLongPress = (playlist : Playlist) => {
 		setSelectedPlaylist(playlist)
 	}
 
 	return (
-		<View>
+		<View style={{ flex: 1 }}>
 			<DeletePlaylist selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
 			<FlatList
-				contentContainerStyle={{ paddingTop: 10, paddingBottom: 128 }}
+				contentContainerStyle={{ paddingTop: 10, paddingBottom: contentBottomPadding }}
 				ItemSeparatorComponent={ItemDivider}
-				// ListFooterComponent={ItemDivider}
 				ListEmptyComponent={
 					<View>
-						<Text style={utilsStyles.emptyContentText}>No se encontraron Playlist</Text>
+						<Text style={utilsStyles.emptyContentText}>No se encontraron Playlists</Text>
 
 						<FastImage
 							source={{ uri: unknownPlaylistImageUri }}
@@ -52,7 +41,7 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 						/>
 					</View>
 				}
-				data={filteredPlaylist}
+				data={playlists}
 				renderItem={({ item: playlist }) => (
 					<PlaylistListItem playlist={playlist} onPress={() => handlePlaylistPress(playlist)} onLongPress={() => handlePlaylistLongPress(playlist)} />
 				)}

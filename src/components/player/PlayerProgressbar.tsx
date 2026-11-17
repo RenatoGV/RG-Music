@@ -7,7 +7,9 @@ import { Slider } from 'react-native-awesome-slider'
 import { useSharedValue } from 'react-native-reanimated'
 import TrackPlayer, { useProgress } from '@/helpers/track-player-compat'
 
-export const PlayerProgressbar = ({style} : ViewProps) => {
+type Props = ViewProps & { compact?: boolean }
+
+export const PlayerProgressbar = ({style, compact = false} : Props) => {
 
     const {duration, position} = useProgress(250)
 
@@ -51,7 +53,7 @@ export const PlayerProgressbar = ({style} : ViewProps) => {
             }}
         />
 
-        <View style={styles.timeRow}>
+        <View style={[styles.timeRow, compact && styles.compactTimeRow]}>
             <Text style={styles.timeText}>{trackElapsedTime}</Text>
             <Text style={styles.timeText}>{trackDurationTime}</Text>
         </View>
@@ -73,5 +75,6 @@ const styles = StyleSheet.create({
         fontSize: fontSize.xs,
         letterSpacing: 0.7,
         fontWeight: '500'
-    }
+    },
+    compactTimeRow: { marginTop: 6 }
 })

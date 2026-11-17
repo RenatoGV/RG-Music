@@ -7,7 +7,8 @@ export const colors = {
 	icon: '#fff',
 	maximumTrackTintColor: 'rgba(255,255,255,0.4)',
 	minimumTrackTintColor: 'rgba(255,255,255,0.6)',
-	placeholder: '#6e6e6e'
+	placeholder: '#6e6e6e',
+	inactive: '#4d4d4d'
 }
 
 export const fontSize = {
@@ -15,7 +16,8 @@ export const fontSize = {
 	sm: 16,
 	base: 20,
 	lg: 24,
-	xl: 35
+	xl: 35,
+	xxl: 48
 }
 
 export const screenPadding = {

@@ -1,8 +1,6 @@
-import { trackTitleFilter } from '@/helpers/filter'
-import { generateTrackListId } from '@/helpers/miscellaneous'
+import { filterTrackByTitle } from '@/helpers/filter'
 import { Artist } from '@/helpers/types'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
-import { useMemo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import { unknownArtistImageUri } from '@/constants/images'
@@ -19,20 +17,18 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
         }
     })
 
-    const filteredArtistTracks = useMemo(() => {
-        return artist.tracks.filter(trackTitleFilter(search))
-    }, [artist.tracks, search])
+    const queueId = `artist:${artist.name}`
+    const filteredArtistTracks = filterTrackByTitle(artist.tracks, search)
 
-    return <TracksList id={generateTrackListId(artist.name, search)} 
+    return <TracksList
+        id={queueId}
         hideQueueControls={true}
         ListHeaderComponentStyle={styles.artistHeaderContainer}
         ListHeaderComponent={
             <View>
                 <View style={styles.artworkImageContainer}>
                     <FastImage
-                        source={{
-                            uri: unknownArtistImageUri
-                        }}
+                        source={{ uri: unknownArtistImageUri }}
                         style={styles.artistImage}
                     />
                 </View>
@@ -40,7 +36,7 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
                 <Text numberOfLines={1} style={styles.artistNameText}>{artist.name}</Text>
 
                 {artist.tracks.length > 0 && (
-                    <QueueControls tracks={artist.tracks} style={{paddingTop: 24}} />
+                    <QueueControls queueId={queueId} tracks={artist.tracks} style={{paddingTop: 24}} />
                 )}
             </View>
         }

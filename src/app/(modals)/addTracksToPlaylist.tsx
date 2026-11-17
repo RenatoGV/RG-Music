@@ -6,11 +6,10 @@ import { screenPadding } from '@/constants/tokens'
 import { usePlaylistStore } from '@/store/playlist'
 import { SelectTrackList } from '@/components/playlist/SelectTrackList'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
-import { useMemo } from 'react'
-import { trackTitleFilter } from '@/helpers/filter'
+import { filterTrackByTitle } from '@/helpers/filter'
 
 const AddTracksToPlaylistModal = () => {
-   const { playlist : playlistName } = useLocalSearchParams<{ playlist: string }>()
+   const { playlistId } = useLocalSearchParams<{ playlistId: string }>()
 
    const tracks = useTracks()
    const { playlists } = usePlaylistStore()
@@ -27,21 +26,20 @@ const AddTracksToPlaylistModal = () => {
       }
    })
 
-   const currentPlaylist = playlists?.find((playlist) => playlist.name === playlistName )
+   const currentPlaylist = playlists?.find((playlist) => playlist.id === playlistId )
+   
+   if (!currentPlaylist) return null
 
    const availableTracks = tracks?.filter(
       (track) => !currentPlaylist?.tracksUri.includes(track.url)
    )
 
-   const filteredTracks = useMemo(() => {
-      if(!availableTracks) return []
+   const filteredTracks = filterTrackByTitle(availableTracks ?? [], search)
 
-      return availableTracks.filter(trackTitleFilter(search))
-   }, [availableTracks, search])
 
    return (
       <View style={[styles.modalContainer]}>
-         <Stack.Screen options={{ headerTitle: `Agregar a ${playlistName}` }} />
+         <Stack.Screen options={{ headerTitle: `Agregar a ${currentPlaylist.name}` }} />
          <SelectTrackList tracks={filteredTracks || []} playlist={currentPlaylist} />
       </View>
    )

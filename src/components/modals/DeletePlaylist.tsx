@@ -15,7 +15,7 @@ export const DeletePlaylist = ({selectedPlaylist, setSelectedPlaylist} : Props) 
 
    const handleSave = () => {
       if(selectedPlaylist !== null) {
-         removePlaylist(selectedPlaylist)
+         removePlaylist(selectedPlaylist.id)
          showToast(`Playlist ${selectedPlaylist.name} eliminado`)
       }
       setSelectedPlaylist(null)
