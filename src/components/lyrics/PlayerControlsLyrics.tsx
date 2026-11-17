@@ -3,17 +3,18 @@ import { FontAwesome, FontAwesome6 } from "@expo/vector-icons"
 import { colors } from "@/constants/tokens"
 import { useLyricStore } from "@/store/lyrics"
 import { PlayPauseButton, SkipToNextButton, SkipToPreviousButton } from '@/components/player/PlayerControls'
+import { playerControlsStyles } from "@/styles/playerControls"
 
 type PlayerControlsProps = {
     style?: ViewStyle
 }
 
-export const PlayerControlsLyrics = ({style}: PlayerControlsProps) => {
+export const PlayerControlsLyrics = ({ style }: PlayerControlsProps) => {
     const {setShowLyrics, setSyncedLyrics, syncedLyrics} = useLyricStore()
 
     return (
-        <View style={[styles.container, style]}>
-            <View style={styles.row}>
+        <View style={[playerControlsStyles.container, style]}>
+            <View style={playerControlsStyles.row}>
                 <TouchableOpacity onPress={() => setShowLyrics(false)}>
                     <FontAwesome6
                         name={'angle-down'}
@@ -41,14 +42,6 @@ export const PlayerControlsLyrics = ({style}: PlayerControlsProps) => {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        width: '100%'
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        alignItems: 'center'
-    },
     btnContainer: {
         width: 30,
         height: 30,

@@ -1,7 +1,8 @@
-import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native"
+import { TouchableOpacity, View, ViewStyle } from "react-native"
 import TrackPlayer, { useIsPlaying } from "@/helpers/track-player-compat"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { colors } from "@/constants/tokens"
+import { playerControlsStyles } from "@/styles/playerControls"
 
 type PlayerControlsProps = {
     style?: ViewStyle
@@ -12,10 +13,10 @@ type PlayerButtonProps = {
     iconSize?: number
 }
 
-export const PlayerControls = ({style}: PlayerControlsProps) => {
+export const PlayerControls = ({ style }: PlayerControlsProps) => {
     return (
-        <View style={[styles.container, style]}>
-            <View style={styles.row}>
+        <View style={[playerControlsStyles.container, style]}>
+            <View style={playerControlsStyles.row}>
                 <SkipToPreviousButton />
 
                 <PlayPauseButton />
@@ -62,14 +63,3 @@ export const SkipToPreviousButton = ({iconSize = 30} : PlayerButtonProps) => {
         </TouchableOpacity>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        width: '100%'
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        alignItems: 'center'
-    }
-})
