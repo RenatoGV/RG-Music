@@ -1,6 +1,6 @@
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { defaultStyles, utilsStyles } from '@/styles'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import { useEffect, useMemo, useState } from 'react'
 import { filterTrackByTitle } from '@/helpers/filter'
 import { useLibraryStore, useTracks } from '@/store/library'
@@ -11,7 +11,7 @@ import { unknownTrackImageUri } from '@/constants/images'
 import { TracksList } from '@/components/track/TracksList'
 import { QueueControls } from '@/components/other/QueueControls'
 import { TrackListSortButton, type TrackSortMode } from '@/components/other/TrackListSortButton'
-import { Circle } from 'react-native-progress'
+import { Bar, Circle } from 'react-native-progress'
 import { LinearGradient } from 'expo-linear-gradient'
 import { SongsFolderModal } from '@/components/modals/SongsFolderModal'
 import { refreshMusicFolder, selectMusicFolder } from '@/services/musicFolderService'
@@ -20,6 +20,9 @@ import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { getAudioDuration } from '@/helpers/audioDuration'
 import { saveData } from '@/helpers/storage'
 import { GradientButton } from '@/components/common/GradientButton'
+import LottieView from 'lottie-react-native'
+import musicLoading from '@/assets/lottie/music-loading.json'
+import notFound from '@/assets/lottie/not-found.json'
 
 const SongsScreen = () => {
    const [modalFolderVisible, setModalFolderVisible] = useState(false)
@@ -125,27 +128,20 @@ const SongsScreen = () => {
 	return (
 		<View style={styles.screen}>
 			<ScreenGradient />
-			<ScreenHeader
-				title="Canciones"
-				subtitle={subtitle}
-				onFolderPress={handleFolderButton}
-				searchValue={search}
-				onSearchChange={setSearch}
-				searchPlaceholder="Buscar en Canciones"
-				topInset={insets.top}
-			/>
-
 			{isLoading ? (
 				<View style={styles.loadingContent}>
-					<Circle progress={progressLoading} size={150} showsText color={colors.primary} />
+					<LottieView source={musicLoading} style={{width: '100%', height: '40%'}} autoPlay loop={true} />
+					<View style={{width: '100%'}}>
+						<Bar progress={progressLoading} width={null} height={15} color={colors.primary} borderWidth={2} borderRadius={10} animationType='timing' />
+					</View>
 				</View>
 			) : tracks === null ? (
 				<View style={styles.emptyContent}>
-					<Text style={utilsStyles.emptyContentText}>No se encontraron canciones</Text>
+					<Text style={utilsStyles.emptyContentText}>Sin Canciones</Text>
 					<Text style={styles.emptyHint}>
-						Seleccione la carpeta donde se encuentren las canciones (.mp3 o .wav)
+						Seleccione una carpeta para importar canciones (.mp3 o .wav)
 					</Text>
-					<FastImage source={{ uri: unknownTrackImageUri }} style={utilsStyles.emptyContentImage} />
+					<LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
 
 					<GradientButton onPress={handleSelectFolder} style={styles.button}>
 						<Ionicons name="folder-outline" size={22} color={colors.text} />
@@ -153,28 +149,39 @@ const SongsScreen = () => {
 					</GradientButton>
 				</View>
 			) : (
-				<View style={styles.content}>
-					{orderedTracks.length > 0 && (
-						<QueueControls
-							queueId={songsQueueId}
-							tracks={orderedTracks}
-							style={styles.queueControls}
-						/>
-					)}
-					{orderedTracks.length > 0 && (
-						<TrackListSortButton
-							mode={sortMode}
-							onToggle={() => setSortMode((current) => current === 'alphabetical' ? 'addedAt' : 'alphabetical')}
-						/>
-					)}
-					<TracksList
-						id={songsQueueId}
-						tracks={orderedTracks}
-						filteredTracks={filteredTracks}
-						hideQueueControls
-						style={styles.trackList}
+				<>
+					<ScreenHeader
+						title="Tu librería"
+						subtitle={subtitle}
+						onFolderPress={handleFolderButton}
+						searchValue={search}
+						onSearchChange={setSearch}
+						searchPlaceholder="Buscar en Canciones"
+						topInset={insets.top}
 					/>
-				</View>
+					<View style={styles.content}>
+						{orderedTracks.length > 0 && (
+							<QueueControls
+								queueId={songsQueueId}
+								tracks={orderedTracks}
+								style={styles.queueControls}
+							/>
+						)}
+						{orderedTracks.length > 0 && (
+							<TrackListSortButton
+								mode={sortMode}
+								onToggle={() => setSortMode((current) => current === 'alphabetical' ? 'addedAt' : 'alphabetical')}
+							/>
+						)}
+						<TracksList
+							id={songsQueueId}
+							tracks={orderedTracks}
+							filteredTracks={filteredTracks}
+							hideQueueControls
+							style={styles.trackList}
+						/>
+					</View>
+				</>
 			)}
 
 			<SongsFolderModal visible={modalFolderVisible} onClose={closeModal} onRefresh={handleRefreshSongs} onSelectFolder={handleSelectFolder} />
@@ -211,13 +218,14 @@ const styles = StyleSheet.create({
 	loadingContent: {
 		flex: 1,
 		paddingHorizontal: screenPadding.horizontal,
-		justifyContent: 'center',
 		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	emptyContent: {
 		flex: 1,
 		paddingHorizontal: screenPadding.horizontal,
 		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	emptyHint: {
 		color: colors.textMuted,

@@ -105,9 +105,9 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
             {/* Shuffle button */}
             <View style={{flex: 1}}>
                 <LiquidGlassButton onPress={handleToggleShuffle} accessibilityRole="switch" accessibilityState={{ checked: shuffleEnabled }} style={styles.button}>
-                    <Ionicons name="shuffle-sharp" size={22} color={shuffleEnabled ? colors.primary : colors.textMuted} />
+                    <Ionicons name="shuffle-sharp" size={22} color={shuffleEnabled ? colors.primary : colors.text} />
 
-                    <Text style={shuffleEnabled ? styles.buttonTextActive : styles.buttonTextInactive}>Aleatorio</Text>
+                    <Text style={shuffleEnabled ? styles.buttonTextActive : styles.buttonText}>Aleatorio</Text>
                 </LiquidGlassButton>
             </View>
         </View>
@@ -133,13 +133,6 @@ const styles = StyleSheet.create({
     buttonTextActive: {
         ...defaultStyles.text,
         color: colors.primary,
-        fontWeight: '600',
-        fontSize: 18,
-        textAlign: 'center'
-    },
-    buttonTextInactive: {
-        ...defaultStyles.text,
-        color: colors.textMuted,
         fontWeight: '600',
         fontSize: 18,
         textAlign: 'center'
