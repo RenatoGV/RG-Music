@@ -3,7 +3,11 @@ import TrackPlayer, { Capability, RepeatMode } from "@/helpers/track-player-comp
 
 const setupPlayer = () => {
 	TrackPlayer.setupPlayer({
-		maxCacheSize: 1024 * 10
+		maxCacheSize: 1024 * 10,
+		contentType: 'music',
+		// Keep Android audio focus so calls and other full interruptions pause playback.
+		// RNTP's exclusive mode lets Android duck music for brief transient sounds.
+		audioMixing: 'exclusive'
 	})
 
 	TrackPlayer.updateOptions({
@@ -19,11 +23,7 @@ const setupPlayer = () => {
 	TrackPlayer.setRepeatMode(RepeatMode.Queue)
 }
 
-export const useSetupTrackPlayer = ({
-	onLoad,
-}: {
-	onLoad?: (playerReady: boolean) => void | Promise<void>
-}) => {
+export const useSetupTrackPlayer = ({ onLoad }: { onLoad?: (playerReady: boolean) => void | Promise<void> }) => {
 	const setupPromise = useRef<Promise<boolean> | null>(null)
 	const onLoadRef = useRef(onLoad)
 	const onLoadCalled = useRef(false)

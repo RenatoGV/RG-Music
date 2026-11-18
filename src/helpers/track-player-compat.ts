@@ -19,6 +19,12 @@ export type Track = {
   playlist?: string[]
 }
 
+type SetupPlayerOptions = {
+  maxCacheSize?: number
+  contentType?: 'music' | 'speech'
+  audioMixing?: 'exclusive' | 'mix'
+}
+
 export enum Event {
   PlaybackError = 'playback-error',
   PlaybackState = 'playback-state',
@@ -99,8 +105,10 @@ const addEventListener = (event: Event, listener: LegacyListener) => {
 }
 
 const TrackPlayer = {
-  setupPlayer: (options?: { maxCacheSize?: number }) => TrackPlayerV5.setupPlayer({
+  setupPlayer: (options?: SetupPlayerOptions) => TrackPlayerV5.setupPlayer({
     cache: options?.maxCacheSize ? { maxSizeBytes: options.maxCacheSize * 1024 * 1024 } : undefined,
+    contentType: options?.contentType,
+    audioMixing: options?.audioMixing,
   }),
   updateOptions: (options: { capabilities?: Capability[] }) => TrackPlayerV5.setCommands({
     capabilities: (options.capabilities ?? []).map((capability) => {
