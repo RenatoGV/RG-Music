@@ -1,4 +1,4 @@
-import React, { ComponentRef, Dispatch, PropsWithChildren, RefObject, SetStateAction, useCallback, useContext, useRef } from "react"
+import React, { ComponentRef, Dispatch, PropsWithChildren, RefObject, SetStateAction, useCallback, useContext, useEffect, useRef } from "react"
 import { BlurTargetView } from "expo-blur"
 import { useFocusEffect } from "expo-router"
 import { StyleProp, View, ViewStyle } from "react-native"
@@ -21,11 +21,17 @@ export const LiquidGlassBlurTarget = ({ children, style }: LiquidGlassBlurTarget
   useFocusEffect(useCallback(() => {
     if (!setSharedTarget) return
     setSharedTarget(targetRef)
-
-    return () => {
-      setSharedTarget((current) => current === targetRef ? null : current)
-    }
   }, [setSharedTarget]))
+
+  useEffect(() => () => {
+    if (!setSharedTarget) return
+    // Keep the last focused tab as the blur target while a transparent player
+    // modal is animating over it. Clear it only when this target unmounts.
+    setSharedTarget((current) => {
+      if (current === targetRef) return null
+      return current
+    })
+  }, [setSharedTarget])
 
   return <BlurTargetView ref={targetRef} style={style}>{children}</BlurTargetView>
 }
