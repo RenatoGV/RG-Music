@@ -2,7 +2,7 @@ import { useLogTrackPlayerState } from '@/hooks/useLogTrackerPlayerState';
 import { useSetupTrackPlayer } from '@/hooks/useSetupTrackPlayer';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, TransitionPresets } from 'expo-router/js-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '@/constants/tokens';
@@ -16,7 +16,6 @@ import { useLyricStore } from '@/store/lyrics';
 import { restorePlaybackSession } from '@/services/playbackSessionService';
 import { loadPersistedAppData } from '@/services/appDataService';
 import { usePersistPlaybackPosition } from '@/hooks/usePersistPlaybackPosition';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform } from 'react-native';
 
 const CustomStack = Stack
@@ -90,7 +89,7 @@ const App = () => {
 	}, [showApp])
 
 	useSetupTrackPlayer({
-		onLoad: handleTrackPlayerLoaded
+		onLoad: handleTrackPlayerLoaded,
 	})
 	
 	useLogTrackPlayerState()
