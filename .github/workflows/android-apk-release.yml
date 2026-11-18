@@ -30,6 +30,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Read app version
+        id: app
+        run: |
+          APP_NAME=$(node -p "require('./app.json').expo.name")
+          ARTIFACT_NAME=$(node -p "require('./app.json').expo.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')")
+          VERSION=$(node -p "require('./app.json').expo.version")
+          {
+            echo "display_name=$APP_NAME"
+            echo "name=$ARTIFACT_NAME"
+            echo "version=$VERSION"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build APK on EAS
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -38,25 +50,27 @@ jobs:
       - name: Download completed EAS build
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          APK_VERSION: ${{ steps.app.outputs.version }}
         run: |
           BUILD_ID=$(node -e "const result = require('./eas-build.json'); const builds = Array.isArray(result) ? result : [result]; const build = builds.find((item) => item.platform?.toUpperCase() === 'ANDROID'); if (!build?.id) process.exit(1); process.stdout.write(build.id)")
           npx --yes eas-cli@latest build:download --build-id "$BUILD_ID" --non-interactive --json > eas-download.json
-          node -e "const fs = require('node:fs'); const result = require('./eas-download.json'); if (!result.path) throw new Error('EAS did not return an APK path'); fs.mkdirSync('dist', { recursive: true }); fs.copyFileSync(result.path, 'dist/RG-Music-' + process.env.GITHUB_REF_NAME + '.apk')"
+          node -e "const fs = require('node:fs'); const result = require('./eas-download.json'); if (!result.path) throw new Error('EAS did not return an APK path'); fs.mkdirSync('dist', { recursive: true }); fs.copyFileSync(result.path, 'dist/rg-music-' + process.env.APK_VERSION + '.apk')"
 
       - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rg-music-${{ github.ref_name }}-apk
-          path: dist/*.apk
+          name: ${{ steps.app.outputs.name }}-${{ steps.app.outputs.version }}-apk
+          path: dist/${{ steps.app.outputs.name }}-${{ steps.app.outputs.version }}.apk
           if-no-files-found: error
           retention-days: 30
 
       - name: Publish APK to GitHub Releases
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          name: RG Music ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.app.outputs.display_name }} ${{ steps.app.outputs.version }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v{0}', steps.app.outputs.version) }}
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
-          files: dist/*.apk
+          files: dist/${{ steps.app.outputs.name }}-${{ steps.app.outputs.version }}.apk
           fail_on_unmatched_files: true
