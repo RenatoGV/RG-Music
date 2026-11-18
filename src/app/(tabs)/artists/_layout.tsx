@@ -2,11 +2,11 @@ import { StackScreenWithSearchBar } from '@/constants/layout'
 import { colors } from '@/constants/tokens'
 import { defaultStyles } from '@/styles'
 import { Stack } from 'expo-router'
-import { View } from 'react-native'
+import { LiquidGlassBlurTarget } from '@/components/glass/LiquidGlassBlurTarget'
 
 const ArtistsScreenLayout = () => {
   return (
-    <View style={defaultStyles.container}>
+    <LiquidGlassBlurTarget style={defaultStyles.container}>
         <Stack>
             <Stack.Screen name='index' options={{
                 ...StackScreenWithSearchBar,
@@ -25,7 +25,7 @@ const ArtistsScreenLayout = () => {
               headerTintColor: colors.primary
             }} />
         </Stack>
-    </View>
+    </LiquidGlassBlurTarget>
   )
 }
 

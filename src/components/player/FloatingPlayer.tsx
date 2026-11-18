@@ -2,18 +2,21 @@ import { unknownTrackImageUri } from "@/constants/images"
 import { defaultStyles } from "@/styles"
 import React, { useEffect, useState } from "react"
 import { Animated, StyleSheet, View, ViewProps } from "react-native"
+import type { BlurViewProps } from "expo-blur"
 import FastImage from "react-native-fast-image"
 import TrackPlayer, { useActiveTrack } from "@/helpers/track-player-compat"
 import { PlayPauseButton, SkipToNextButton } from "@/components/player/PlayerControls"
 import { useLastActiveTrack } from "@/hooks/useLastActiveTrack"
-import { BlurView } from "expo-blur"
+import { LiquidGlassSurface } from "@/components/glass/LiquidGlassSurface"
 import { MovingText } from "../other/MovingText"
 import { useRouter } from "expo-router"
 import { useQueue } from "@/store/queue"
 import { saveData } from "@/helpers/storage"
 import { useFloatingPlayerSwipe } from "@/hooks/useFloatingPlayerSwipe"
 
-export const FloatingPlayer = ({ style } : ViewProps) => {
+type FloatingPlayerProps = ViewProps & Pick<BlurViewProps, "blurTarget">
+
+export const FloatingPlayer = ({ style, blurTarget }: FloatingPlayerProps) => {
 
     const router = useRouter()
 
@@ -55,18 +58,11 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
 
     return (
         <Animated.View style={[style, {transform: [{ translateX }]}]} {...panHandlers}>
-            <BlurView
-            intensity={100}
-            tint="dark"
-            style={{
-                overflow: 'hidden',
-                flexDirection: 'row',
-                alignItems: 'center',
-                padding: 8,
-                borderRadius: 12,
-                paddingVertical: 10,
-                backgroundColor: 'rgba(0, 0, 0, 0.7)'
-            }}
+            <LiquidGlassSurface
+                intensity={30}
+                borderRadius={8}
+                blurTarget={blurTarget}
+                style={styles.glassContent}
             >
                 <FastImage
                     source={{
@@ -86,12 +82,18 @@ export const FloatingPlayer = ({ style } : ViewProps) => {
                     <PlayPauseButton iconSize={24} />
                     <SkipToNextButton iconSize={22} />
                 </View>
-            </BlurView>
+            </LiquidGlassSurface>
         </Animated.View>
     )
 }
 
 const styles = StyleSheet.create({
+    glassContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 10
+    },
     trackArtworkImage: {
         width: 40,
         height: 40,
