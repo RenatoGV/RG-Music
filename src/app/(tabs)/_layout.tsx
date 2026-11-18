@@ -58,7 +58,7 @@ const TabsNavigation = () => {
         tabBarBackground: () => (
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <LiquidGlassSurface
-              intensity={36}
+              intensity={15}
               borderRadius={40}
               blurTarget={blurTargetRef ?? undefined}
               style={{

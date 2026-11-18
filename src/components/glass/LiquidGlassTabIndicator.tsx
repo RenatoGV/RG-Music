@@ -25,7 +25,7 @@ export const LiquidGlassTabIndicator = ({ active, index, children }: LiquidGlass
       {active && (
         <Animated.View style={[styles.activeSurface, animatedStyle]}>
           <LinearGradient
-            colors={["#168d4d", "#16d45d"]}
+            colors={["#1F8449", "#20D860"]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             style={StyleSheet.absoluteFill}

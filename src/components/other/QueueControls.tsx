@@ -1,11 +1,13 @@
 import { colors } from "@/constants/tokens"
 import { defaultStyles } from "@/styles"
-import { StyleSheet, Text, TouchableOpacity, View, ViewProps } from "react-native"
+import { StyleSheet, Text, View, ViewProps } from "react-native"
 import TrackPlayer, { getPlaybackState } from "@/helpers/track-player-compat"
 import { Track } from "@/helpers/types"
 import { Ionicons } from "@expo/vector-icons"
 import { useQueue } from "@/store/queue"
 import { shuffleTracks } from "@/helpers/shuffleTracks"
+import { GradientButton } from "@/components/common/GradientButton"
+import { LiquidGlassButton } from "@/components/common/LiquidGlassButton"
 
 type QueueControlsProps = {
     queueId: string
@@ -93,20 +95,20 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
         <View style={[{flexDirection: 'row', columnGap: 16}, style]} {...viewProps}>
             {/* Play button */}
             <View style={{flex: 1}}>
-                <TouchableOpacity onPress={handlePlay} activeOpacity={0.8} style={styles.button}>
-                    <Ionicons name="play" size={22} color={colors.primary} />
+                <GradientButton onPress={handlePlay} style={styles.button}>
+                    <Ionicons name="play" size={22} color={colors.text} />
 
                     <Text style={styles.buttonText}>Reproducir</Text>
-                </TouchableOpacity>
+                </GradientButton>
             </View>
 
             {/* Shuffle button */}
             <View style={{flex: 1}}>
-                <TouchableOpacity onPress={handleToggleShuffle} accessibilityRole="switch" accessibilityState={{ checked: shuffleEnabled }} activeOpacity={0.8} style={ styles.button}>
-                    <Ionicons name="shuffle-sharp" size={22} color={shuffleEnabled ? colors.primary : colors.inactive} />
+                <LiquidGlassButton onPress={handleToggleShuffle} accessibilityRole="switch" accessibilityState={{ checked: shuffleEnabled }} style={styles.button}>
+                    <Ionicons name="shuffle-sharp" size={22} color={shuffleEnabled ? colors.primary : colors.textMuted} />
 
-                    <Text style={shuffleEnabled ? styles.buttonText : styles.buttonTextInactive}>Aleatorio</Text>
-                </TouchableOpacity>
+                    <Text style={shuffleEnabled ? styles.buttonTextActive : styles.buttonTextInactive}>Aleatorio</Text>
+                </LiquidGlassButton>
             </View>
         </View>
     )
@@ -115,14 +117,20 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
 const styles = StyleSheet.create({
     button: {
         padding: 12,
-        backgroundColor: 'rgba(47,47,47,0.5)',
-        borderRadius: 8,
+        borderRadius: 50,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         columnGap: 8
     },
     buttonText: {
+        ...defaultStyles.text,
+        color: colors.text,
+        fontWeight: '600',
+        fontSize: 18,
+        textAlign: 'center'
+    },
+    buttonTextActive: {
         ...defaultStyles.text,
         color: colors.primary,
         fontWeight: '600',
@@ -131,7 +139,7 @@ const styles = StyleSheet.create({
     },
     buttonTextInactive: {
         ...defaultStyles.text,
-        color: colors.inactive,
+        color: colors.textMuted,
         fontWeight: '600',
         fontSize: 18,
         textAlign: 'center'

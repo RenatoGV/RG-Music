@@ -9,6 +9,7 @@ import { StorageAccessFramework } from 'expo-file-system/legacy';
 import { createTempSessionDir, deleteTempSessionDir, getTemporaryFile, getTemporaryFileName } from "./temporary-file"
 import * as FileSystem from "expo-file-system/legacy"
 import { lyricsService } from "@/services/lyricsService"
+import { getAudioDuration } from "@/helpers/audioDuration"
 
 const audioExtensions = ['.mp3', '.wav', '.aac', '.m4a']
 const MAX_METADATA_SIZE = 20 * 1024 * 1024 // 20 MB
@@ -66,6 +67,7 @@ export const importTracks = async (uri: string | null, mode: ImportMode = 'refre
           let title = removeExtension(fileName)
           let artist = 'Desconocido'
           let artwork = unknownTrackImageUri
+          let duration = await getAudioDuration(audio)
           let tempPath: string | null = null
 
           if (info.exists && 'size' in info && typeof info.size === 'number' && info.size <= MAX_METADATA_SIZE) {
@@ -104,7 +106,9 @@ export const importTracks = async (uri: string | null, mode: ImportMode = 'refre
             title,
             url: audio,
             artist,
-            artwork
+            artwork,
+            duration,
+            addedAt: Date.now(),
           })
         } catch (error) {
           console.error('[IMPORT] Error procesando archivo; se agregará con valores de fallback', {
@@ -118,6 +122,8 @@ export const importTracks = async (uri: string | null, mode: ImportMode = 'refre
             url: audio,
             artist: 'Desconocido',
             artwork: unknownTrackImageUri,
+            duration: await getAudioDuration(audio),
+            addedAt: Date.now(),
           })
         } finally {
           currentProgress += 1 / totalAssets

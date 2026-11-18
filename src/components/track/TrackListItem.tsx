@@ -1,7 +1,7 @@
 import { unknownTrackImageUri } from '@/constants/images';
 import { colors, fontSize } from '@/constants/tokens';
 import { defaultStyles } from '@/styles';
-import { StyleSheet, Text, TouchableHighlight, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import TrackPlayer, { useActiveTrack, useIsPlaying } from '@/helpers/track-player-compat';
 import { Track, Playlist } from '@/helpers/types';
@@ -75,7 +75,7 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
     }
 
     return (
-        <TouchableHighlight onPress={() => handleTrackSelect(track)}>
+        <TouchableOpacity onPress={() => handleTrackSelect(track)}>
             <View style={styles.trackItemContainer}>
                 <View>
                     <FastImage
@@ -151,7 +151,7 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
                     </StopPropagation>
                 </View>
             </View>
-        </TouchableHighlight>
+        </TouchableOpacity>
     )
 }
 

@@ -83,14 +83,14 @@ const PlayerScreen = () => {
       <Animated.View style={[styles.screenDragContainer, { transform: [{ translateY: dismissTranslation }] }]}>
          <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
             {
-                  modalVisible && (
-                     <EditLyricsIdModal
-                        key={activeTrack.url}
-                        initialValue={activeTrack.lyric_id ?? ''}
-                        onClose={() => setModalVisible(false)}
-                        onSave={handleSaveLyricId}
-                     />
-                  )
+               modalVisible && (
+                  <EditLyricsIdModal
+                     key={activeTrack.url}
+                     initialValue={activeTrack.lyric_id ?? ''}
+                     onClose={() => setModalVisible(false)}
+                     onSave={handleSaveLyricId}
+                  />
+               )
             }
             <View style={styles.overlayContainer}>
                   <DismissPlayerSymbol enabled={Platform.OS === 'android' && showLyrics} translateY={dismissTranslation} />
