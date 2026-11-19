@@ -1,5 +1,7 @@
-import React, { useRef, useEffect, useState, ReactNode } from 'react'
+import React, { useRef, useEffect, useState, ReactNode, useContext } from 'react'
 import { View, Modal, StyleSheet, TouchableWithoutFeedback, TouchableOpacity } from 'react-native'
+import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
+import { LiquidGlassBlurTargetRefContext } from '@/components/glass/LiquidGlassBlurTarget'
 
 interface DropdownMenuProps {
   visible: boolean
@@ -19,6 +21,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   dropdownWidth = 150,
 }) => {
   const triggerRef = useRef<React.ComponentRef<typeof View> | null>(null)
+  const blurTarget = useContext(LiquidGlassBlurTargetRefContext)
   const [position, setPosition] = useState({x: 0, y: 0, width: 0})
 
   useEffect(() => {
@@ -47,17 +50,20 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
           >
           <TouchableWithoutFeedback onPress={handleClose}>
             <View style={styles.modalOverlay}>
-              <View
+              <LiquidGlassSurface
+                intensity={15}
+                borderRadius={7}
+                blurTarget={blurTarget ?? undefined}
                 style={[
                   styles.menu,
                   {
-                    top: position.y - 30,
-                    left: position.x - (dropdownWidth + 10),
+                    top: position.y - 20,
+                    left: position.x - (dropdownWidth + 5),
                     width: dropdownWidth,
                   },
                 ]}>
                 {children}
-              </View>
+              </LiquidGlassSurface>
             </View>
           </TouchableWithoutFeedback>
         </Modal>
@@ -66,9 +72,17 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   )
 }
 
-export const MenuOption = ({ onSelect, children }: { onSelect: () => void; children: ReactNode; }) => {
+export const MenuOption = ({
+  onSelect,
+  children,
+  separatorBefore = false,
+}: {
+  onSelect: () => void
+  children: ReactNode
+  separatorBefore?: boolean
+}) => {
     return (
-        <TouchableOpacity onPress={onSelect} style={styles.menuOption}>
+        <TouchableOpacity onPress={onSelect} style={[styles.menuOption, separatorBefore && styles.menuOptionWithSeparator]}>
             {children}
         </TouchableOpacity>
     )
@@ -83,19 +97,27 @@ const styles = StyleSheet.create({
     },
     menu: {
       position: 'absolute',
-      width: 80,
-      backgroundColor: '#151515',
-      borderRadius: 5,
-      padding: 10,
+      paddingVertical: 2,
+      paddingHorizontal: 4,
+      backgroundColor: 'rgba(14,18,21,0.08)',
       shadowColor: '#000',
-      shadowOffset: {width: 0, height: 2},
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 4,
-      gap: 10
+      shadowOffset: {width: 0, height: 8},
+      shadowOpacity: 0.32,
+      shadowRadius: 18,
+      elevation: 14,
     },
     menuOption: {
-      padding: 5,
-      backgroundColor: '#151515',
+      minHeight: 46,
+      paddingHorizontal: 10,
+      paddingVertical: 9,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    menuOptionWithSeparator: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: 'rgba(255,255,255,0.55)',
+      marginTop: 5,
+      paddingTop: 13,
     }
   });
