@@ -7,7 +7,7 @@ import { FloatingPlayer } from "@/components/player/FloatingPlayer"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LiquidGlassSurface } from "@/components/glass/LiquidGlassSurface"
 import { LiquidGlassTabAnimationContext, LiquidGlassTabIndicator } from "@/components/glass/LiquidGlassTabIndicator"
-import { LiquidGlassBlurTargetContext } from "@/components/glass/LiquidGlassBlurTarget"
+import { LiquidGlassBlurTargetContext, LiquidGlassBlurTargetRefContext } from "@/components/glass/LiquidGlassBlurTarget"
 import type { ComponentRef, RefObject } from "react"
 import { useSharedValue, withSpring } from "react-native-reanimated"
 
@@ -33,6 +33,7 @@ const TabsNavigation = () => {
 
   return (
     <LiquidGlassBlurTargetContext.Provider value={setBlurTargetRef}>
+      <LiquidGlassBlurTargetRefContext.Provider value={blurTargetRef}>
       <LiquidGlassTabAnimationContext.Provider value={tabAnimationProgress}>
       <Tabs screenOptions={{
         tabBarActiveTintColor: colors.primary,
@@ -97,6 +98,7 @@ const TabsNavigation = () => {
         bottom: tabBarContentHeight + insets.bottom + 8 + floatingPlayerGap
       }} blurTarget={blurTargetRef ?? undefined} />
       </LiquidGlassTabAnimationContext.Provider>
+      </LiquidGlassBlurTargetRefContext.Provider>
     </LiquidGlassBlurTargetContext.Provider>
   )
 }

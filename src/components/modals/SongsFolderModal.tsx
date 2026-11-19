@@ -1,6 +1,11 @@
 import { colors } from "@/constants/tokens"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { LiquidGlassSurface } from "@/components/glass/LiquidGlassSurface"
+import { LiquidGlassBlurTargetRefContext } from "@/components/glass/LiquidGlassBlurTarget"
+import { useContext } from "react"
+import { GradientButton } from "../common/GradientButton"
+import { LiquidGlassButton } from "../common/LiquidGlassButton"
 
 interface SongsFolderModalProps {
    visible: boolean
@@ -10,6 +15,8 @@ interface SongsFolderModalProps {
 }
 
 export const SongsFolderModal = ({visible, onClose, onRefresh, onSelectFolder}: Readonly<SongsFolderModalProps>) => {
+   const blurTarget = useContext(LiquidGlassBlurTargetRefContext)
+
    return (
       <Modal
          animationType="slide"
@@ -18,25 +25,20 @@ export const SongsFolderModal = ({visible, onClose, onRefresh, onSelectFolder}: 
          onRequestClose={onClose}
       >
          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
+            <LiquidGlassSurface intensity={15} borderRadius={20} blurTarget={blurTarget ?? undefined} style={styles.modalSurface}>
                <TouchableOpacity onPress={onClose} style={styles.buttonClose}>
-                  <FontAwesome6 name="circle-xmark" size={22} color={colors.primary} />
+                  <FontAwesome6 name="xmark" size={20} color={colors.text} />
                </TouchableOpacity>
                <View style={{ gap: 15 }}>
-                  <TouchableOpacity
-                     style={[styles.modalButton, styles.buttonSave]}
-                     onPress={onRefresh}
-                  >
+                  <GradientButton style={styles.modalButton} onPress={onRefresh}>
                      <Text style={styles.textStyle}>Actualizar lista de canciones</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                     style={[styles.modalButton, styles.buttonSave]}
-                     onPress={onSelectFolder}
-                  >
+                  </GradientButton>
+
+                  <LiquidGlassButton style={styles.modalButton} onPress={onSelectFolder}>
                      <Text style={styles.textStyle}>Seleccionar carpeta de canciones</Text>
-                  </TouchableOpacity>
+                  </LiquidGlassButton>
                </View>
-            </View>
+            </LiquidGlassSurface>
          </View>
       </Modal>
    )
@@ -46,14 +48,14 @@ const styles = StyleSheet.create({
    centeredView: {
       flex: 1,
       justifyContent: 'center',
-      alignItems: 'center',
+      alignItems: 'center'
    },
-   modalView: {
-      width: '70%',
+   modalSurface: {
+      width: '85%',
       margin: 20,
-      backgroundColor: '#1c1c1c',
-      borderRadius: 20,
-      padding: 35,
+      paddingTop: 35,
+      paddingBottom: 20,
+      paddingHorizontal: 35,
       alignItems: 'center',
       shadowColor: '#000',
       shadowOffset: {
@@ -62,10 +64,10 @@ const styles = StyleSheet.create({
       },
       shadowOpacity: 0.25,
       shadowRadius: 4,
-      elevation: 5,
+      elevation: 5
    },
    modalButton: {
-      borderRadius: 10,
+      borderRadius: 20,
       padding: 10,
       elevation: 2,
       paddingHorizontal: 20,
@@ -74,9 +76,6 @@ const styles = StyleSheet.create({
       position: 'absolute',
       right: 12,
       top: 12,
-   },
-   buttonSave: {
-      backgroundColor: colors.primary,
    },
    textStyle: {
       color: 'white',

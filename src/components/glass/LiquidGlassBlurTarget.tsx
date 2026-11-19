@@ -3,11 +3,13 @@ import { BlurTargetView } from "expo-blur"
 import { useFocusEffect } from "expo-router"
 import { StyleProp, View, ViewStyle } from "react-native"
 
-type NativeViewRef = ComponentRef<typeof View>
+export type NativeViewRef = ComponentRef<typeof View>
+export type LiquidGlassBlurTargetRef = RefObject<NativeViewRef | null> | null
 
-type SetBlurTarget = Dispatch<SetStateAction<RefObject<NativeViewRef | null> | null>>
+type SetBlurTarget = Dispatch<SetStateAction<LiquidGlassBlurTargetRef>>
 
 export const LiquidGlassBlurTargetContext = React.createContext<SetBlurTarget | null>(null)
+export const LiquidGlassBlurTargetRefContext = React.createContext<LiquidGlassBlurTargetRef>(null)
 
 type LiquidGlassBlurTargetProps = PropsWithChildren<{
   style?: StyleProp<ViewStyle>
