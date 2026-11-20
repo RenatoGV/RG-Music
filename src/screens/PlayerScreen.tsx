@@ -19,6 +19,7 @@ import { getArtistNames } from '@/helpers/groupTracksByArtist'
 import EditLyricsIdModal from '@/components/modals/EditLyricIdModal'
 import PlayerArtworkView from '@/screens/PlayerArtworkView'
 import type { ComponentRef } from 'react'
+import { darkenHex, lightenHex } from '@/helpers/color'
 
 type NativeViewRef = ComponentRef<typeof View>
 
@@ -86,7 +87,7 @@ const PlayerScreen = () => {
 
    return (
       <Animated.View style={[styles.screenDragContainer, { transform: [{ translateY: dismissTranslation }] }]}>
-         <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
+         <LinearGradient style={{flex: 1}} colors={imageColors ? [lightenHex(imageColors.average, 0.3), darkenHex(imageColors.average, 0.65)] : [colors.primary, colors.secondary, colors.background]} start={{ x: 0.3, y: 0.2 }} end={{ x: 1, y: 1 }}>
             <BlurTargetView ref={playerBlurTargetRef} style={styles.playerBlurTarget}>
                <View style={styles.overlayContainer}>
                   <DismissPlayerSymbol enabled={Platform.OS === 'android' && showLyrics} translateY={dismissTranslation} />
