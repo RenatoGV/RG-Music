@@ -184,29 +184,24 @@ const styles = StyleSheet.create({
 		height: '100%',
 	},
 	halfArtworkTile: {
-		width: '49.5%',
+		width: '50%',
 		height: '100%',
-		marginRight: '1%',
 	},
 	quarterArtworkTile: {
-		width: '49.5%',
-		height: '49.5%',
-		marginRight: '1%',
-		marginBottom: '1%',
+		width: '50%',
+		height: '50%',
 	},
 	threeArtworkMain: {
-		width: '49.5%',
+		width: '50%',
 		height: '100%',
-		marginRight: '1%',
 	},
 	threeArtworkSide: {
 		flex: 1,
 		height: '100%',
-		justifyContent: 'space-between',
 	},
 	threeArtworkTile: {
 		width: '100%',
-		height: '49.5%',
+		height: '50%',
 	},
 })
 
