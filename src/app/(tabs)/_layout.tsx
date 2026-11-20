@@ -6,13 +6,18 @@ import React, { useEffect, useState } from "react"
 import { FloatingPlayer } from "@/components/player/FloatingPlayer"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LiquidGlassSurface } from "@/components/glass/LiquidGlassSurface"
-import { LiquidGlassTabAnimationContext, LiquidGlassTabIndicator } from "@/components/glass/LiquidGlassTabIndicator"
+import {
+  getLiquidGlassTabBarHorizontalInsets,
+  LiquidGlassTabAnimationContext,
+  LiquidGlassTabIndicator
+} from "@/components/glass/LiquidGlassTabIndicator"
 import { LiquidGlassBlurTargetContext, LiquidGlassBlurTargetRefContext } from "@/components/glass/LiquidGlassBlurTarget"
 import type { ComponentRef, RefObject } from "react"
 import { useSharedValue, withSpring } from "react-native-reanimated"
 
 const TabsNavigation = () => {
   const insets = useSafeAreaInsets()
+  const tabBarHorizontalInsets = getLiquidGlassTabBarHorizontalInsets(insets.left, insets.right)
   const pathname = usePathname()
   const tabBarContentHeight = 56
   const floatingPlayerGap = 10
@@ -42,9 +47,13 @@ const TabsNavigation = () => {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
+          left: 0,
+          right: 0,
           bottom: 0,
           height: tabBarHeight,
           paddingTop: 0,
+          paddingLeft: tabBarHorizontalInsets.left,
+          paddingRight: tabBarHorizontalInsets.right,
           paddingBottom: insets.bottom + 8,
           backgroundColor: 'transparent',
           borderTopWidth: 0,
@@ -53,9 +62,16 @@ const TabsNavigation = () => {
         tabBarItemStyle: {
           height: tabBarContentHeight,
           justifyContent: 'center',
-          padding: 0
+          padding: 0,
+          overflow: 'visible'
         },
-        tabBarIconStyle: { transform: [{ translateY: 13 }] },
+        tabBarIconStyle: {
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'visible',
+          transform: [{ translateY: 13 }]
+        },
         tabBarBackground: () => (
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <LiquidGlassSurface
@@ -64,8 +80,8 @@ const TabsNavigation = () => {
               blurTarget={blurTargetRef ?? undefined}
               style={{
                 position: 'absolute',
-                left: 16,
-                right: 16,
+                left: tabBarHorizontalInsets.left,
+                right: tabBarHorizontalInsets.right,
                 bottom: insets.bottom + 8,
                 height: tabBarContentHeight
               }}

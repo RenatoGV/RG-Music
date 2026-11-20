@@ -3,8 +3,17 @@ import { LinearGradient } from "expo-linear-gradient"
 import { StyleSheet, View, useWindowDimensions } from "react-native"
 import Animated, { useAnimatedStyle } from "react-native-reanimated"
 import type { SharedValue } from "react-native-reanimated"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 export const LiquidGlassTabAnimationContext = createContext<SharedValue<number> | null>(null)
+export const LIQUID_GLASS_TAB_BAR_MIN_HORIZONTAL_INSET = 12
+
+export const getLiquidGlassTabBarHorizontalInsets = (leftSafeInset = 0, rightSafeInset = 0) => ({
+  left: Math.max(0, leftSafeInset) + LIQUID_GLASS_TAB_BAR_MIN_HORIZONTAL_INSET,
+  right: Math.max(0, rightSafeInset) + LIQUID_GLASS_TAB_BAR_MIN_HORIZONTAL_INSET,
+})
+
+const TAB_COUNT = 4
 
 type LiquidGlassTabIndicatorProps = PropsWithChildren<{
   active: boolean
@@ -15,10 +24,19 @@ type LiquidGlassTabIndicatorProps = PropsWithChildren<{
 export const LiquidGlassTabIndicator = ({ active, index, children }: LiquidGlassTabIndicatorProps) => {
   const progress = useContext(LiquidGlassTabAnimationContext)
   const { width } = useWindowDimensions()
+  const safeAreaInsets = useSafeAreaInsets()
+  const { left, right } = getLiquidGlassTabBarHorizontalInsets(safeAreaInsets.left, safeAreaInsets.right)
+  const tabBarContentWidth = width - left - right
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: ((progress?.value ?? index) - index) * width / 4 }]
-  }), [index, width])
+  const animatedStyle = useAnimatedStyle(() => {
+    const activeIndex = progress?.value ?? index
+
+    return {
+      transform: [{
+        translateX: (activeIndex - index) * tabBarContentWidth / TAB_COUNT
+      }]
+    }
+  }, [index, tabBarContentWidth])
 
   return (
     <View style={styles.container}>
@@ -42,7 +60,8 @@ const styles = StyleSheet.create({
     width: 66,
     height: 48,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    overflow: "visible"
   },
   activeSurface: {
     position: "absolute",
