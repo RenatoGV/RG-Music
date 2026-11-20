@@ -108,7 +108,6 @@ export const importTracks = async (uri: string | null, mode: ImportMode = 'refre
             artist,
             artwork,
             duration,
-            addedAt: Date.now(),
           })
         } catch (error) {
           console.error('[IMPORT] Error procesando archivo; se agregará con valores de fallback', {
@@ -123,7 +122,6 @@ export const importTracks = async (uri: string | null, mode: ImportMode = 'refre
             artist: 'Desconocido',
             artwork: unknownTrackImageUri,
             duration: await getAudioDuration(audio),
-            addedAt: Date.now(),
           })
         } finally {
           currentProgress += 1 / totalAssets

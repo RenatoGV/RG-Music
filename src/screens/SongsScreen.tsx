@@ -8,7 +8,6 @@ import { generateTrackListId } from '@/helpers/miscellaneous'
 import { Ionicons } from '@expo/vector-icons'
 import { TracksList } from '@/components/track/TracksList'
 import { QueueControls } from '@/components/other/QueueControls'
-import { TrackListSortButton, type TrackSortMode } from '@/components/other/TrackListSortButton'
 import { Bar } from 'react-native-progress'
 import { LinearGradient } from 'expo-linear-gradient'
 import { SongsFolderModal } from '@/components/modals/SongsFolderModal'
@@ -25,7 +24,6 @@ import notFound from '@/assets/lottie/not-found.json'
 const SongsScreen = () => {
    const [modalFolderVisible, setModalFolderVisible] = useState(false)
 	const [search, setSearch] = useState('')
-	const [sortMode, setSortMode] = useState<TrackSortMode>('alphabetical')
 	const insets = useSafeAreaInsets()
 	const { isLoading, progressLoading, setTracks } = useLibraryStore()
 
@@ -56,12 +54,8 @@ const SongsScreen = () => {
 	const sortedTracks = useMemo(() => {
       return [...(tracks ?? [])].sort((a, b) => a.title.localeCompare(b.title))
    }, [tracks])
-	const orderedTracks = useMemo(() => sortMode === 'alphabetical'
-		? sortedTracks
-		: [...sortedTracks].sort((a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0)), [sortedTracks, sortMode])
-
-   const filteredTracks = filterTrackByTitle(orderedTracks, search)
-	const songsQueueId = generateTrackListId(`songs-${sortMode}`, search)
+	const filteredTracks = filterTrackByTitle(sortedTracks, search)
+	const songsQueueId = generateTrackListId('songs', search)
 	const totalDuration = sortedTracks.reduce(
 		(total, track) => total + (typeof track.duration === 'number' ? track.duration : 0),
 		0,
@@ -73,12 +67,10 @@ const SongsScreen = () => {
 		: songCountLabel
 
 	useEffect(() => {
-		if (!tracks?.some((track) => track.duration === undefined || track.addedAt === undefined)) return
+		if (!tracks?.some((track) => track.duration === undefined)) return
 
 		let isActive = true
 		const tracksWithoutDuration = tracks.filter((track) => track.duration === undefined)
-		const migrationDate = Date.now()
-
 		const loadDurations = async () => {
 			const durations = new Map<string, number | null>()
 			let nextIndex = 0
@@ -99,7 +91,6 @@ const SongsScreen = () => {
 				...(track.duration === undefined && durations.has(track.url)
 					? { duration: durations.get(track.url) ?? null }
 					: {}),
-				...(track.addedAt === undefined ? { addedAt: migrationDate } : {}),
 			}))
 
 			setTracks(updatedTracks)
@@ -158,22 +149,16 @@ const SongsScreen = () => {
 						topInset={insets.top}
 					/>
 					<View style={styles.content}>
-						{orderedTracks.length > 0 && (
+						{sortedTracks.length > 0 && (
 							<QueueControls
 								queueId={songsQueueId}
-								tracks={orderedTracks}
+								tracks={sortedTracks}
 								style={styles.queueControls}
-							/>
-						)}
-						{orderedTracks.length > 0 && (
-							<TrackListSortButton
-								mode={sortMode}
-								onToggle={() => setSortMode((current) => current === 'alphabetical' ? 'addedAt' : 'alphabetical')}
 							/>
 						)}
 						<TracksList
 							id={songsQueueId}
-							tracks={orderedTracks}
+							tracks={sortedTracks}
 							filteredTracks={filteredTracks}
 							hideQueueControls
 							style={styles.trackList}

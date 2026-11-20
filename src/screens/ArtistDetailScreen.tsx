@@ -1,7 +1,6 @@
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { ArtistArtwork } from '@/components/artist/ArtistArtwork'
 import { QueueControls } from '@/components/other/QueueControls'
-import { TrackListSortButton, type TrackSortMode } from '@/components/other/TrackListSortButton'
 import { TracksList } from '@/components/track/TracksList'
 import { colors, screenPadding } from '@/constants/tokens'
 import { filterTrackByTitle } from '@/helpers/filter'
@@ -20,17 +19,13 @@ const ArtistDetailScreen = () => {
 	const { width: screenWidth } = useWindowDimensions()
 	const [search, setSearch] = useState('')
 	const [searchOpen, setSearchOpen] = useState(false)
-	const [sortMode, setSortMode] = useState<TrackSortMode>('alphabetical')
 
 	const artist = artists?.find((item) => item.name.toLowerCase() === artistName?.toLowerCase())
 
 	const sortedTracks = useMemo(() => {
 		if (!artist) return []
-		const sorted = [...artist.tracks].sort((a, b) => a.title.localeCompare(b.title))
-		return sortMode === 'alphabetical'
-			? sorted
-			: sorted.sort((a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0))
-	}, [artist, sortMode])
+		return [...artist.tracks].sort((a, b) => a.title.localeCompare(b.title))
+	}, [artist])
 	const filteredTracks = useMemo(() => filterTrackByTitle(sortedTracks, search), [sortedTracks, search])
 	const queueId = `artist:${artist?.name ?? artistName ?? ''}`
 	const isSearching = searchOpen
@@ -88,12 +83,6 @@ const ArtistDetailScreen = () => {
 
 			<View style={styles.listHeading}>
 				<Text style={styles.songsHeading}>Canciones</Text>
-				<View style={styles.sortButtonWrap}>
-					<TrackListSortButton
-						mode={sortMode}
-						onToggle={() => setSortMode((current) => current === 'alphabetical' ? 'addedAt' : 'alphabetical')}
-					/>
-				</View>
 			</View>
 
 			<TracksList
@@ -182,7 +171,6 @@ const styles = StyleSheet.create({
 	},
 	sortButtonWrap: {
 		alignItems: 'flex-end',
-		height: 36,
 	},
 	trackList: {
 		flex: 1,

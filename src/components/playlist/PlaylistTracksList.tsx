@@ -19,7 +19,9 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
     const tracks = useTracks()
 
     const currentTracks = useMemo(
-        () => tracks?.filter((track) => playlist.tracksUri.includes(track.url)),
+        () => (tracks ?? [])
+            .filter((track) => playlist.tracksUri.includes(track.url))
+            .sort((a, b) => a.title.localeCompare(b.title)),
         [tracks, playlist.tracksUri]
     )
 
@@ -66,7 +68,7 @@ export const PlaylistTracksList = ({playlist} : {playlist: Playlist}) => {
                     )}
                 </View>
             }
-            tracks={currentTracks ?? []}
+            tracks={currentTracks}
             filteredTracks={filteredPlaylistTracks}
         />
     )

@@ -10,30 +10,22 @@ import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { screenPadding } from '@/constants/tokens'
 import { QueueControls } from '@/components/other/QueueControls'
-import { TrackListSortButton, TrackSortMode } from '@/components/other/TrackListSortButton'
 
 const FavoritesScreen = () => {
    const insets = useSafeAreaInsets()
    const [search, setSearch] = useState('')
-   const [sortMode, setSortMode] = useState<TrackSortMode>('alphabetical')
 	const songsQueueId = generateTrackListId('favorites', search)
 
    const tracks = useTracks()
 
-   const favoritesTracks = useMemo(() => {
-      const favorites = (tracks ?? []).filter((track) => track.rating === 1)
-      return favorites.sort((a, b) => a.title.localeCompare(b.title))
-   }, [tracks])
+	const sortedTracks = useMemo(
+		() => (tracks ?? [])
+			.filter((track) => track.rating === 1)
+			.sort((a, b) => a.title.localeCompare(b.title)),
+		[tracks]
+	)
 
-	const sortedTracks = useMemo(() => {
-      return [...(favoritesTracks ?? [])].sort((a, b) => a.title.localeCompare(b.title))
-   }, [favoritesTracks])
-
-	const orderedTracks = useMemo(() => sortMode === 'alphabetical'
-		? sortedTracks
-		: [...sortedTracks].sort((a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0)), [sortedTracks, sortMode])
-   
-   const filteredTracks = filterTrackByTitle(orderedTracks, search)
+   const filteredTracks = filterTrackByTitle(sortedTracks, search)
 
    return (
       <View style={defaultStyles.container}>
@@ -46,22 +38,16 @@ const FavoritesScreen = () => {
             topInset={insets.top}
          />
          <View style={styles.content}>
-            {orderedTracks.length > 0 && (
+			{sortedTracks.length > 0 && (
                <QueueControls
                   queueId={songsQueueId}
-                  tracks={orderedTracks}
+					tracks={sortedTracks}
                   style={styles.queueControls}
-               />
-            )}
-            {orderedTracks.length > 0 && (
-               <TrackListSortButton
-                  mode={sortMode}
-                  onToggle={() => setSortMode((current) => current === 'alphabetical' ? 'addedAt' : 'alphabetical')}
                />
             )}
             <TracksList
                id={songsQueueId}
-               tracks={orderedTracks}
+				tracks={sortedTracks}
                filteredTracks={filteredTracks}
                hideQueueControls
                style={styles.trackList}

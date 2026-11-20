@@ -7,6 +7,7 @@ import { usePlaylistStore } from '@/store/playlist'
 import { SelectTrackList } from '@/components/playlist/SelectTrackList'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { filterTrackByTitle } from '@/helpers/filter'
+import { useMemo } from 'react'
 
 const AddTracksToPlaylistModal = () => {
    const { playlistId } = useLocalSearchParams<{ playlistId: string }>()
@@ -30,8 +31,11 @@ const AddTracksToPlaylistModal = () => {
    
    if (!currentPlaylist) return null
 
-   const availableTracks = tracks?.filter(
-      (track) => !currentPlaylist?.tracksUri.includes(track.url)
+   const availableTracks = useMemo(
+      () => (tracks ?? [])
+         .filter((track) => !currentPlaylist?.tracksUri.includes(track.url))
+         .sort((a, b) => a.title.localeCompare(b.title)),
+      [tracks, currentPlaylist?.tracksUri]
    )
 
    const filteredTracks = filterTrackByTitle(availableTracks ?? [], search)

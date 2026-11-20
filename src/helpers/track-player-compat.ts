@@ -16,7 +16,6 @@ export type Track = {
   artwork?: string
   rating?: number
   duration?: number | null
-  addedAt?: number
   lyric_id?: string
   playlist?: string[]
 }
@@ -57,7 +56,7 @@ const toMediaItem = (track: Track): MediaItem => ({
   artist: track.artist,
   artworkUrl: track.artwork,
   duration: typeof track.duration === 'number' ? track.duration : undefined,
-  extras: { rating: track.rating, lyric_id: track.lyric_id, addedAt: track.addedAt },
+  extras: { rating: track.rating, lyric_id: track.lyric_id },
 })
 
 const fromMediaItem = (item: MediaItem | null | undefined): Track | undefined => {
@@ -81,7 +80,6 @@ const fromMediaItem = (item: MediaItem | null | undefined): Track | undefined =>
     artwork,
     duration: typeof item.duration === 'number' ? item.duration : undefined,
     rating: typeof extras.rating === 'number' ? extras.rating : undefined,
-    addedAt: typeof extras.addedAt === 'number' ? extras.addedAt : undefined,
     lyric_id: typeof extras.lyric_id === 'string' ? extras.lyric_id : undefined,
     playlist: Array.isArray(extras.playlist) ? extras.playlist.filter((value): value is string => typeof value === 'string') : undefined,
   }
