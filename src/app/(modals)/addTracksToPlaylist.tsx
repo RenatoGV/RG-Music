@@ -53,7 +53,7 @@ const AddTracksToPlaylistModal = () => {
 			<Stack.Screen options={{ headerShown: false }} />
 			<ScreenGradient />
 			<ScreenHeader
-				title="Añadir canciones"
+				title="Playlist"
 				subtitle={`Agrega canciones a ${currentPlaylist.name}`}
 				onBackPress={() => router.dismiss()}
 				backAccessibilityLabel="Volver a la playlist"

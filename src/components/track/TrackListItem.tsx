@@ -129,7 +129,7 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
                             </MenuOption>
                             <MenuOption onSelect={handleAddToPlaylist}>
                                 <FontAwesome6 name="compact-disc" size={18} color={colors.text} />
-                                <Text style={styles.menuOptionText}>Añadir a lista</Text>
+                                <Text style={styles.menuOptionText}>Añadir a playlist</Text>
                             </MenuOption>
                             {(fromPlaylist) ?
                                 <MenuOption onSelect={handleFromToPlaylist} separatorBefore>
