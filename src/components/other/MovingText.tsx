@@ -18,19 +18,20 @@ export type MovingTextProps = {
     style?: StyleProp<TextStyle>
     animatedStyle?: AnimatedStyle<TextStyle>
     animationThreshold: number
+    animationEnabled?: boolean
 }
 
 const pauseDuration = 2000
 const pixelsPerMillisecond = 1 / 18
 const minimumTravelDuration = 700
 
-export const MovingText = ({ text, animationThreshold, style, animatedStyle }: MovingTextProps) => {
+export const MovingText = ({ text, animationThreshold, style, animatedStyle, animationEnabled = true }: MovingTextProps) => {
     const translateX = useSharedValue(0)
     const [containerWidth, setContainerWidth] = useState(0)
     const [contentWidth, setContentWidth] = useState(0)
     const containerWidthRef = useRef(0)
     const contentWidthRef = useRef(0)
-    const shouldAnimate = text.length >= animationThreshold && contentWidth > containerWidth && containerWidth > 0
+    const shouldAnimate = animationEnabled && text.length >= animationThreshold && contentWidth > containerWidth && containerWidth > 0
 
     useEffect(() => {
         cancelAnimation(translateX)
@@ -85,6 +86,7 @@ export const MovingText = ({ text, animationThreshold, style, animatedStyle }: M
         <View onLayout={handleContainerLayout} style={styles.container}>
             {shouldAnimate ? (
                 <Animated.Text
+                    key="moving"
                     numberOfLines={1}
                     onTextLayout={handleTextLayout}
                     style={[style, animatedStyle, styles.movingText, { width: contentWidth }, movingStyle]}
@@ -93,9 +95,10 @@ export const MovingText = ({ text, animationThreshold, style, animatedStyle }: M
                 </Animated.Text>
             ) : (
                 <Animated.Text
+                    key="static"
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    style={[style, animatedStyle, styles.staticText]}
+                    style={[style, animatedStyle, styles.staticText, styles.staticPosition]}
                 >
                     {text}
                 </Animated.Text>
@@ -127,6 +130,9 @@ const styles = {
     staticText: {
         flex: 1,
         minWidth: 0,
+    },
+    staticPosition: {
+        transform: [{ translateX: 0 }],
     },
     movingText: {
         left: 0,

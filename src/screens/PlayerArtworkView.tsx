@@ -98,7 +98,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
       }))
       infoProgress.value = withTiming(0, {
          duration: transitionDurationMs,
-         easing: Easing.inOut(Easing.cubic)
+         easing: Easing.inOut(Easing.cubic),
       })
    }, [showLyrics, artworkProgress, infoProgress])
 
@@ -156,6 +156,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
                         text={track.title ?? ''}
                         animationThreshold={0}
                         style={styles.trackTitleText}
+                        animationEnabled={showLyrics && headerCompact}
                      />
                   </View>
                   <View style={styles.trackActions}>
