@@ -104,25 +104,31 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
 
    const artworkAnimatedStyle = useAnimatedStyle(() => {
       const compactSize = layoutSize.width * 0.2
-      const expandedHeight = layoutSize.height * 0.6 * 0.75
+      const expandedArtworkSize = Math.min(layoutSize.width * 0.82, layoutSize.height * 0.36)
+      const expandedArtworkTop = layoutSize.height * 0.025
+      const expandedArtworkLeft = (layoutSize.width - expandedArtworkSize) / 2
       const progress = artworkProgress.value
 
       return {
-         width: layoutSize.width + (compactSize - layoutSize.width) * progress,
-         height: expandedHeight + (compactSize - expandedHeight) * progress
+         width: expandedArtworkSize + (compactSize - expandedArtworkSize) * progress,
+         height: expandedArtworkSize + (compactSize - expandedArtworkSize) * progress,
+         left: expandedArtworkLeft * (1 - progress),
+         top: expandedArtworkTop * (1 - progress),
       }
    }, [layoutSize, artworkProgress])
 
    const trackInfoAnimatedStyle = useAnimatedStyle(() => {
       const progress = infoProgress.value
-      const expandedHeaderHeight = layoutSize.height * 0.6
-      const expandedInfoHeight = expandedHeaderHeight * 0.25
+      const expandedArtworkSize = Math.min(layoutSize.width * 0.82, layoutSize.height * 0.36)
+      const expandedArtworkTop = layoutSize.height * 0.025
+      const expandedInfoTop = expandedArtworkTop + expandedArtworkSize + layoutSize.height * 0.035
+      const expandedInfoHeight = layoutSize.height * 0.15
       const compactInfoLeft = layoutSize.width * 0.2 + 12
       const compactInfoHeight = layoutSize.width * 0.2
 
       return {
          left: compactInfoLeft * progress,
-         top: expandedHeaderHeight - expandedInfoHeight - (expandedHeaderHeight - expandedInfoHeight) * progress,
+         top: expandedInfoTop * (1 - progress),
          width: layoutSize.width - compactInfoLeft * progress,
          height: expandedInfoHeight + (compactInfoHeight - expandedInfoHeight) * progress
       }
@@ -156,6 +162,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
                         text={track.title ?? ''}
                         animationThreshold={0}
                         style={styles.trackTitleText}
+                        animatedStyle={titleTextAnimatedStyle}
                         animationEnabled={!showLyrics || headerCompact}
                      />
                   </View>
@@ -209,12 +216,22 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
 
 const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId }: { isFavorite: boolean; onToggleFavorite: () => void; onEditLyricId: () => void }) => (
    <View style={styles.trackActions}>
-      <TouchableOpacity onPress={onEditLyricId} accessibilityRole="button" accessibilityLabel="Editar identificador de letra">
-         <MaterialIcons name="info-outline" size={26} color={colors.icon} style={styles.actionIcon} />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={onToggleFavorite} accessibilityRole="button" accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}>
-         <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={26} color={isFavorite ? colors.primary : colors.icon} style={styles.actionIcon} />
-      </TouchableOpacity>
+      <LiquidGlassButton
+         onPress={onEditLyricId}
+         accessibilityRole="button"
+         accessibilityLabel="Editar identificador de letra"
+         style={styles.actionButton}
+      >
+         <MaterialIcons name="music-note" size={20} color={colors.icon} />
+      </LiquidGlassButton>
+      <LiquidGlassButton
+         onPress={onToggleFavorite}
+         accessibilityRole="button"
+         accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+         style={styles.actionButton}
+      >
+         <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={18} color={isFavorite ? colors.primary : colors.icon} />
+      </LiquidGlassButton>
    </View>
 )
 
@@ -281,11 +298,14 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       flexShrink: 0,
-      marginRight: 0
+      gap: 10,
+      marginRight: 0,
    },
-	actionIcon: {
-      marginLeft: 10,
-      marginRight: 0
+   actionButton: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
    },
 	lyricsSpace: {
       flex: 1,

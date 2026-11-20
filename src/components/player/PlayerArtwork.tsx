@@ -9,15 +9,17 @@ type Props = {
 }
 
 export const PlayerArtwork = ({ artwork, unknownTrackImageUri, onPress, compact = false }: Props) => {
+  const borderRadius = compact ? 12 : 24
+
   return (
     <View style={styles.artworkImageContainer}>
-      <Pressable style={styles.artworkPressable} onPress={onPress} accessibilityRole="button" accessibilityLabel={compact ? 'Cerrar letras' : 'Mostrar letras'}>
+      <Pressable style={[styles.artworkPressable, { borderRadius }]} onPress={onPress} accessibilityRole="button" accessibilityLabel={compact ? 'Cerrar letras' : 'Mostrar letras'}>
       <FastImage
         source={{
           uri: artwork ?? unknownTrackImageUri
         }}
         objectFit="cover"
-        style={styles.artworkImage}
+        style={[styles.artworkImage, { borderRadius }]}
       />
       </Pressable>
     </View>
