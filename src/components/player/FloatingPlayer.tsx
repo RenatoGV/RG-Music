@@ -61,7 +61,7 @@ export const FloatingPlayer = ({ style, blurTarget }: FloatingPlayerProps) => {
         <Animated.View style={[style, {transform: [{ translateX }]}]} {...panHandlers}>
             <LiquidGlassSurface
                 intensity={15}
-                borderRadius={22}
+                borderRadius={15}
                 blurTarget={blurTarget}
                 style={styles.glassContent}
             >
