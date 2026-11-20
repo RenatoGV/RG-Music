@@ -1,10 +1,9 @@
 import { unknownTrackImageUri } from '@/constants/images';
 import { colors, fontSize } from '@/constants/tokens';
 import { defaultStyles } from '@/styles';
-import { StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import { Track } from '@/helpers/types';
-import { useEffect, useState } from 'react';
+import type { Track } from '@/helpers/types';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
 export type TrackListItemProps = {
@@ -14,16 +13,12 @@ export type TrackListItemProps = {
 }
 
 export const SelectTrackListItem = ({track, onTrackSelect : handleTrackSelect, selectedTracks} : TrackListItemProps) => {
-    const [isSelectedTrack, setIsSelectedTrack] = useState(false)
-
-    useEffect(() => {
-        setIsSelectedTrack(selectedTracks.includes(track.url))
-    }, [selectedTracks, track.url])
+    const isSelectedTrack = selectedTracks.includes(track.url)
 
     return (
-        <TouchableHighlight onPress={() => handleTrackSelect(track.url)}>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => handleTrackSelect(track.url)}>
             <View style={styles.trackItemContainer}>
-                {(isSelectedTrack) ? <FontAwesome6 name="square-check" size={24} color={colors.primary} /> : <FontAwesome6 name="square" size={24} color={colors.primary} />}
+                {(isSelectedTrack) ? <FontAwesome6 name="circle-check" size={24} color={colors.primary} /> : <FontAwesome6 name="circle" size={24} color={colors.primary} />}
                 
                 <View>
                     <FastImage
@@ -53,7 +48,7 @@ export const SelectTrackListItem = ({track, onTrackSelect : handleTrackSelect, s
                     </View>
                 </View>
             </View>
-        </TouchableHighlight>
+        </TouchableOpacity>
     )
 }
 

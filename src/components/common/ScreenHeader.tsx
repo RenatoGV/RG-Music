@@ -1,5 +1,5 @@
 import { LiquidGlassButton } from '@/components/common/LiquidGlassButton'
-import { colors, screenPadding } from '@/constants/tokens'
+import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { Ionicons } from '@expo/vector-icons'
 import Animated, {
   Easing,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.text,
-    fontSize: 30,
+    fontSize: fontSize.lg,
     fontWeight: '700',
   },
   subtitle: {

@@ -1,100 +1,48 @@
-import { FlatList, FlatListProps, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { utilsStyles } from '@/styles'
-import { Track, Playlist } from '@/helpers/types'
-import FastImage from 'react-native-fast-image'
-import { unknownTrackImageUri } from '@/constants/images'
+import { FlatList, StyleSheet, Text, View } from 'react-native'
+import type { FlatListProps } from 'react-native'
+import type { Track } from '@/helpers/types'
 import { SelectTrackListItem } from './SelectTrackListItem'
-import { useState } from 'react'
-import { colors, fontSize } from '@/constants/tokens'
-import { showToast } from '@/helpers/toast'
-import { useRouter } from 'expo-router'
-import { usePlaylistStore } from '@/store/playlist'
+import { utilsStyles } from '@/styles'
+import LottieView from 'lottie-react-native'
+import notFound from '@/assets/lottie/not-found.json'
+import { screenPadding } from '@/constants/tokens'
 
 export type Props = Partial<FlatListProps<Track>> & {
-   tracks: Track[]
-   playlist: Playlist | undefined
+	tracks: Track[]
+	selectedTracks: string[]
+	onTrackSelect: (trackUrl: string) => void
 }
 
-const ItemDivider = () => <View style={{...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60}} />
+const ItemDivider = () => <View style={{ ...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60 }} />
 
-export const SelectTrackList = ({ tracks, playlist, ...flatlistProps } : Props) => {
-   const router = useRouter()
-
-   const [selectedTracks, setSelectedTracks] = useState<string[]>([])
-   const { addMultipleToPlaylist } = usePlaylistStore()
-
-   const handleTrackSelect = (selectedTrack: string) => {
-      if(!selectedTracks.includes(selectedTrack)) {
-         setSelectedTracks([...selectedTracks, selectedTrack])
-      } else {
-         const updatedSelectedTracks = selectedTracks.filter((track) => track !== selectedTrack)
-         setSelectedTracks(updatedSelectedTracks)
-      }
-   }
-
-   const handleAddToPlaylist = () => {
-      if(playlist){
-         addMultipleToPlaylist(selectedTracks, playlist.id)
-         showToast(`${selectedTracks.length} canciones agregadas`)
-      }
-      router.dismiss()
-   }
-
-   return (
-      <FlatList
-         data={tracks}
-         ItemSeparatorComponent={ItemDivider}
-         initialNumToRender={15}
-         maxToRenderPerBatch={15}
-         windowSize={5}
-         removeClippedSubviews={true}
-         stickyHeaderIndices={[0]}
-         ListHeaderComponent={
-               <View style={styles.headerContainer}>
-                  <Text style={styles.headerText}>Seleccionado: {selectedTracks.length}</Text>
-                  <TouchableOpacity style={styles.button} onPress={handleAddToPlaylist}>
-                     <Text style={styles.buttonText}>Agregar</Text>
-                  </TouchableOpacity>
-               </View>
-         }
-         ListEmptyComponent={
-            <View>
-               <Text style={utilsStyles.emptyContentText}>No se encontraron canciones</Text>
-               <FastImage
-               source={{ uri: unknownTrackImageUri }}
-               style={utilsStyles.emptyContentImage}
-               />
-            </View>
-         }
-         ListFooterComponent={<View style={{height: 20}}/>}
-         renderItem={({item : track}) => (
-               <SelectTrackListItem track={track} onTrackSelect={handleTrackSelect} selectedTracks={selectedTracks} />
-         )}
-         showsVerticalScrollIndicator={false}
-         {...flatlistProps}
-      />
-   )
-}
+export const SelectTrackList = ({ tracks, selectedTracks, onTrackSelect, ...flatlistProps }: Props) => (
+	<FlatList
+		data={tracks}
+		ItemSeparatorComponent={ItemDivider}
+		initialNumToRender={15}
+		maxToRenderPerBatch={15}
+		windowSize={5}
+		removeClippedSubviews
+		ListEmptyComponent={
+			<View style={styles.emptyContent}>
+				<Text style={utilsStyles.emptyContentText}>Sin resultados</Text>
+					<LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
+			</View>
+		}
+		ListFooterComponent={<View style={{ height: 20 }} />}
+		renderItem={({ item: track }) => (
+			<SelectTrackListItem track={track} onTrackSelect={onTrackSelect} selectedTracks={selectedTracks} />
+		)}
+		showsVerticalScrollIndicator={false}
+		{...flatlistProps}
+	/>
+)
 
 const styles = StyleSheet.create({
-   headerContainer: {
-      backgroundColor: colors.background,
-      paddingVertical: 15,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-   },
-   headerText: {
-      color: colors.text,
-      fontSize: fontSize.sm
-   },
-   button: {
-      backgroundColor: colors.primary,
-      paddingVertical: 10,
-      paddingHorizontal: 30,
-      borderRadius: 50
-   },
-   buttonText: {
-      color: colors.text
-   }
+	emptyContent: {
+		flex: 1,
+		paddingTop: 20,
+		paddingHorizontal: screenPadding.horizontal,
+		alignItems: 'center'
+	}
 })
