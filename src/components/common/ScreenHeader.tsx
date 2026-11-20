@@ -17,13 +17,15 @@ import {
   useWindowDimensions,
 } from 'react-native'
 import { useEffect, useRef, useState } from 'react'
-import type { ComponentRef } from 'react'
+import type { ComponentRef, ReactNode } from 'react'
 
 type ScreenHeaderProps = {
   title?: string
   subtitle?: string
   onBackPress?: () => void
-  onFolderPress?: () => void
+  onOtherActionPress?: () => void
+  onOtherActionIcon?: ReactNode
+  otherActionAccessibilityLabel?: string
   searchValue?: string
   onSearchChange?: (value: string) => void
   searchExpanded?: boolean
@@ -43,7 +45,9 @@ export const ScreenHeader = ({
   title,
   subtitle,
   onBackPress,
-  onFolderPress,
+  onOtherActionPress,
+  onOtherActionIcon,
+  otherActionAccessibilityLabel = 'Acción adicional',
   searchValue = '',
   onSearchChange,
   searchExpanded,
@@ -60,10 +64,10 @@ export const ScreenHeader = ({
 
   const hasText = Boolean(title || subtitle)
   const hasBackButton = Boolean(onBackPress)
-  const hasFolderButton = Boolean(onFolderPress)
+  const hasOtherActionButton = Boolean(onOtherActionPress)
   const hasSearchButton = Boolean(onSearchChange)
   const availableWidth = screenWidth - screenPadding.horizontal * 2
-  const closedButtonCount = Number(hasBackButton) + Number(hasFolderButton) + Number(hasSearchButton)
+  const closedButtonCount = Number(hasBackButton) + Number(hasOtherActionButton) + Number(hasSearchButton)
   const closedItemCount = closedButtonCount + Number(hasText)
   const titleWidth = Math.max(
     0,
@@ -80,7 +84,7 @@ export const ScreenHeader = ({
     width: BUTTON_SIZE * (1 - searchProgress.value),
     opacity: 1 - searchProgress.value,
   }))
-  const folderAnimatedStyle = useAnimatedStyle(() => ({
+  const otherActionAnimatedStyle = useAnimatedStyle(() => ({
     width: BUTTON_SIZE * (1 - searchProgress.value),
     opacity: 1 - searchProgress.value,
   }))
@@ -219,23 +223,23 @@ export const ScreenHeader = ({
         </Animated.View>
       )}
 
-      {(hasBackButton || hasText || hasSearchButton) && hasFolderButton && (
+      {(hasBackButton || hasText || hasSearchButton) && hasOtherActionButton && (
         <Animated.View style={[styles.spacer, thirdSpacerAnimatedStyle]} />
       )}
 
-      {hasFolderButton && (
+      {hasOtherActionButton && (
         <Animated.View
-          style={[styles.buttonWrap, folderAnimatedStyle]}
+          style={[styles.buttonWrap, otherActionAnimatedStyle]}
           pointerEvents={searchOpen ? 'none' : 'auto'}
           accessibilityElementsHidden={searchOpen}
           importantForAccessibility={searchOpen ? 'no-hide-descendants' : 'auto'}
         >
           <LiquidGlassButton
-            accessibilityLabel="Opciones de carpeta"
-            onPress={onFolderPress}
+            accessibilityLabel={otherActionAccessibilityLabel}
+            onPress={onOtherActionPress}
             style={styles.actionButton}
           >
-            <Ionicons name="folder-outline" size={16} color={colors.text} />
+            {onOtherActionIcon ?? <Ionicons name="folder-outline" size={16} color={colors.text} />}
           </LiquidGlassButton>
         </Animated.View>
       )}

@@ -142,7 +142,9 @@ const SongsScreen = () => {
 					<ScreenHeader
 						title="Tu librería"
 						subtitle={subtitle}
-						onFolderPress={handleFolderButton}
+						onOtherActionPress={handleFolderButton}
+						onOtherActionIcon={<Ionicons name="folder-outline" size={16} color={colors.text} />}
+						otherActionAccessibilityLabel="Opciones de carpeta"
 						searchValue={search}
 						onSearchChange={setSearch}
 						searchPlaceholder="Buscar en Canciones"

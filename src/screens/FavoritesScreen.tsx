@@ -47,7 +47,7 @@ const FavoritesScreen = () => {
             )}
             <TracksList
                id={songsQueueId}
-				tracks={sortedTracks}
+				   tracks={sortedTracks}
                filteredTracks={filteredTracks}
                hideQueueControls
                style={styles.trackList}

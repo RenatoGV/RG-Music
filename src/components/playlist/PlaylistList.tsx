@@ -1,12 +1,13 @@
-import { unknownPlaylistImageUri } from '@/constants/images'
 import { Playlist } from '@/helpers/types'
 import { utilsStyles } from '@/styles'
 import { useState } from 'react'
-import { FlatList, FlatListProps, Text, View } from 'react-native'
-import FastImage from 'react-native-fast-image'
+import { FlatList, FlatListProps, StyleSheet, Text, View } from 'react-native'
 import { PlaylistListItem } from './PlaylistListItem'
 import { DeletePlaylist } from '@/components/modals/DeletePlaylist'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
+import LottieView from 'lottie-react-native'
+import notFound from '@/assets/lottie/not-found.json'
+import { screenPadding } from '@/constants/tokens'
 
 type PlaylistsListProps = {
 	playlists: Playlist[]
@@ -29,16 +30,12 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 		<View style={{ flex: 1 }}>
 			<DeletePlaylist selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
 			<FlatList
-				contentContainerStyle={{ paddingTop: 10, paddingBottom: contentBottomPadding }}
+				contentContainerStyle={{ paddingTop: 10, paddingBottom: contentBottomPadding, flexGrow: 1 }}
 				ItemSeparatorComponent={ItemDivider}
 				ListEmptyComponent={
-					<View>
-						<Text style={utilsStyles.emptyContentText}>No se encontraron Playlists</Text>
-
-						<FastImage
-							source={{ uri: unknownPlaylistImageUri }}
-							style={utilsStyles.emptyContentImage}
-						/>
+					<View style={styles.emptyContent}>
+						<Text style={utilsStyles.emptyContentText}>Sin Playlists</Text>
+            		<LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
 					</View>
 				}
 				data={playlists}
@@ -50,3 +47,11 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 		</View>
 	)
 }
+
+const styles = StyleSheet.create({
+	emptyContent: {
+		flex: 1,
+		paddingHorizontal: screenPadding.horizontal,
+		alignItems: 'center'
+	}
+})
