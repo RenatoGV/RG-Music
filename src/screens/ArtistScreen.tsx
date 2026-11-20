@@ -1,6 +1,6 @@
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { unknownArtistImageUri, unknownTrackImageUri } from '@/constants/images'
-import { screenPadding } from '@/constants/tokens'
+import { colors, screenPadding } from '@/constants/tokens'
 import { filterArtistsByName } from '@/helpers/filter'
 import type { Track } from '@/helpers/types'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
@@ -8,10 +8,13 @@ import { useArtists } from '@/store/library'
 import { defaultStyles, utilsStyles } from '@/styles'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Link } from 'expo-router'
+import LottieView from 'lottie-react-native'
 import { useMemo, useState } from 'react'
-import { FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native'
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import notFound from '@/assets/lottie/not-found.json'
+import { MaterialIcons } from '@expo/vector-icons'
 
 const ItemSeparatorComponent = () => {
 	return <View style={{ marginVertical: 10, marginLeft: 70 }} />
@@ -42,15 +45,12 @@ const ArtistsScreen = () => {
 				topInset={insets.top}
 			/>
 			<FlatList
-				contentContainerStyle={{ paddingHorizontal: screenPadding.horizontal, paddingBottom: contentBottomPadding }}
+				contentContainerStyle={{ paddingHorizontal: screenPadding.horizontal, paddingBottom: contentBottomPadding, flexGrow: 1 }}
 				ItemSeparatorComponent={ItemSeparatorComponent}
 				ListEmptyComponent={
-					<View>
-						<Text style={utilsStyles.emptyContentText}>No se encontraron artistas</Text>
-						<FastImage
-							source={{ uri: unknownArtistImageUri }}
-							style={utilsStyles.emptyContentImage}
-						/>
+					<View style={styles.emptyContent}>
+						<Text style={utilsStyles.emptyContentText}>Sin resultados</Text>
+							<LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
 					</View>
 				}
 				data={filteredArtists}
@@ -58,7 +58,7 @@ const ArtistsScreen = () => {
 				renderItem={({ item: artist }) => {
 					return (
 						<Link href={`/artists/${artist.name}`} asChild>
-							<TouchableHighlight activeOpacity={0.8}>
+							<TouchableOpacity activeOpacity={0.8}>
 								<View style={styles.artistItemContainer}>
 									<ArtistArtwork tracks={artist.tracks} />
 									<View style={styles.artistTextContainer}>
@@ -69,8 +69,9 @@ const ArtistsScreen = () => {
 											{getArtistSubtitle(artist.tracks)}
 										</Text>
 									</View>
+									<MaterialIcons name="navigate-next" size={30} color={colors.textMuted} />
 								</View>
-							</TouchableHighlight>
+							</TouchableOpacity>
 						</Link>
 					)
 				}}
@@ -144,6 +145,11 @@ const ScreenGradient = () => (
 )
 
 const styles = StyleSheet.create({
+	emptyContent: {
+		flex: 1,
+		paddingHorizontal: screenPadding.horizontal,
+		alignItems: 'center'
+	},
 	artistItemContainer: {
 		flexDirection: 'row',
 		columnGap: 14,

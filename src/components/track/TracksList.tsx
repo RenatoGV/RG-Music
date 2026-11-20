@@ -70,7 +70,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
   return (
     <FlatList
       data={filteredTracks}
-      contentContainerStyle={{paddingTop: 10, paddingBottom: contentBottomPadding, flex: 1}}
+      contentContainerStyle={{paddingTop: 10, paddingBottom: contentBottomPadding, flexGrow: 1}}
       ListHeaderComponent={
         (!hideQueueControls && tracks.length > 0) ? <QueueControls queueId={id} tracks={tracks} style={{paddingBottom: 20}}/> : undefined
       }
@@ -81,7 +81,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
       removeClippedSubviews={true}
       ListEmptyComponent={
         <View style={styles.emptyContent}>
-          <Text style={utilsStyles.emptyContentText}>Sin Canciones</Text>
+          <Text style={utilsStyles.emptyContentText}>Sin resultados</Text>
             <LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
         </View>
       }
