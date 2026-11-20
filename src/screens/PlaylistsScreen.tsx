@@ -54,7 +54,7 @@ const PlaylistsScreen = () => {
             title="Playlists"
             searchValue={search}
             onSearchChange={setSearch}
-            searchPlaceholder="Buscar Artista"
+            searchPlaceholder="Buscar Playlist"
             onOtherActionPress={() => setModalVisible(true)}
             onOtherActionIcon={<Ionicons name="add" size={20} color="#fff" />}
             otherActionAccessibilityLabel="Crear playlist"

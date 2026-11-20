@@ -1,4 +1,4 @@
-import { unknownArtistImageUri, unknownTrackImageUri } from '@/constants/images'
+import { unknownArtistImageUri, unknownPlaylistImageUri, unknownTrackImageUri } from '@/constants/images'
 import type { Track } from '@/helpers/types'
 import { StyleSheet, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
@@ -7,17 +7,26 @@ type ArtistArtworkProps = {
 	tracks: Track[]
 	size?: number
 	borderRadius?: number
+	fallbackArtworkUri?: string
 }
 
-export const ArtistArtwork = ({ tracks, size = 56, borderRadius = 12 }: ArtistArtworkProps) => {
+export const ArtistArtwork = ({
+	tracks,
+	size = 56,
+	borderRadius = 12,
+	fallbackArtworkUri = unknownArtistImageUri,
+}: ArtistArtworkProps) => {
 	const artworks = tracks
 		.map((track) => track.artwork?.trim())
-		.filter((artwork): artwork is string => Boolean(artwork) && artwork !== unknownArtistImageUri && artwork !== unknownTrackImageUri)
+		.filter((artwork): artwork is string => Boolean(artwork)
+			&& artwork !== unknownArtistImageUri
+			&& artwork !== unknownPlaylistImageUri
+			&& artwork !== unknownTrackImageUri)
 		.slice(0, 4)
 	const containerStyle = [styles.container, { width: size, height: size, borderRadius }]
 
 	if (artworks.length === 0) {
-		return <FastImage source={{ uri: unknownArtistImageUri }} style={containerStyle} />
+		return <FastImage source={{ uri: fallbackArtworkUri }} style={containerStyle} />
 	}
 
 	if (artworks.length === 3) {

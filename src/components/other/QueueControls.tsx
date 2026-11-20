@@ -15,9 +15,10 @@ import { LiquidGlassButton } from "@/components/common/LiquidGlassButton"
 type QueueControlsProps = {
     queueId: string
     tracks: Track[]
+    compact?: boolean
 } & ViewProps
 
-export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueControlsProps) => {
+export const QueueControls = ({queueId, tracks, compact = false, style, ...viewProps} : QueueControlsProps) => {
     const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleEnabled, setShuffleOriginalQueue } = useQueue()
     const isShuffleUpdatePending = useRef(false)
 
@@ -68,6 +69,34 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
         })
     }
 
+    if (compact) {
+        const disabled = tracks.length === 0
+
+        return (
+            <View style={[styles.compactContainer, style]} {...viewProps}>
+                <GradientButton
+                    accessibilityLabel="Reproducir lista"
+                    disabled={disabled}
+                    onPress={handlePlay}
+                    style={styles.compactButton}
+                >
+                    <Ionicons name="play" size={18} color={colors.text} />
+                </GradientButton>
+
+                <LiquidGlassButton
+                    accessibilityLabel="Aleatorio"
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: shuffleEnabled }}
+                    disabled={disabled}
+                    onPress={handleToggleShuffle}
+                    style={styles.compactButton}
+                >
+                    <Ionicons name="shuffle-sharp" size={18} color={shuffleEnabled ? colors.primary : colors.text} />
+                </LiquidGlassButton>
+            </View>
+        )
+    }
+
     return (
         <View style={[{flexDirection: 'row', columnGap: 16}, style]} {...viewProps}>
             {/* Play button */}
@@ -92,6 +121,18 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
 }
 
 const styles = StyleSheet.create({
+    compactContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        columnGap: 10,
+    },
+    compactButton: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     button: {
         padding: 12,
         borderRadius: 50,

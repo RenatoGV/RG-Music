@@ -30,7 +30,7 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 		<View style={{ flex: 1 }}>
 			<DeletePlaylist selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
 			<FlatList
-				contentContainerStyle={{ paddingTop: 10, paddingBottom: contentBottomPadding, flexGrow: 1 }}
+				contentContainerStyle={{ paddingTop: 10, paddingHorizontal: screenPadding.horizontal, paddingBottom: contentBottomPadding, flexGrow: 1 }}
 				ItemSeparatorComponent={ItemDivider}
 				ListEmptyComponent={
 					<View style={styles.emptyContent}>
@@ -51,7 +51,6 @@ export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, .
 const styles = StyleSheet.create({
 	emptyContent: {
 		flex: 1,
-		paddingHorizontal: screenPadding.horizontal,
 		alignItems: 'center'
 	}
 })
