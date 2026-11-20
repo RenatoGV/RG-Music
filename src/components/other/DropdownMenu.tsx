@@ -1,7 +1,10 @@
-import React, { useRef, useEffect, useState, ReactNode, useContext } from 'react'
+import React, { createContext, useRef, useEffect, useState, ReactNode, useContext } from 'react'
 import { View, Modal, StyleSheet, TouchableWithoutFeedback, TouchableOpacity } from 'react-native'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
 import { LiquidGlassBlurTargetRefContext } from '@/components/glass/LiquidGlassBlurTarget'
+import { deferUntilAfterPaint } from '@/helpers/deferUntilAfterPaint'
+
+const DropdownMenuCloseContext = createContext<() => void>(() => {})
 
 interface DropdownMenuProps {
   visible: boolean
@@ -62,7 +65,9 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
                     width: dropdownWidth,
                   },
                 ]}>
-                {children}
+                <DropdownMenuCloseContext.Provider value={handleClose}>
+                  {children}
+                </DropdownMenuCloseContext.Provider>
               </LiquidGlassSurface>
             </View>
           </TouchableWithoutFeedback>
@@ -81,8 +86,16 @@ export const MenuOption = ({
   children: ReactNode
   separatorBefore?: boolean
 }) => {
+    const closeMenu = useContext(DropdownMenuCloseContext)
+
     return (
-        <TouchableOpacity onPress={onSelect} style={[styles.menuOption, separatorBefore && styles.menuOptionWithSeparator]}>
+        <TouchableOpacity
+          onPress={() => {
+            closeMenu()
+            deferUntilAfterPaint(onSelect)
+          }}
+          style={[styles.menuOption, separatorBefore && styles.menuOptionWithSeparator]}
+        >
             {children}
         </TouchableOpacity>
     )

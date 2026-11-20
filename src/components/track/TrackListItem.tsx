@@ -36,7 +36,6 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
     const { removeToPlaylist } = usePlaylistStore()
 
     const handleToggleFavorite = () => {
-        setVisible(false)
         if(track.rating === 1){
             toggleTrackFavorite(track)
             
@@ -61,14 +60,12 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
     }
 
     const handleAddToPlaylist = () => {
-        setVisible(false)
         router.push({pathname: '/(modals)/addToPlaylist', params: { trackUrl: track.url }})
     }
 
     const handleFromToPlaylist = () => {
         if(!fromPlaylist) return
 
-        setVisible(false)
         removeToPlaylist(track.url, fromPlaylist.id)
         showToast(`Eliminado de ${fromPlaylist!.name}`)
     }
