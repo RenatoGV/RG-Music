@@ -1,11 +1,12 @@
 import { colors } from "@/constants/tokens"
 import { defaultStyles } from "@/styles"
 import { StyleSheet, Text, View, ViewProps } from "react-native"
-import TrackPlayer, { getPlaybackState } from "@/helpers/track-player-compat"
+import TrackPlayer from "@/helpers/track-player-compat"
 import { Track } from "@/helpers/types"
 import { Ionicons } from "@expo/vector-icons"
 import { useQueue } from "@/store/queue"
 import { shuffleTracks } from "@/helpers/shuffleTracks"
+import { reorderQueueAfterCurrent } from "@/helpers/reorderQueueAfterCurrent"
 import { GradientButton } from "@/components/common/GradientButton"
 import { LiquidGlassButton } from "@/components/common/LiquidGlassButton"
 
@@ -30,7 +31,7 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
         const enabled = !shuffleEnabled
         setShuffleEnabled(enabled)
 
-        if (activeQueueId !== queueId || getPlaybackState().state !== 'playing') {
+        if (activeQueueId !== queueId || !TrackPlayer.isPlaying()) {
             setShuffleOriginalQueue(null)
             return
         }
@@ -52,43 +53,7 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
             ...tracks.slice(0, originalIndex),
         ]
         const nextTracks = enabled ? shuffleTracks(remainingTracks) : remainingTracks
-
-        TrackPlayer.setShuffleEnabled(false)
-
-        // Deja la canción actual al inicio moviendo las que tiene delante.
-        for (let index = 0; index < currentIndex; index++) {
-            TrackPlayer.move(0, queue.length - 1)
-            queue.push(queue.shift()!)
-        }
-
-        // Retira las canciones que ya no pertenecen a la lista.
-        const nextUrls = new Set(nextTracks.map((track) => track.url))
-        for (let index = queue.length - 1; index >= 1; index--) {
-            if (!nextUrls.has(queue[index].url)) {
-                TrackPlayer.remove(index)
-                queue.splice(index, 1)
-            }
-        }
-
-        // Ordena las pendientes e incorpora las que faltan.
-        nextTracks.forEach((track, index) => {
-            const targetIndex = index + 1
-            let fromIndex = queue.findIndex(
-                (item, position) => position >= targetIndex && item.url === track.url,
-            )
-
-            if (fromIndex === -1) {
-                TrackPlayer.add(track)
-                queue.push(track)
-                fromIndex = queue.length - 1
-            }
-
-            if (fromIndex !== targetIndex) {
-                TrackPlayer.move(fromIndex, targetIndex)
-                const [movedTrack] = queue.splice(fromIndex, 1)
-                queue.splice(targetIndex, 0, movedTrack)
-            }
-        })
+        reorderQueueAfterCurrent(nextTracks, queue, currentIndex)
     }
 
     return (

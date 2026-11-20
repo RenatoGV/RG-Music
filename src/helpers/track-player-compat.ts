@@ -136,6 +136,7 @@ const TrackPlayer = {
   setVolume: TrackPlayerV5.setVolume,
   getVolume: TrackPlayerV5.getVolume,
   getProgress: TrackPlayerV5.getProgress,
+  isPlaying: TrackPlayerV5.isPlaying,
   setRepeatMode: (mode: RepeatMode) => TrackPlayerV5.setRepeatMode(mode as unknown as V5RepeatMode),
   getRepeatMode: () => {
     const mode = TrackPlayerV5.getRepeatMode()

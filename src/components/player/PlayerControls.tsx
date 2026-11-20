@@ -61,7 +61,11 @@ const ShuffleButton = ({ iconSize }: { iconSize: number }) => {
             .filter((track): track is Track => track !== undefined)
         const nextShuffleEnabled = !shuffleEnabled
 
-        reorderQueueAfterCurrent(nextShuffleEnabled ? shuffleTracks(pendingTracks) : pendingTracks)
+        reorderQueueAfterCurrent(
+            nextShuffleEnabled ? shuffleTracks(pendingTracks) : pendingTracks,
+            queue,
+            currentIndex,
+        )
         setShuffleOriginalQueue(nextShuffleEnabled ? originalUrls : null)
         setShuffleEnabled(nextShuffleEnabled)
     }
