@@ -7,6 +7,7 @@ import { useActiveTrack } from '@/helpers/track-player-compat'
 import { Track } from '@/helpers/types'
 import { usePlayerBackground } from '@/hooks/usePlayerBackground'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurTargetView } from 'expo-blur'
 import { useTrackPlayerFavorite } from '@/hooks/useTrackPlayerFavorite'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
@@ -17,6 +18,9 @@ import { router } from 'expo-router'
 import { getArtistNames } from '@/helpers/groupTracksByArtist'
 import EditLyricsIdModal from '@/components/modals/EditLyricIdModal'
 import PlayerArtworkView from '@/screens/PlayerArtworkView'
+import type { ComponentRef } from 'react'
+
+type NativeViewRef = ComponentRef<typeof View>
 
 const PlayerScreen = () => {
    const activeTrackRaw = useActiveTrack()
@@ -34,6 +38,7 @@ const PlayerScreen = () => {
    
    const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
    const dismissTranslation = useRef(new Animated.Value(0)).current
+   const playerBlurTargetRef = useRef<NativeViewRef | null>(null)
 
    const [ modalVisible, setModalVisible ] = useState(false)
 
@@ -82,17 +87,8 @@ const PlayerScreen = () => {
    return (
       <Animated.View style={[styles.screenDragContainer, { transform: [{ translateY: dismissTranslation }] }]}>
          <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
-            {
-               modalVisible && (
-                  <EditLyricsIdModal
-                     key={activeTrack.url}
-                     initialValue={activeTrack.lyric_id ?? ''}
-                     onClose={() => setModalVisible(false)}
-                     onSave={handleSaveLyricId}
-                  />
-               )
-            }
-            <View style={styles.overlayContainer}>
+            <BlurTargetView ref={playerBlurTargetRef} style={styles.playerBlurTarget}>
+               <View style={styles.overlayContainer}>
                   <DismissPlayerSymbol enabled={Platform.OS === 'android' && showLyrics} translateY={dismissTranslation} />
 
                   <View style={{flex: 1, marginTop: top + 40, marginBottom: bottom}}>
@@ -108,8 +104,18 @@ const PlayerScreen = () => {
                         onToggleLyricsType={() => setSyncedLyrics(!syncedLyrics)}
                      />
                   </View>
-            </View>
+               </View>
+            </BlurTargetView>
          </LinearGradient>
+         {modalVisible && (
+            <EditLyricsIdModal
+               key={activeTrack.url}
+               initialValue={activeTrack.lyric_id ?? ''}
+               onClose={() => setModalVisible(false)}
+               onSave={handleSaveLyricId}
+               blurTarget={playerBlurTargetRef}
+            />
+         )}
       </Animated.View>
    )
 }
@@ -169,6 +175,7 @@ const DismissPlayerSymbol = ({ enabled, translateY }: { enabled: boolean; transl
 
 const styles = StyleSheet.create({
    screenDragContainer: { flex: 1 },
+   playerBlurTarget: { flex: 1 },
    overlayContainer: {
       ...defaultStyles.container,
       paddingHorizontal: screenPadding.horizontal,
