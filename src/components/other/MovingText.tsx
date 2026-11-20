@@ -24,6 +24,7 @@ export type MovingTextProps = {
 const pauseDuration = 2000
 const pixelsPerMillisecond = 1 / 18
 const minimumTravelDuration = 700
+const textWidthSafetyBuffer = 8
 
 export const MovingText = ({ text, animationThreshold, style, animatedStyle, animationEnabled = true }: MovingTextProps) => {
     const translateX = useSharedValue(0)
@@ -31,7 +32,8 @@ export const MovingText = ({ text, animationThreshold, style, animatedStyle, ani
     const [contentWidth, setContentWidth] = useState(0)
     const containerWidthRef = useRef(0)
     const contentWidthRef = useRef(0)
-    const shouldAnimate = animationEnabled && text.length >= animationThreshold && contentWidth > containerWidth && containerWidth > 0
+    const measuredWidthWithBuffer = contentWidth + textWidthSafetyBuffer
+    const shouldAnimate = animationEnabled && text.length >= animationThreshold && measuredWidthWithBuffer > containerWidth && containerWidth > 0
 
     useEffect(() => {
         cancelAnimation(translateX)
@@ -42,7 +44,7 @@ export const MovingText = ({ text, animationThreshold, style, animatedStyle, ani
         }
 
         const measuredContainerWidth = containerWidthRef.current
-        const measuredContentWidth = contentWidthRef.current
+        const measuredContentWidth = contentWidthRef.current + textWidthSafetyBuffer
         const leaveDuration = Math.max(minimumTravelDuration, measuredContentWidth / pixelsPerMillisecond)
         const enterDuration = Math.max(minimumTravelDuration, measuredContainerWidth / pixelsPerMillisecond)
 
@@ -88,8 +90,9 @@ export const MovingText = ({ text, animationThreshold, style, animatedStyle, ani
                 <Animated.Text
                     key="moving"
                     numberOfLines={1}
+                    ellipsizeMode="clip"
                     onTextLayout={handleTextLayout}
-                    style={[style, animatedStyle, styles.movingText, { width: contentWidth }, movingStyle]}
+                    style={[style, animatedStyle, styles.movingText, { width: measuredWidthWithBuffer }, movingStyle]}
                 >
                     {text}
                 </Animated.Text>

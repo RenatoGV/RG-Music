@@ -1,7 +1,7 @@
 import { unknownTrackImageUri } from "@/constants/images"
 import { defaultStyles } from "@/styles"
 import React, { useEffect, useState } from "react"
-import { Animated, StyleSheet, View, ViewProps } from "react-native"
+import { Animated, StyleSheet, Text, View, ViewProps } from "react-native"
 import type { BlurViewProps } from "expo-blur"
 import FastImage from "react-native-fast-image"
 import TrackPlayer, { useActiveTrack } from "@/helpers/track-player-compat"
@@ -13,6 +13,7 @@ import { useRouter } from "expo-router"
 import { useQueue } from "@/store/queue"
 import { saveData } from "@/helpers/storage"
 import { useFloatingPlayerSwipe } from "@/hooks/useFloatingPlayerSwipe"
+import { fontSize } from "@/constants/tokens"
 
 type FloatingPlayerProps = ViewProps & Pick<BlurViewProps, "blurTarget">
 
@@ -71,11 +72,16 @@ export const FloatingPlayer = ({ style, blurTarget }: FloatingPlayerProps) => {
                     style={styles.trackArtworkImage}
                 />
 
-                <View style={styles.trackTitleContainer}>
+                <View style={styles.trackInfoContainer}>
                     <MovingText style={styles.trackTitle}
                         text={currentTrack.title ?? ''}
-                        animationThreshold={25}
+                        animationThreshold={0}
                     />
+                    {currentTrack.artist ? (
+                        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.trackArtist}>
+                            {currentTrack.artist}
+                        </Text>
+                    ) : null}
                 </View>
 
                 <View style={styles.trackControlsContainer}>
@@ -99,16 +105,23 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 8
     },
-    trackTitleContainer: {
+    trackInfoContainer: {
         flex: 1,
+        minWidth: 0,
         overflow: 'hidden',
         marginLeft: 10
     },
     trackTitle: {
         ...defaultStyles.text,
-        fontSize: 18,
+        fontSize: fontSize.base,
         fontWeight: '600',
-        paddingLeft: 10
+        lineHeight: 21,
+        paddingLeft: 0
+    },
+    trackArtist: {
+        color: 'rgba(255, 255, 255, 0.72)',
+        fontSize: fontSize.sm,
+        lineHeight: 15,
     },
     trackControlsContainer: {
         flexDirection: 'row',
