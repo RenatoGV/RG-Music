@@ -1,5 +1,6 @@
 import React, { createContext, useRef, useEffect, useState, ReactNode, useContext } from 'react'
 import { View, Modal, StyleSheet, TouchableWithoutFeedback, TouchableOpacity } from 'react-native'
+import type { ComponentRef, RefObject } from 'react'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
 import { LiquidGlassBlurTargetRefContext } from '@/components/glass/LiquidGlassBlurTarget'
 import { deferUntilAfterPaint } from '@/helpers/deferUntilAfterPaint'
@@ -10,9 +11,11 @@ interface DropdownMenuProps {
   visible: boolean
   handleClose: () => void
   handleOpen: () => void
-  trigger: React.ReactNode
+  trigger?: React.ReactNode
+  anchorRef?: RefObject<ComponentRef<typeof View> | null>
   children: React.ReactNode
   dropdownWidth?: number
+  placement?: 'left' | 'below-left'
 }
 
 export const DropdownMenu: React.FC<DropdownMenuProps> = ({
@@ -20,30 +23,36 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   handleOpen,
   handleClose,
   trigger,
+  anchorRef,
   children,
   dropdownWidth = 150,
+  placement = 'left',
 }) => {
   const triggerRef = useRef<React.ComponentRef<typeof View> | null>(null)
   const blurTarget = useContext(LiquidGlassBlurTargetRefContext)
-  const [position, setPosition] = useState({x: 0, y: 0, width: 0})
+  const [position, setPosition] = useState({x: 0, y: 0, width: 0, height: 0})
 
   useEffect(() => {
-    if (triggerRef.current && visible) {
-      triggerRef.current.measure((fx, fy, width, height, px, py) => {
+    const anchor = anchorRef?.current ?? triggerRef.current
+    if (anchor && visible) {
+      anchor.measure((fx, fy, width, height, px, py) => {
         setPosition({
           x: px,
           y: py,
           width: width,
+          height,
         })
       })
     }
-  }, [visible])
+  }, [anchorRef, visible])
 
   return (
     <View>
-      <TouchableWithoutFeedback onPress={handleOpen}>
-        <View ref={triggerRef}>{trigger}</View>
-      </TouchableWithoutFeedback>
+      {trigger != null && (
+        <TouchableWithoutFeedback onPress={handleOpen}>
+          <View ref={triggerRef}>{trigger}</View>
+        </TouchableWithoutFeedback>
+      )}
       {visible && (
         <Modal
           transparent={true}
@@ -60,8 +69,10 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
                 style={[
                   styles.menu,
                   {
-                    top: position.y - 20,
-                    left: position.x - (dropdownWidth + 5),
+                    top: placement === 'below-left' ? position.y + position.height + 6 : position.y - 20,
+                    left: placement === 'below-left'
+                      ? position.x + position.width - dropdownWidth
+                      : position.x - (dropdownWidth + 5),
                     width: dropdownWidth,
                   },
                 ]}>

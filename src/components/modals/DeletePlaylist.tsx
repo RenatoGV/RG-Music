@@ -8,7 +8,6 @@ import { usePlaylistStore } from '@/store/playlist'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
 import { LiquidGlassBlurTargetRefContext } from '@/components/glass/LiquidGlassBlurTarget'
 import { LiquidGlassButton } from '@/components/common/LiquidGlassButton'
-import React from 'react'
 
 type Props = {
 	selectedPlaylist: Playlist | null
@@ -97,7 +96,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 24,
 	},
 	backdrop: {
-		...StyleSheet.absoluteFillObject,
+		...StyleSheet.absoluteFill,
 		backgroundColor: 'rgba(0, 8, 10, 0.28)',
 	},
 	modalSurface: {

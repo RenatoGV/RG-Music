@@ -17,7 +17,7 @@ import {
   useWindowDimensions,
 } from 'react-native'
 import { useEffect, useRef, useState } from 'react'
-import type { ComponentRef, ReactNode } from 'react'
+import type { ComponentRef, ReactNode, RefObject } from 'react'
 
 type ScreenHeaderProps = {
   title?: string
@@ -25,6 +25,7 @@ type ScreenHeaderProps = {
   onBackPress?: () => void
   onOtherActionPress?: () => void
   onOtherActionIcon?: ReactNode
+  otherActionAnchorRef?: RefObject<ComponentRef<typeof View> | null>
   otherActionAccessibilityLabel?: string
   searchValue?: string
   onSearchChange?: (value: string) => void
@@ -47,6 +48,7 @@ export const ScreenHeader = ({
   onBackPress,
   onOtherActionPress,
   onOtherActionIcon,
+  otherActionAnchorRef,
   otherActionAccessibilityLabel = 'Acción adicional',
   searchValue = '',
   onSearchChange,
@@ -229,6 +231,8 @@ export const ScreenHeader = ({
 
       {hasOtherActionButton && (
         <Animated.View
+          ref={otherActionAnchorRef}
+          collapsable={false}
           style={[styles.buttonWrap, otherActionAnimatedStyle]}
           pointerEvents={searchOpen ? 'none' : 'auto'}
           accessibilityElementsHidden={searchOpen}

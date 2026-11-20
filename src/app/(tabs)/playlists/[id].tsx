@@ -2,31 +2,40 @@ import { ArtistArtwork } from '@/components/artist/ArtistArtwork'
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { LiquidGlassButton } from '@/components/common/LiquidGlassButton'
 import { DeletePlaylist } from '@/components/modals/DeletePlaylist'
+import { RenamePlaylistModal } from '@/components/modals/RenamePlaylistModal'
+import { DropdownMenu, MenuOption } from '@/components/other/DropdownMenu'
 import { QueueControls } from '@/components/other/QueueControls'
 import { TracksList } from '@/components/track/TracksList'
 import { unknownPlaylistImageUri } from '@/constants/images'
 import { colors, screenPadding } from '@/constants/tokens'
 import { filterTrackByTitle } from '@/helpers/filter'
+import { showToast } from '@/helpers/toast'
 import type { Playlist } from '@/helpers/types'
 import { useTracks } from '@/store/library'
 import { usePlaylistStore } from '@/store/playlist'
 import { defaultStyles } from '@/styles'
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome6, Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Redirect, router, useLocalSearchParams } from 'expo-router'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Keyboard, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import type { ComponentRef } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+type NativeViewRef = ComponentRef<typeof View>
 
 const PlaylistScreen = () => {
 	const { id } = useLocalSearchParams<{ id: string }>()
-	const { playlists } = usePlaylistStore()
+	const { playlists, renamePlaylist } = usePlaylistStore()
 	const tracks = useTracks()
 	const insets = useSafeAreaInsets()
 	const { width: screenWidth } = useWindowDimensions()
 	const [search, setSearch] = useState('')
 	const [searchOpen, setSearchOpen] = useState(false)
+	const [optionsVisible, setOptionsVisible] = useState(false)
+	const [renameModalVisible, setRenameModalVisible] = useState(false)
 	const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
+	const otherActionAnchorRef = useRef<NativeViewRef | null>(null)
 
 	const playlist = playlists?.find((item) => item.id === id)
 	const playlistTracks = useMemo(
@@ -61,6 +70,12 @@ const PlaylistScreen = () => {
 		})
 	}
 
+	const handleRenamePlaylist = (name: string) => {
+		const renamed = renamePlaylist(playlist.id, name)
+		showToast(renamed ? `Playlist renombrada a ${name}` : 'Ya existe una playlist con ese nombre')
+		return renamed
+	}
+
 	return (
 		<View style={defaultStyles.container}>
 			<ScreenGradient />
@@ -72,11 +87,30 @@ const PlaylistScreen = () => {
 				searchExpanded={searchOpen}
 				onSearchOpenChange={setSearchOpen}
 				searchPlaceholder={`Buscar en ${playlist.name}`}
-				onOtherActionPress={() => setSelectedPlaylist(playlist)}
+				onOtherActionPress={() => setOptionsVisible(true)}
 				onOtherActionIcon={<Ionicons name="ellipsis-vertical" size={18} color={colors.text} />}
-				otherActionAccessibilityLabel="Eliminar playlist"
+				otherActionAnchorRef={otherActionAnchorRef}
+				otherActionAccessibilityLabel="Opciones de playlist"
 				topInset={insets.top}
 			/>
+			<DropdownMenu
+				visible={optionsVisible}
+				handleOpen={() => setOptionsVisible(true)}
+				handleClose={() => setOptionsVisible(false)}
+				anchorRef={otherActionAnchorRef}
+				trigger={null}
+				placement="below-left"
+				dropdownWidth={190}
+			>
+				<MenuOption onSelect={() => setSelectedPlaylist(playlist)}>
+					<FontAwesome6 name="trash-can" size={17} color={colors.text} />
+					<Text style={styles.menuOptionText}>Eliminar</Text>
+				</MenuOption>
+				<MenuOption onSelect={() => setRenameModalVisible(true)}>
+					<FontAwesome6 name="pen" size={17} color={colors.text} />
+					<Text style={styles.menuOptionText}>Renombrar</Text>
+				</MenuOption>
+			</DropdownMenu>
 
 			<View style={styles.profileSection}>
 				{!searchOpen && (
@@ -122,6 +156,12 @@ const PlaylistScreen = () => {
 			/>
 
 			<DeletePlaylist selectedPlaylist={selectedPlaylist} setSelectedPlaylist={setSelectedPlaylist} />
+			<RenamePlaylistModal
+				visible={renameModalVisible}
+				initialName={playlist.name}
+				onClose={() => setRenameModalVisible(false)}
+				onRename={handleRenamePlaylist}
+			/>
 		</View>
 	)
 }
@@ -166,6 +206,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 23,
 		fontWeight: '700',
+	},
+	menuOptionText: {
+		...defaultStyles.text,
+		fontSize: 15,
 	},
 	actions: {
 		flexDirection: 'row',
