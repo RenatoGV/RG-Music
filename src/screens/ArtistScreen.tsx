@@ -1,5 +1,6 @@
 import { ScreenHeader } from '@/components/common/ScreenHeader'
-import { unknownArtistImageUri, unknownTrackImageUri } from '@/constants/images'
+import { ArtistArtwork } from '@/components/artist/ArtistArtwork'
+import { unknownArtistImageUri } from '@/constants/images'
 import { colors, screenPadding } from '@/constants/tokens'
 import { filterArtistsByName } from '@/helpers/filter'
 import type { Track } from '@/helpers/types'
@@ -80,41 +81,6 @@ const ArtistsScreen = () => {
 	)
 }
 
-const ArtistArtwork = ({ tracks }: { tracks: Track[] }) => {
-	const artworks = tracks
-		.map((track) => track.artwork?.trim())
-		.filter((artwork): artwork is string => Boolean(artwork) && artwork !== unknownArtistImageUri && artwork !== unknownTrackImageUri)
-		.slice(0, 4)
-
-	if (artworks.length === 0) {
-		return <FastImage source={{ uri: unknownArtistImageUri }} style={styles.artistImage} />
-	}
-
-	if (artworks.length === 3) {
-		return (
-			<View style={styles.artistImage}>
-				<FastImage source={{ uri: artworks[0] }} style={styles.threeArtworkMain} />
-				<View style={styles.threeArtworkSide}>
-					<FastImage source={{ uri: artworks[1] }} style={styles.threeArtworkTile} />
-					<FastImage source={{ uri: artworks[2] }} style={styles.threeArtworkTile} />
-				</View>
-			</View>
-		)
-	}
-
-	return (
-		<View style={styles.artistImage}>
-			{artworks.map((artwork, index) => (
-				<FastImage
-					key={`${artwork}-${index}`}
-					source={{ uri: artwork }}
-					style={artworks.length === 1 ? styles.singleArtworkImage : artworks.length === 2 ? styles.halfArtworkTile : styles.quarterArtworkTile}
-				/>
-			))}
-		</View>
-	)
-}
-
 const getArtistSubtitle = (tracks: Track[]) => {
 	const count = tracks.length
 	const countLabel = `${count} ${count === 1 ? 'canción' : 'canciones'}`
@@ -156,14 +122,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		minHeight: 72,
 	},
-	artistImage: {
-		borderRadius: 12,
-		width: 56,
-		height: 56,
-		overflow: 'hidden',
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-	},
 	artistTextContainer: {
 		flex: 1,
 		justifyContent: 'center',
@@ -178,30 +136,6 @@ const styles = StyleSheet.create({
 		color: '#9ca3af',
 		fontSize: 13,
 		marginTop: 3,
-	},
-	singleArtworkImage: {
-		width: '100%',
-		height: '100%',
-	},
-	halfArtworkTile: {
-		width: '50%',
-		height: '100%',
-	},
-	quarterArtworkTile: {
-		width: '50%',
-		height: '50%',
-	},
-	threeArtworkMain: {
-		width: '50%',
-		height: '100%',
-	},
-	threeArtworkSide: {
-		flex: 1,
-		height: '100%',
-	},
-	threeArtworkTile: {
-		width: '100%',
-		height: '50%',
 	},
 })
 

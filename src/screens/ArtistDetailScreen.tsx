@@ -1,28 +1,193 @@
-import { ArtistTracksList } from '@/components/other/ArtistTracksList'
-import { screenPadding } from '@/constants/tokens'
+import { ScreenHeader } from '@/components/common/ScreenHeader'
+import { ArtistArtwork } from '@/components/artist/ArtistArtwork'
+import { QueueControls } from '@/components/other/QueueControls'
+import { TrackListSortButton, type TrackSortMode } from '@/components/other/TrackListSortButton'
+import { TracksList } from '@/components/track/TracksList'
+import { colors, screenPadding } from '@/constants/tokens'
+import { filterTrackByTitle } from '@/helpers/filter'
 import { useArtists } from '@/store/library'
 import { defaultStyles } from '@/styles'
-import { Redirect, useLocalSearchParams } from 'expo-router'
-import { View } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Redirect, router, useLocalSearchParams } from 'expo-router'
+import { useMemo, useState } from 'react'
+import { Keyboard, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const ArtistDetailScreen = () => {
-   const {name: artistName} = useLocalSearchParams<{name: string}>()
+	const { name: artistName } = useLocalSearchParams<{ name: string }>()
+	const artists = useArtists()
+	const insets = useSafeAreaInsets()
+	const { width: screenWidth } = useWindowDimensions()
+	const [search, setSearch] = useState('')
+	const [searchOpen, setSearchOpen] = useState(false)
+	const [sortMode, setSortMode] = useState<TrackSortMode>('alphabetical')
 
-   const artists = useArtists()
+	const artist = artists?.find((item) => item.name.toLowerCase() === artistName?.toLowerCase())
 
-   const artist = artists?.find((artist) => artist.name.toLowerCase() === artistName?.toLowerCase())
+	const sortedTracks = useMemo(() => {
+		if (!artist) return []
+		const sorted = [...artist.tracks].sort((a, b) => a.title.localeCompare(b.title))
+		return sortMode === 'alphabetical'
+			? sorted
+			: sorted.sort((a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0))
+	}, [artist, sortMode])
+	const filteredTracks = useMemo(() => filterTrackByTitle(sortedTracks, search), [sortedTracks, search])
+	const queueId = `artist:${artist?.name ?? artistName ?? ''}`
+	const isSearching = searchOpen
 
-   if(!artist) {
-      console.warn(`Artist ${artistName} not found!`)
+	if (!artist) {
+		console.warn(`Artist ${artistName} not found!`)
+		return <Redirect href={'/(tabs)/artists'} />
+	}
 
-      return <Redirect href={'/(tabs)/artists'} />
-   }
+	const hasAllDurations = artist.tracks.length > 0 && artist.tracks.every(
+		(track) => typeof track.duration === 'number' && track.duration > 0,
+	)
+	const totalDuration = hasAllDurations
+		? artist.tracks.reduce((total, track) => total + (track.duration ?? 0), 0)
+		: null
+	const totalMinutes = totalDuration === null ? null : Math.round(totalDuration / 60)
+	const durationValue = totalMinutes === null ? null : `${totalMinutes}`
+	const artworkSize = Math.min(220, Math.max(160, screenWidth * 0.54))
 
-   return(
-      <View style={{...defaultStyles.container, paddingHorizontal: screenPadding.horizontal}}>
-         <ArtistTracksList artist={artist} />
-      </View>
-   )
+	return (
+		<View style={defaultStyles.container}>
+			<ScreenGradient />
+			<ScreenHeader
+				onBackPress={() => router.back()}
+				backAccessibilityLabel="Volver a artistas"
+				onSearchChange={setSearch}
+				searchValue={search}
+				searchExpanded={searchOpen}
+				onSearchOpenChange={setSearchOpen}
+				searchPlaceholder={`Buscar en ${artist.name}`}
+				topInset={insets.top}
+			/>
+
+			<View style={styles.profileSection}>
+				{!isSearching && (
+					<ArtistArtwork tracks={artist.tracks} size={artworkSize} borderRadius={artworkSize / 2} />
+				)}
+				<Text numberOfLines={1} style={styles.artistName}>{artist.name}</Text>
+
+				{!isSearching && (
+					<View style={styles.statsRow}>
+						<Stat value={`${artist.tracks.length}`} label="Canciones" />
+						{durationValue !== null && (
+							<Stat value={durationValue} label="Minutos" />
+						)}
+					</View>
+				)}
+
+				<QueueControls
+					queueId={queueId}
+					tracks={sortedTracks}
+					style={styles.queueControls}
+				/>
+			</View>
+
+			<View style={styles.listHeading}>
+				<Text style={styles.songsHeading}>Canciones</Text>
+				<View style={styles.sortButtonWrap}>
+					<TrackListSortButton
+						mode={sortMode}
+						onToggle={() => setSortMode((current) => current === 'alphabetical' ? 'addedAt' : 'alphabetical')}
+					/>
+				</View>
+			</View>
+
+			<TracksList
+				id={queueId}
+				tracks={sortedTracks}
+				filteredTracks={filteredTracks}
+				hideQueueControls
+				onTrackPress={() => {
+					setSearch('')
+					setSearchOpen(false)
+					Keyboard.dismiss()
+				}}
+				style={styles.trackList}
+			/>
+		</View>
+	)
 }
+
+const Stat = ({ value, label }: { value: string; label: string }) => (
+	<View style={styles.stat}>
+		<Text style={styles.statValue}>{value}</Text>
+		<Text style={styles.statLabel}>{label}</Text>
+	</View>
+)
+
+const ScreenGradient = () => (
+	<LinearGradient
+		pointerEvents="none"
+		colors={['#18553A', '#02181C', '#0E0E10']}
+		locations={[0, 0.36, 1]}
+		start={{ x: 0.5, y: 0 }}
+		end={{ x: 0.5, y: 1 }}
+		style={StyleSheet.absoluteFill}
+	/>
+)
+
+const styles = StyleSheet.create({
+	profileSection: {
+		alignItems: 'center',
+		paddingHorizontal: screenPadding.horizontal,
+		paddingTop: 2,
+	},
+	artistName: {
+		...defaultStyles.text,
+		fontSize: 25,
+		fontWeight: '600',
+		marginTop: 16,
+		maxWidth: '90%',
+	},
+	statsRow: {
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'space-evenly',
+		marginTop: 20,
+	},
+	stat: {
+		minWidth: 110,
+		alignItems: 'center',
+	},
+	statValue: {
+		...defaultStyles.text,
+		fontSize: 22,
+		fontWeight: '500',
+	},
+	statLabel: {
+		...defaultStyles.text,
+		color: colors.textMuted,
+		fontSize: 16,
+		marginTop: 3,
+	},
+	queueControls: {
+		width: '100%',
+		marginTop: 26,
+	},
+	listHeading: {
+		paddingHorizontal: screenPadding.horizontal,
+		marginTop: 24,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+	},
+	songsHeading: {
+		...defaultStyles.text,
+		fontSize: 20,
+		fontWeight: '600',
+	},
+	sortButtonWrap: {
+		alignItems: 'flex-end',
+		height: 36,
+	},
+	trackList: {
+		flex: 1,
+		paddingHorizontal: screenPadding.horizontal,
+	},
+})
 
 export default ArtistDetailScreen

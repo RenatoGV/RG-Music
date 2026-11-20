@@ -26,6 +26,8 @@ type ScreenHeaderProps = {
   onFolderPress?: () => void
   searchValue?: string
   onSearchChange?: (value: string) => void
+  searchExpanded?: boolean
+  onSearchOpenChange?: (open: boolean) => void
   searchPlaceholder?: string
   backAccessibilityLabel?: string
   topInset?: number
@@ -44,12 +46,15 @@ export const ScreenHeader = ({
   onFolderPress,
   searchValue = '',
   onSearchChange,
+  searchExpanded,
+  onSearchOpenChange,
   searchPlaceholder = 'Buscar',
   backAccessibilityLabel = 'Volver',
   topInset = 0,
 }: ScreenHeaderProps) => {
   const { width: screenWidth } = useWindowDimensions()
-  const [searchOpen, setSearchOpen] = useState(false)
+  const [internalSearchOpen, setInternalSearchOpen] = useState(false)
+  const searchOpen = searchExpanded ?? internalSearchOpen
   const searchProgress = useSharedValue(0)
   const inputRef = useRef<ComponentRef<typeof TextInput> | null>(null)
 
@@ -65,6 +70,11 @@ export const ScreenHeader = ({
     availableWidth - closedButtonCount * BUTTON_SIZE - Math.max(0, closedItemCount - 1) * SPACER_SIZE,
   )
   const inputWidth = availableWidth - EXPANDED_SEARCH_ICON_SLOT - SEARCH_CLOSE_SLOT
+
+  const updateSearchOpen = (open: boolean) => {
+    if (searchExpanded === undefined) setInternalSearchOpen(open)
+    onSearchOpenChange?.(open)
+  }
 
   const backAnimatedStyle = useAnimatedStyle(() => ({
     width: BUTTON_SIZE * (1 - searchProgress.value),
@@ -104,6 +114,13 @@ export const ScreenHeader = ({
   }))
 
   useEffect(() => {
+    searchProgress.value = withTiming(searchOpen ? 1 : 0, {
+      duration: searchOpen ? 280 : 240,
+      easing: Easing.inOut(Easing.cubic),
+    })
+  }, [searchOpen, searchProgress])
+
+  useEffect(() => {
     if (!searchOpen) return
     const timeout = setTimeout(() => {
       TextInput.State.focusTextInput(inputRef.current?.getNativeRef())
@@ -112,15 +129,13 @@ export const ScreenHeader = ({
   }, [searchOpen])
 
   const openSearch = () => {
-    setSearchOpen(true)
-    searchProgress.value = withTiming(1, { duration: 280, easing: Easing.inOut(Easing.cubic) })
+    updateSearchOpen(true)
   }
 
   const closeSearch = () => {
     Keyboard.dismiss()
     onSearchChange?.('')
-    setSearchOpen(false)
-    searchProgress.value = withTiming(0, { duration: 240, easing: Easing.inOut(Easing.cubic) })
+    updateSearchOpen(false)
   }
 
   return (
@@ -159,7 +174,9 @@ export const ScreenHeader = ({
         </Animated.View>
       )}
 
-      {(hasBackButton || hasText) && hasSearchButton && <Animated.View style={[styles.spacer, secondSpacerAnimatedStyle]} />}
+      {!hasText && hasSearchButton && <View style={styles.flexSpacer} />}
+
+      {hasText && hasSearchButton && <Animated.View style={[styles.spacer, secondSpacerAnimatedStyle]} />}
 
       {hasSearchButton && (
         <Animated.View style={[styles.searchButtonWrap, searchAnimatedStyle]}>
@@ -248,6 +265,9 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flexShrink: 0,
+  },
+  flexSpacer: {
+    flex: 1,
   },
   buttonWrap: {
     height: BUTTON_SIZE,

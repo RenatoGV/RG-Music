@@ -17,11 +17,12 @@ export type TrackListProps = Partial<FlatListProps<Track>> & {
   filteredTracks?: Track[]
   hideQueueControls?: boolean
   fromPlaylist?: Playlist
+  onTrackPress?: (track: Track) => void
 }
 
 const ItemDivider = () => <View style={{ marginVertical: 10, marginLeft: 60}} />
 
-export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
+export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, onTrackPress, ...flatlistProps } : TrackListProps) => {
   const contentBottomPadding = useTabContentBottomPadding()
   const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleOriginalQueue } = useQueue()
 
@@ -29,6 +30,8 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
     const trackIndex = tracks.findIndex(track => track.url === selectedTrack.url)
 
     if(trackIndex === -1) return
+
+    onTrackPress?.(selectedTrack)
 
     if (shuffleEnabled) {
       const remainingTracks = tracks.filter((_, index) => index !== trackIndex)
