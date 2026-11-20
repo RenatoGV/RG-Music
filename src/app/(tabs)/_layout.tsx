@@ -27,7 +27,8 @@ const TabsNavigation = () => {
   const tabAnimationProgress = useSharedValue(activeTabIndex)
 
   useEffect(() => {
-    if (pathname === '/player') return
+    // Root-level overlays should keep the tab selected underneath them.
+    if (pathname === '/player' || pathname.endsWith('/addTracksToPlaylist')) return
     setActiveTabIndex(getTabIndex(pathname))
   }, [pathname])
 
