@@ -49,9 +49,9 @@ const PlayerScreen = () => {
 
    useEffect(() => {
       if(showLyrics){
-         void activateKeepAwakeAsync('rg-music')
+         void activateKeepAwakeAsync('rythm')
       }else{
-         void deactivateKeepAwake('rg-music')
+         void deactivateKeepAwake('rythm')
       }
    }, [showLyrics])
 

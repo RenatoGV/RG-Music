@@ -1,7 +1,7 @@
-# 🎵 RG Music
+# 🎵 Rythm
 
 <div align="center">
-  <img src="./assets/icon.png" alt="RG Music Logo" width="120" height="120">
+  <img src="./assets/icon.png" alt="Rythm Logo" width="120" height="120">
   
   ### Reproductor de música local para Android e iOS
   

@@ -2,8 +2,8 @@ Pod::Spec.new do |s|
   s.name           = 'MusicImport'
   s.version        = '1.0.0'
   s.summary        = 'Native helpers for importing music files.'
-  s.description    = 'Reads local audio durations for the RG Music library.'
-  s.author         = 'RG Music'
+  s.description    = 'Reads local audio durations for the Rythm library.'
+  s.author         = 'Rythm'
   s.homepage       = 'https://docs.expo.dev/modules/'
   s.license        = { :type => 'MIT' }
   s.platform       = :ios, '15.1'
