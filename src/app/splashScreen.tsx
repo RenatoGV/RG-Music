@@ -11,7 +11,14 @@ interface Props {
 
 export default function SplashScreen({ onFinish }: Readonly<Props>) {
   return (
-    <LinearGradient colors={['#fc3c44', '#383838']} style={styles.container}>
+    <LinearGradient
+      pointerEvents="none"
+      colors={['#297051', '#02181C', '#0E0E10']}
+      locations={[0, 0.36, 1]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.container}
+    >
       <StatusBar style='light' />
       <LottieView source={splashAnimation} style={{width: '100%', height: '100%'}} autoPlay loop={false}
         onAnimationFinish={onFinish}
