@@ -104,7 +104,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
 
    const artworkAnimatedStyle = useAnimatedStyle(() => {
       const compactSize = layoutSize.width * 0.2
-      const expandedArtworkSize = Math.min(layoutSize.width * 0.82, layoutSize.height * 0.36)
+      const expandedArtworkSize = Math.min(layoutSize.width * 0.9, layoutSize.height * 0.4)
       const expandedArtworkTop = layoutSize.height * 0.025
       const expandedArtworkLeft = (layoutSize.width - expandedArtworkSize) / 2
       const progress = artworkProgress.value
@@ -119,7 +119,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
 
    const trackInfoAnimatedStyle = useAnimatedStyle(() => {
       const progress = infoProgress.value
-      const expandedArtworkSize = Math.min(layoutSize.width * 0.82, layoutSize.height * 0.36)
+      const expandedArtworkSize = Math.min(layoutSize.width * 0.9, layoutSize.height * 0.4)
       const expandedArtworkTop = layoutSize.height * 0.025
       const expandedInfoTop = expandedArtworkTop + expandedArtworkSize + layoutSize.height * 0.035
       const expandedInfoHeight = layoutSize.height * 0.15
@@ -166,9 +166,12 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
                         animationEnabled={!showLyrics || headerCompact}
                      />
                   </View>
-                  <View style={styles.trackActions}>
-                     <TrackActions isFavorite={isFavorite} onToggleFavorite={onToggleFavorite} onEditLyricId={onEditLyricId} />
-                  </View>
+                  <TrackActions
+                     isFavorite={isFavorite}
+                     onToggleFavorite={onToggleFavorite}
+                     onEditLyricId={onEditLyricId}
+                     compact={headerCompact}
+                  />
                </View>
 
                <View style={styles.subtitleRow}>
@@ -214,26 +217,36 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
    )
 }
 
-const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId }: { isFavorite: boolean; onToggleFavorite: () => void; onEditLyricId: () => void }) => (
-   <View style={styles.trackActions}>
-      <LiquidGlassButton
-         onPress={onEditLyricId}
-         accessibilityRole="button"
-         accessibilityLabel="Editar identificador de letra"
-         style={styles.actionButton}
-      >
-         <MaterialIcons name="music-note" size={20} color={colors.icon} />
-      </LiquidGlassButton>
-      <LiquidGlassButton
-         onPress={onToggleFavorite}
-         accessibilityRole="button"
-         accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
-         style={styles.actionButton}
-      >
-         <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={18} color={isFavorite ? colors.primary : colors.icon} />
-      </LiquidGlassButton>
-   </View>
-)
+const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId, compact }: {
+   isFavorite: boolean
+   onToggleFavorite: () => void
+   onEditLyricId: () => void
+   compact: boolean
+}) => {
+   const buttonSize = compact ? 32 : 40
+   const iconSize = compact ? 16 : 20
+
+   return (
+      <View style={[styles.trackActions, compact && styles.compactTrackActions]}>
+         <LiquidGlassButton
+            onPress={onEditLyricId}
+            accessibilityRole="button"
+            accessibilityLabel="Editar identificador de letra"
+            style={[styles.actionButton, { width: buttonSize, height: buttonSize }]}
+         >
+            <MaterialIcons name="music-note" size={iconSize} color={colors.icon} />
+         </LiquidGlassButton>
+         <LiquidGlassButton
+            onPress={onToggleFavorite}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+            style={[styles.actionButton, { width: buttonSize, height: buttonSize }]}
+         >
+            <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={compact ? 14 : 18} color={isFavorite ? colors.primary : colors.icon} />
+         </LiquidGlassButton>
+      </View>
+   )
+}
 
 const styles = StyleSheet.create({
 	container: { flex: 1 },
@@ -272,6 +285,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       width: '100%',
       minWidth: 0,
+      gap: 5
    },
 	trackTitleText: {
 		...defaultStyles.text,
@@ -301,9 +315,10 @@ const styles = StyleSheet.create({
       gap: 10,
       marginRight: 0,
    },
+   compactTrackActions: {
+      gap: 6,
+   },
    actionButton: {
-      width: 40,
-      height: 40,
       alignItems: 'center',
       justifyContent: 'center',
    },
