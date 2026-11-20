@@ -23,14 +23,13 @@ const TabsNavigation = () => {
   const floatingPlayerGap = 10
   const tabBarHeight = tabBarContentHeight + insets.bottom + 13
   const [blurTargetRef, setBlurTargetRef] = useState<RefObject<ComponentRef<typeof View> | null> | null>(null)
-  const activeTabIndex = pathname.includes('/favorites')
-    ? 0
-    : pathname.includes('/playlists')
-      ? 1
-      : pathname.includes('/artists')
-        ? 3
-        : 2
+  const [activeTabIndex, setActiveTabIndex] = useState(() => getTabIndex(pathname))
   const tabAnimationProgress = useSharedValue(activeTabIndex)
+
+  useEffect(() => {
+    if (pathname === '/player') return
+    setActiveTabIndex(getTabIndex(pathname))
+  }, [pathname])
 
   useEffect(() => {
     tabAnimationProgress.value = withSpring(activeTabIndex, { damping: 22, stiffness: 180, mass: 0.8 })
@@ -118,5 +117,13 @@ const TabsNavigation = () => {
     </LiquidGlassBlurTargetContext.Provider>
   )
 }
+
+const getTabIndex = (pathname: string) => pathname.includes('/favorites')
+  ? 0
+  : pathname.includes('/playlists')
+    ? 1
+    : pathname.includes('/artists')
+      ? 3
+      : 2
 
 export default TabsNavigation
