@@ -10,21 +10,22 @@ export const reorderQueueAfterCurrent = (
    if (currentIndex == null || currentIndex < 0 || currentIndex >= queue.length) return false
 
    const currentTrack = queue[currentIndex]
-   const currentPosition = TrackPlayer.getProgress().position
-   const wasPlaying = TrackPlayer.isPlaying()
    const remainingTracks = nextTracks.filter((track) => track.url !== currentTrack.url)
 
    TrackPlayer.setShuffleEnabled(false)
-   // Replace the queue in a single native command instead of issuing one move
-   // or remove per track. Large libraries can otherwise flood the player queue.
-   TrackPlayer.setQueue([currentTrack, ...remainingTracks])
 
-   if (Number.isFinite(currentPosition) && currentPosition > 0) {
-      TrackPlayer.seekTo(currentPosition)
+   // Keep the active media item in place. Remove the items around it in ranges,
+   // then append the new order in one batch without reloading the current track.
+   if (currentIndex < queue.length - 1) {
+      TrackPlayer.removeRange(currentIndex + 1, queue.length)
    }
 
-   if (wasPlaying) {
-      TrackPlayer.play()
+   if (currentIndex > 0) {
+      TrackPlayer.removeRange(0, currentIndex)
+   }
+
+   if (remainingTracks.length > 0) {
+      TrackPlayer.add(remainingTracks)
    }
 
    return true

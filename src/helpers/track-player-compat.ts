@@ -151,6 +151,7 @@ const TrackPlayer = {
   move: TrackPlayerV5.moveMediaItem,
   skip: TrackPlayerV5.skipToIndex,
   remove: TrackPlayerV5.removeMediaItem,
+  removeRange: TrackPlayerV5.removeMediaItems,
   getQueue: () => TrackPlayerV5.getQueue().map((item) => fromMediaItem(item)!).filter(Boolean),
   getActiveTrack: () => fromMediaItem(TrackPlayerV5.getActiveMediaItem()),
   getActiveTrackIndex: TrackPlayerV5.getActiveMediaItemIndex,
