@@ -27,7 +27,7 @@ export const TrackListSortButton = ({ mode, onToggle }: TrackListSortButtonProps
 
 const styles = StyleSheet.create({
   button: {
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-start',
     width: 140,
     flexDirection: 'row',
     alignItems: 'center',

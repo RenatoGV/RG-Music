@@ -6,12 +6,10 @@ import { filterTrackByTitle } from '@/helpers/filter'
 import { useLibraryStore, useTracks } from '@/store/library'
 import { generateTrackListId } from '@/helpers/miscellaneous'
 import { Ionicons } from '@expo/vector-icons'
-import FastImage from 'react-native-fast-image'
-import { unknownTrackImageUri } from '@/constants/images'
 import { TracksList } from '@/components/track/TracksList'
 import { QueueControls } from '@/components/other/QueueControls'
 import { TrackListSortButton, type TrackSortMode } from '@/components/other/TrackListSortButton'
-import { Bar, Circle } from 'react-native-progress'
+import { Bar } from 'react-native-progress'
 import { LinearGradient } from 'expo-linear-gradient'
 import { SongsFolderModal } from '@/components/modals/SongsFolderModal'
 import { refreshMusicFolder, selectMusicFolder } from '@/services/musicFolderService'
@@ -126,7 +124,7 @@ const SongsScreen = () => {
 	}
 
 	return (
-		<View style={styles.screen}>
+		<View style={defaultStyles.container}>
 			<ScreenGradient />
 			{isLoading ? (
 				<View style={styles.loadingContent}>
@@ -211,10 +209,6 @@ const ScreenGradient = () => (
 )
 
 const styles = StyleSheet.create({
-	screen: {
-		flex: 1,
-		backgroundColor: colors.background,
-	},
 	loadingContent: {
 		flex: 1,
 		paddingHorizontal: screenPadding.horizontal,
