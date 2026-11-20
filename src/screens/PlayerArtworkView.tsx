@@ -156,7 +156,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
                         text={track.title ?? ''}
                         animationThreshold={0}
                         style={styles.trackTitleText}
-                        animationEnabled={showLyrics && headerCompact}
+                        animationEnabled={!showLyrics || headerCompact}
                      />
                   </View>
                   <View style={styles.trackActions}>
