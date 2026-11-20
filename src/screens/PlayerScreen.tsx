@@ -95,7 +95,7 @@ const PlayerScreen = () => {
             <View style={styles.overlayContainer}>
                   <DismissPlayerSymbol enabled={Platform.OS === 'android' && showLyrics} translateY={dismissTranslation} />
 
-                  <View style={{flex: 1, marginTop: top + 48, marginBottom: bottom}}>
+                  <View style={{flex: 1, marginTop: top + 40, marginBottom: bottom}}>
                      <PlayerArtworkView
                         track={activeTrack}
                         isFavorite={isFavorite}
@@ -156,11 +156,11 @@ const DismissPlayerSymbol = ({ enabled, translateY }: { enabled: boolean; transl
             style={{ width: 120, height: 44, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 8 }}
          >
          <View accessible={false} style={{
-               width: 50,
-               height: 8,
-               borderRadius: 8,
-               backgroundColor: '#fff',
-               opacity: 0.7
+            width: 75,
+            height: 5,
+            borderRadius: 8,
+            backgroundColor: '#fff',
+            opacity: 0.7
          }} />
          </View>
       </View>
