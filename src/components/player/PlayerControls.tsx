@@ -88,9 +88,9 @@ const ShuffleButton = ({ iconSize, buttonSize, glass }: { iconSize: number; butt
 
     const icon = (
         <MaterialCommunityIcons
-            name={shuffleEnabled ? 'shuffle' : 'shuffle-disabled'}
+            name={'shuffle'}
             size={iconSize}
-            color={colors.text}
+            color={shuffleEnabled ? colors.primary : colors.text}
         />
     )
 
