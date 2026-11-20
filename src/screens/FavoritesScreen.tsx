@@ -8,7 +8,7 @@ import { filterTrackByTitle } from '@/helpers/filter'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, screenPadding } from '@/constants/tokens'
+import { screenPadding } from '@/constants/tokens'
 import { QueueControls } from '@/components/other/QueueControls'
 import { TrackListSortButton, TrackSortMode } from '@/components/other/TrackListSortButton'
 
@@ -42,7 +42,7 @@ const FavoritesScreen = () => {
             title="Favoritos"
             searchValue={search}
             onSearchChange={setSearch}
-            searchPlaceholder="Buscar en Canciones"
+            searchPlaceholder="Buscar en Favoritos"
             topInset={insets.top}
          />
          <View style={styles.content}>

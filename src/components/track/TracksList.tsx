@@ -19,7 +19,7 @@ export type TrackListProps = Partial<FlatListProps<Track>> & {
   fromPlaylist?: Playlist
 }
 
-const ItemDivider = () => <View style={{ marginVertical: 9, marginLeft: 60}} />
+const ItemDivider = () => <View style={{ marginVertical: 10, marginLeft: 60}} />
 
 export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
   const contentBottomPadding = useTabContentBottomPadding()
