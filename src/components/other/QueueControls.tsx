@@ -1,12 +1,14 @@
 import { colors } from "@/constants/tokens"
 import { defaultStyles } from "@/styles"
 import { StyleSheet, Text, View, ViewProps } from "react-native"
+import { useRef } from "react"
 import TrackPlayer from "@/helpers/track-player-compat"
 import { Track } from "@/helpers/types"
 import { Ionicons } from "@expo/vector-icons"
 import { useQueue } from "@/store/queue"
 import { shuffleTracks } from "@/helpers/shuffleTracks"
 import { reorderQueueAfterCurrent } from "@/helpers/reorderQueueAfterCurrent"
+import { deferUntilAfterPaint } from "@/helpers/deferUntilAfterPaint"
 import { GradientButton } from "@/components/common/GradientButton"
 import { LiquidGlassButton } from "@/components/common/LiquidGlassButton"
 
@@ -17,6 +19,7 @@ type QueueControlsProps = {
 
 export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueControlsProps) => {
     const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleEnabled, setShuffleOriginalQueue } = useQueue()
+    const isShuffleUpdatePending = useRef(false)
 
     const handlePlay = () => {
         setShuffleOriginalQueue(shuffleEnabled ? tracks.map((track) => track.url) : null)
@@ -28,32 +31,41 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
     }
 
     const handleToggleShuffle = () => {
+        if (isShuffleUpdatePending.current) return
+
         const enabled = !shuffleEnabled
         setShuffleEnabled(enabled)
+        isShuffleUpdatePending.current = true
 
-        if (activeQueueId !== queueId || !TrackPlayer.isPlaying()) {
-            setShuffleOriginalQueue(null)
-            return
-        }
+        deferUntilAfterPaint(() => {
+            try {
+                if (activeQueueId !== queueId || !TrackPlayer.isPlaying()) {
+                    setShuffleOriginalQueue(null)
+                    return
+                }
 
-        setShuffleOriginalQueue(enabled ? tracks.map((track) => track.url) : null)
+                setShuffleOriginalQueue(enabled ? tracks.map((track) => track.url) : null)
 
-        const queue = TrackPlayer.getQueue()
-        const currentIndex = TrackPlayer.getActiveTrackIndex()
+                const queue = TrackPlayer.getQueue()
+                const currentIndex = TrackPlayer.getActiveTrackIndex()
 
-        if (currentIndex == null || currentIndex < 0 || currentIndex >= queue.length) return
+                if (currentIndex == null || currentIndex < 0 || currentIndex >= queue.length) return
 
-        const currentTrack = queue[currentIndex]
-        const originalIndex = tracks.findIndex((track) => track.url === currentTrack.url)
+                const currentTrack = queue[currentIndex]
+                const originalIndex = tracks.findIndex((track) => track.url === currentTrack.url)
 
-        if (originalIndex < 0) return
+                if (originalIndex < 0) return
 
-        const remainingTracks = [
-            ...tracks.slice(originalIndex + 1),
-            ...tracks.slice(0, originalIndex),
-        ]
-        const nextTracks = enabled ? shuffleTracks(remainingTracks) : remainingTracks
-        reorderQueueAfterCurrent(nextTracks, queue, currentIndex)
+                const remainingTracks = [
+                    ...tracks.slice(originalIndex + 1),
+                    ...tracks.slice(0, originalIndex),
+                ]
+                const nextTracks = enabled ? shuffleTracks(remainingTracks) : remainingTracks
+                reorderQueueAfterCurrent(nextTracks, queue, currentIndex)
+            } finally {
+                isShuffleUpdatePending.current = false
+            }
+        })
     }
 
     return (

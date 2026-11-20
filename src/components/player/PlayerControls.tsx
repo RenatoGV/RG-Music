@@ -1,4 +1,5 @@
 import { TouchableOpacity, View, ViewStyle } from "react-native"
+import { useRef } from "react"
 import TrackPlayer, { useIsPlaying } from "@/helpers/track-player-compat"
 import { FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons"
 import { colors } from "@/constants/tokens"
@@ -7,6 +8,7 @@ import { PlayerRepeatToggle } from '@/components/player/PlayerRepeatToggle'
 import { useQueue } from '@/store/queue'
 import { shuffleTracks } from '@/helpers/shuffleTracks'
 import { reorderQueueAfterCurrent } from '@/helpers/reorderQueueAfterCurrent'
+import { deferUntilAfterPaint } from '@/helpers/deferUntilAfterPaint'
 import type { Track } from '@/helpers/types'
 
 type PlayerControlsProps = {
@@ -37,37 +39,48 @@ export const PlayerControls = ({ style, compact = false }: PlayerControlsProps) 
 
 const ShuffleButton = ({ iconSize }: { iconSize: number }) => {
     const { shuffleEnabled, setShuffleEnabled, shuffleOriginalQueue, setShuffleOriginalQueue } = useQueue()
+    const isShuffleUpdatePending = useRef(false)
 
     const handleToggleShuffle = () => {
-        const queue = TrackPlayer.getQueue()
-        const currentIndex = TrackPlayer.getActiveTrackIndex()
+        if (isShuffleUpdatePending.current) return
 
-        if (currentIndex == null || currentIndex < 0 || currentIndex >= queue.length) return
-
-        const currentUrl = queue[currentIndex].url
-        const originalUrls = shuffleEnabled
-            ? shuffleOriginalQueue ?? queue.map((track) => track.url)
-            : queue.map((track) => track.url)
-        const queueByUrl = new Map(queue.map((track) => [track.url, track] as const))
-        const originalCurrentIndex = originalUrls.indexOf(currentUrl)
-        const pendingUrls = originalCurrentIndex < 0
-            ? queue.filter((track) => track.url !== currentUrl).map((track) => track.url)
-            : [
-                ...originalUrls.slice(originalCurrentIndex + 1),
-                ...originalUrls.slice(0, originalCurrentIndex)
-            ]
-        const pendingTracks = pendingUrls
-            .map((url) => queueByUrl.get(url))
-            .filter((track): track is Track => track !== undefined)
         const nextShuffleEnabled = !shuffleEnabled
-
-        reorderQueueAfterCurrent(
-            nextShuffleEnabled ? shuffleTracks(pendingTracks) : pendingTracks,
-            queue,
-            currentIndex,
-        )
-        setShuffleOriginalQueue(nextShuffleEnabled ? originalUrls : null)
         setShuffleEnabled(nextShuffleEnabled)
+        isShuffleUpdatePending.current = true
+
+        deferUntilAfterPaint(() => {
+            try {
+                const queue = TrackPlayer.getQueue()
+                const currentIndex = TrackPlayer.getActiveTrackIndex()
+
+                if (currentIndex == null || currentIndex < 0 || currentIndex >= queue.length) return
+
+                const currentUrl = queue[currentIndex].url
+                const originalUrls = shuffleEnabled
+                    ? shuffleOriginalQueue ?? queue.map((track) => track.url)
+                    : queue.map((track) => track.url)
+                const queueByUrl = new Map(queue.map((track) => [track.url, track] as const))
+                const originalCurrentIndex = originalUrls.indexOf(currentUrl)
+                const pendingUrls = originalCurrentIndex < 0
+                    ? queue.filter((track) => track.url !== currentUrl).map((track) => track.url)
+                    : [
+                        ...originalUrls.slice(originalCurrentIndex + 1),
+                        ...originalUrls.slice(0, originalCurrentIndex)
+                    ]
+                const pendingTracks = pendingUrls
+                    .map((url) => queueByUrl.get(url))
+                    .filter((track): track is Track => track !== undefined)
+
+                reorderQueueAfterCurrent(
+                    nextShuffleEnabled ? shuffleTracks(pendingTracks) : pendingTracks,
+                    queue,
+                    currentIndex,
+                )
+                setShuffleOriginalQueue(nextShuffleEnabled ? originalUrls : null)
+            } finally {
+                isShuffleUpdatePending.current = false
+            }
+        })
     }
 
     return (
