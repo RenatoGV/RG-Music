@@ -1,6 +1,7 @@
 import { filterTrackByTitle } from '@/helpers/filter'
 import { Artist } from '@/helpers/types'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
+import { useMemo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import { unknownArtistImageUri } from '@/constants/images'
@@ -18,7 +19,11 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
     })
 
     const queueId = `artist:${artist.name}`
-    const filteredArtistTracks = filterTrackByTitle(artist.tracks, search)
+    const sortedTracks = useMemo(
+        () => [...artist.tracks].sort((a, b) => a.title.localeCompare(b.title)),
+        [artist.tracks]
+    )
+    const filteredArtistTracks = filterTrackByTitle(sortedTracks, search)
 
     return <TracksList
         id={queueId}
@@ -35,12 +40,12 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
 
                 <Text numberOfLines={1} style={styles.artistNameText}>{artist.name}</Text>
 
-                {artist.tracks.length > 0 && (
-                    <QueueControls queueId={queueId} tracks={artist.tracks} style={{paddingTop: 24}} />
+                {sortedTracks.length > 0 && (
+                    <QueueControls queueId={queueId} tracks={sortedTracks} style={{paddingTop: 24}} />
                 )}
             </View>
         }
-        tracks={artist.tracks}
+        tracks={sortedTracks}
         filteredTracks={filteredArtistTracks}
     />
 }

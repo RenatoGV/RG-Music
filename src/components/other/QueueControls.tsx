@@ -1,19 +1,26 @@
 import { colors } from "@/constants/tokens"
 import { defaultStyles } from "@/styles"
-import { StyleSheet, Text, TouchableOpacity, View, ViewProps } from "react-native"
-import TrackPlayer, { getPlaybackState } from "@/helpers/track-player-compat"
+import { StyleSheet, Text, View, ViewProps } from "react-native"
+import { useRef } from "react"
+import TrackPlayer from "@/helpers/track-player-compat"
 import { Track } from "@/helpers/types"
 import { Ionicons } from "@expo/vector-icons"
 import { useQueue } from "@/store/queue"
 import { shuffleTracks } from "@/helpers/shuffleTracks"
+import { reorderQueueAfterCurrent } from "@/helpers/reorderQueueAfterCurrent"
+import { deferUntilAfterPaint } from "@/helpers/deferUntilAfterPaint"
+import { GradientButton } from "@/components/common/GradientButton"
+import { LiquidGlassButton } from "@/components/common/LiquidGlassButton"
 
 type QueueControlsProps = {
     queueId: string
     tracks: Track[]
+    compact?: boolean
 } & ViewProps
 
-export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueControlsProps) => {
+export const QueueControls = ({queueId, tracks, compact = false, style, ...viewProps} : QueueControlsProps) => {
     const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleEnabled, setShuffleOriginalQueue } = useQueue()
+    const isShuffleUpdatePending = useRef(false)
 
     const handlePlay = () => {
         setShuffleOriginalQueue(shuffleEnabled ? tracks.map((track) => track.url) : null)
@@ -25,98 +32,110 @@ export const QueueControls = ({queueId, tracks, style, ...viewProps} : QueueCont
     }
 
     const handleToggleShuffle = () => {
+        if (isShuffleUpdatePending.current) return
+
         const enabled = !shuffleEnabled
         setShuffleEnabled(enabled)
+        isShuffleUpdatePending.current = true
 
-        if (activeQueueId !== queueId || getPlaybackState().state !== 'playing') {
-            setShuffleOriginalQueue(null)
-            return
-        }
+        deferUntilAfterPaint(() => {
+            try {
+                if (activeQueueId !== queueId || !TrackPlayer.isPlaying()) {
+                    setShuffleOriginalQueue(null)
+                    return
+                }
 
-        setShuffleOriginalQueue(enabled ? tracks.map((track) => track.url) : null)
+                setShuffleOriginalQueue(enabled ? tracks.map((track) => track.url) : null)
 
-        const queue = TrackPlayer.getQueue()
-        const currentIndex = TrackPlayer.getActiveTrackIndex()
+                const queue = TrackPlayer.getQueue()
+                const currentIndex = TrackPlayer.getActiveTrackIndex()
 
-        if (currentIndex == null || currentIndex < 0 || currentIndex >= queue.length) return
+                if (currentIndex == null || currentIndex < 0 || currentIndex >= queue.length) return
 
-        const currentTrack = queue[currentIndex]
-        const originalIndex = tracks.findIndex((track) => track.url === currentTrack.url)
+                const currentTrack = queue[currentIndex]
+                const originalIndex = tracks.findIndex((track) => track.url === currentTrack.url)
 
-        if (originalIndex < 0) return
+                if (originalIndex < 0) return
 
-        const remainingTracks = [
-            ...tracks.slice(originalIndex + 1),
-            ...tracks.slice(0, originalIndex),
-        ]
-        const nextTracks = enabled ? shuffleTracks(remainingTracks) : remainingTracks
-
-        TrackPlayer.setShuffleEnabled(false)
-
-        // Deja la canción actual al inicio moviendo las que tiene delante.
-        for (let index = 0; index < currentIndex; index++) {
-            TrackPlayer.move(0, queue.length - 1)
-            queue.push(queue.shift()!)
-        }
-
-        // Retira las canciones que ya no pertenecen a la lista.
-        const nextUrls = new Set(nextTracks.map((track) => track.url))
-        for (let index = queue.length - 1; index >= 1; index--) {
-            if (!nextUrls.has(queue[index].url)) {
-                TrackPlayer.remove(index)
-                queue.splice(index, 1)
-            }
-        }
-
-        // Ordena las pendientes e incorpora las que faltan.
-        nextTracks.forEach((track, index) => {
-            const targetIndex = index + 1
-            let fromIndex = queue.findIndex(
-                (item, position) => position >= targetIndex && item.url === track.url,
-            )
-
-            if (fromIndex === -1) {
-                TrackPlayer.add(track)
-                queue.push(track)
-                fromIndex = queue.length - 1
-            }
-
-            if (fromIndex !== targetIndex) {
-                TrackPlayer.move(fromIndex, targetIndex)
-                const [movedTrack] = queue.splice(fromIndex, 1)
-                queue.splice(targetIndex, 0, movedTrack)
+                const remainingTracks = [
+                    ...tracks.slice(originalIndex + 1),
+                    ...tracks.slice(0, originalIndex),
+                ]
+                const nextTracks = enabled ? shuffleTracks(remainingTracks) : remainingTracks
+                reorderQueueAfterCurrent(nextTracks, queue, currentIndex)
+            } finally {
+                isShuffleUpdatePending.current = false
             }
         })
+    }
+
+    if (compact) {
+        const disabled = tracks.length === 0
+
+        return (
+            <View style={[styles.compactContainer, style]} {...viewProps}>
+                <GradientButton
+                    accessibilityLabel="Reproducir lista"
+                    disabled={disabled}
+                    onPress={handlePlay}
+                    style={styles.compactButton}
+                >
+                    <Ionicons name="play" size={18} color={colors.text} />
+                </GradientButton>
+
+                <LiquidGlassButton
+                    accessibilityLabel="Aleatorio"
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: shuffleEnabled }}
+                    disabled={disabled}
+                    onPress={handleToggleShuffle}
+                    style={styles.compactButton}
+                >
+                    <Ionicons name="shuffle-sharp" size={18} color={shuffleEnabled ? colors.primary : colors.text} />
+                </LiquidGlassButton>
+            </View>
+        )
     }
 
     return (
         <View style={[{flexDirection: 'row', columnGap: 16}, style]} {...viewProps}>
             {/* Play button */}
             <View style={{flex: 1}}>
-                <TouchableOpacity onPress={handlePlay} activeOpacity={0.8} style={styles.button}>
-                    <Ionicons name="play" size={22} color={colors.primary} />
+                <GradientButton onPress={handlePlay} style={styles.button}>
+                    <Ionicons name="play" size={22} color={colors.text} />
 
                     <Text style={styles.buttonText}>Reproducir</Text>
-                </TouchableOpacity>
+                </GradientButton>
             </View>
 
             {/* Shuffle button */}
             <View style={{flex: 1}}>
-                <TouchableOpacity onPress={handleToggleShuffle} accessibilityRole="switch" accessibilityState={{ checked: shuffleEnabled }} activeOpacity={0.8} style={ styles.button}>
-                    <Ionicons name="shuffle-sharp" size={22} color={shuffleEnabled ? colors.primary : colors.inactive} />
+                <LiquidGlassButton onPress={handleToggleShuffle} accessibilityRole="switch" accessibilityState={{ checked: shuffleEnabled }} style={styles.button}>
+                    <Ionicons name="shuffle-sharp" size={22} color={shuffleEnabled ? colors.primary : colors.text} />
 
-                    <Text style={shuffleEnabled ? styles.buttonText : styles.buttonTextInactive}>Aleatorio</Text>
-                </TouchableOpacity>
+                    <Text style={shuffleEnabled ? styles.buttonTextActive : styles.buttonText}>Aleatorio</Text>
+                </LiquidGlassButton>
             </View>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
+    compactContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        columnGap: 10,
+    },
+    compactButton: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     button: {
         padding: 12,
-        backgroundColor: 'rgba(47,47,47,0.5)',
-        borderRadius: 8,
+        borderRadius: 50,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -124,14 +143,14 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         ...defaultStyles.text,
-        color: colors.primary,
+        color: colors.text,
         fontWeight: '600',
         fontSize: 18,
         textAlign: 'center'
     },
-    buttonTextInactive: {
+    buttonTextActive: {
         ...defaultStyles.text,
-        color: colors.inactive,
+        color: colors.primary,
         fontWeight: '600',
         fontSize: 18,
         textAlign: 'center'

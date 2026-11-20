@@ -15,6 +15,7 @@ export type Track = {
   artist?: string
   artwork?: string
   rating?: number
+  duration?: number | null
   lyric_id?: string
   playlist?: string[]
 }
@@ -54,6 +55,7 @@ const toMediaItem = (track: Track): MediaItem => ({
   title: track.title,
   artist: track.artist,
   artworkUrl: track.artwork,
+  duration: typeof track.duration === 'number' ? track.duration : undefined,
   extras: { rating: track.rating, lyric_id: track.lyric_id },
 })
 
@@ -76,6 +78,7 @@ const fromMediaItem = (item: MediaItem | null | undefined): Track | undefined =>
     url,
     artist: item.artist,
     artwork,
+    duration: typeof item.duration === 'number' ? item.duration : undefined,
     rating: typeof extras.rating === 'number' ? extras.rating : undefined,
     lyric_id: typeof extras.lyric_id === 'string' ? extras.lyric_id : undefined,
     playlist: Array.isArray(extras.playlist) ? extras.playlist.filter((value): value is string => typeof value === 'string') : undefined,
@@ -131,6 +134,7 @@ const TrackPlayer = {
   setVolume: TrackPlayerV5.setVolume,
   getVolume: TrackPlayerV5.getVolume,
   getProgress: TrackPlayerV5.getProgress,
+  isPlaying: TrackPlayerV5.isPlaying,
   setRepeatMode: (mode: RepeatMode) => TrackPlayerV5.setRepeatMode(mode as unknown as V5RepeatMode),
   getRepeatMode: () => {
     const mode = TrackPlayerV5.getRepeatMode()
@@ -145,6 +149,7 @@ const TrackPlayer = {
   move: TrackPlayerV5.moveMediaItem,
   skip: TrackPlayerV5.skipToIndex,
   remove: TrackPlayerV5.removeMediaItem,
+  removeRange: TrackPlayerV5.removeMediaItems,
   getQueue: () => TrackPlayerV5.getQueue().map((item) => fromMediaItem(item)!).filter(Boolean),
   getActiveTrack: () => fromMediaItem(TrackPlayerV5.getActiveMediaItem()),
   getActiveTrackIndex: TrackPlayerV5.getActiveMediaItemIndex,

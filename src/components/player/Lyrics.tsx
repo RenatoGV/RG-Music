@@ -1,10 +1,11 @@
 import { colors, fontSize } from '@/constants/tokens';
-import { ActivityIndicator, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useCallback, useState } from 'react';
 import { useLyricStore } from '@/store/lyrics';
 import { PlainLyricsView } from '@/components/lyrics/PlainLyricsView'
 import { SyncedLyricsView } from '@/components/lyrics/SyncedLyricsView'
 import { useLyrics } from '@/hooks/useLyrics';
+import { LiquidGlassButton } from '../common/LiquidGlassButton';
 
 type Props = {
   trackUrl: string
@@ -33,9 +34,9 @@ export const Lyrics = ({trackUrl, track, artist, lyricId} : Props) => {
       <View style={[styles.container, styles.fillContainer]}>
         <Text style={styles.textError}>{error}</Text>
 
-        <TouchableOpacity style={styles.retryButton} onPress={retry}>
+        <LiquidGlassButton style={styles.retryButton} onPress={retry}>
           <Text style={styles.retryText}>Reintentar</Text>
-        </TouchableOpacity>
+        </LiquidGlassButton>
       </View>
     )
   }
@@ -91,7 +92,8 @@ const styles = StyleSheet.create({
   },
   textError: {
     color: colors.text,
-    fontSize: fontSize.base
+    fontSize: fontSize.base,
+    textAlign: 'center'
   },
   retryButton: {
     marginTop: 15,
@@ -99,7 +101,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderColor: colors.textMuted,
     borderStyle: 'solid',
-    borderRadius: 5,
+    borderRadius: 15,
     borderWidth: 1
   },
   retryText: {

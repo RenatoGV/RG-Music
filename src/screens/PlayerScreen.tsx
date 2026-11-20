@@ -7,6 +7,7 @@ import { useActiveTrack } from '@/helpers/track-player-compat'
 import { Track } from '@/helpers/types'
 import { usePlayerBackground } from '@/hooks/usePlayerBackground'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurTargetView } from 'expo-blur'
 import { useTrackPlayerFavorite } from '@/hooks/useTrackPlayerFavorite'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
@@ -17,6 +18,10 @@ import { router } from 'expo-router'
 import { getArtistNames } from '@/helpers/groupTracksByArtist'
 import EditLyricsIdModal from '@/components/modals/EditLyricIdModal'
 import PlayerArtworkView from '@/screens/PlayerArtworkView'
+import type { ComponentRef } from 'react'
+import { darkenHex, lightenHex } from '@/helpers/color'
+
+type NativeViewRef = ComponentRef<typeof View>
 
 const PlayerScreen = () => {
    const activeTrackRaw = useActiveTrack()
@@ -34,6 +39,7 @@ const PlayerScreen = () => {
    
    const { isFavorite, toggleFavorite } = useTrackPlayerFavorite()
    const dismissTranslation = useRef(new Animated.Value(0)).current
+   const playerBlurTargetRef = useRef<NativeViewRef | null>(null)
 
    const [ modalVisible, setModalVisible ] = useState(false)
 
@@ -43,9 +49,9 @@ const PlayerScreen = () => {
 
    useEffect(() => {
       if(showLyrics){
-         void activateKeepAwakeAsync('rg-music')
+         void activateKeepAwakeAsync('rythm')
       }else{
-         void deactivateKeepAwake('rg-music')
+         void deactivateKeepAwake('rythm')
       }
    }, [showLyrics])
 
@@ -81,21 +87,12 @@ const PlayerScreen = () => {
 
    return (
       <Animated.View style={[styles.screenDragContainer, { transform: [{ translateY: dismissTranslation }] }]}>
-         <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.average, imageColors.vibrant] : [colors.primary, colors.secondary, colors.background]}>
-            {
-                  modalVisible && (
-                     <EditLyricsIdModal
-                        key={activeTrack.url}
-                        initialValue={activeTrack.lyric_id ?? ''}
-                        onClose={() => setModalVisible(false)}
-                        onSave={handleSaveLyricId}
-                     />
-                  )
-            }
-            <View style={styles.overlayContainer}>
+         <LinearGradient style={{flex: 1}} colors={imageColors ? [lightenHex(imageColors.dominant, 0.3), darkenHex(imageColors.dominant, 0.65)] : [colors.primary, colors.secondary, colors.background]} start={{ x: 0.3, y: 0.2 }} end={{ x: 1, y: 1 }}>
+            <BlurTargetView ref={playerBlurTargetRef} style={styles.playerBlurTarget}>
+               <View style={styles.overlayContainer}>
                   <DismissPlayerSymbol enabled={Platform.OS === 'android' && showLyrics} translateY={dismissTranslation} />
 
-                  <View style={{flex: 1, marginTop: top + 48, marginBottom: bottom}}>
+                  <View style={{flex: 1, marginTop: top + 40, marginBottom: bottom}}>
                      <PlayerArtworkView
                         track={activeTrack}
                         isFavorite={isFavorite}
@@ -108,8 +105,18 @@ const PlayerScreen = () => {
                         onToggleLyricsType={() => setSyncedLyrics(!syncedLyrics)}
                      />
                   </View>
-            </View>
+               </View>
+            </BlurTargetView>
          </LinearGradient>
+         {modalVisible && (
+            <EditLyricsIdModal
+               key={activeTrack.url}
+               initialValue={activeTrack.lyric_id ?? ''}
+               onClose={() => setModalVisible(false)}
+               onSave={handleSaveLyricId}
+               blurTarget={playerBlurTargetRef}
+            />
+         )}
       </Animated.View>
    )
 }
@@ -156,11 +163,11 @@ const DismissPlayerSymbol = ({ enabled, translateY }: { enabled: boolean; transl
             style={{ width: 120, height: 44, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 8 }}
          >
          <View accessible={false} style={{
-               width: 50,
-               height: 8,
-               borderRadius: 8,
-               backgroundColor: '#fff',
-               opacity: 0.7
+            width: 75,
+            height: 5,
+            borderRadius: 8,
+            backgroundColor: '#fff',
+            opacity: 0.7
          }} />
          </View>
       </View>
@@ -169,6 +176,7 @@ const DismissPlayerSymbol = ({ enabled, translateY }: { enabled: boolean; transl
 
 const styles = StyleSheet.create({
    screenDragContainer: { flex: 1 },
+   playerBlurTarget: { flex: 1 },
    overlayContainer: {
       ...defaultStyles.container,
       paddingHorizontal: screenPadding.horizontal,

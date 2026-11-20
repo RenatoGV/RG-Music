@@ -1,21 +1,14 @@
-import { StackScreenWithSearchBar } from '@/constants/layout'
 import { defaultStyles } from '@/styles'
 import { Stack } from 'expo-router'
-import { View } from 'react-native'
+import { LiquidGlassBlurTarget } from '@/components/glass/LiquidGlassBlurTarget'
 
 const FavoritesScreenLayout = () => {
   return (
-    <View style={defaultStyles.container}>
+    <LiquidGlassBlurTarget style={defaultStyles.container}>
         <Stack>
-            <Stack.Screen name='index' options={{
-                ...StackScreenWithSearchBar,
-                headerTitle: 'Favoritos',
-                headerTitleStyle: {
-                  fontSize: 35
-                },
-            }} />
+            <Stack.Screen name='index' options={{ headerShown: false }} />
         </Stack>
-    </View>
+    </LiquidGlassBlurTarget>
   )
 }
 

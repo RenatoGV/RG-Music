@@ -1,7 +1,7 @@
 import { unknownTrackImageUri } from '@/constants/images';
 import { colors, fontSize } from '@/constants/tokens';
 import { defaultStyles } from '@/styles';
-import { StyleSheet, Text, TouchableHighlight, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
 import TrackPlayer, { useActiveTrack, useIsPlaying } from '@/helpers/track-player-compat';
 import { Track, Playlist } from '@/helpers/types';
@@ -9,7 +9,6 @@ import { Entypo, Ionicons } from "@expo/vector-icons"
 import { LoaderKitView } from "react-native-loader-kit"
 import { StopPropagation } from '@/components/utils/StopPropagation';
 import { useState } from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { DropdownMenu, MenuOption } from '../other/DropdownMenu';
 import { useLibraryStore } from '@/store/library';
@@ -37,7 +36,6 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
     const { removeToPlaylist } = usePlaylistStore()
 
     const handleToggleFavorite = () => {
-        setVisible(false)
         if(track.rating === 1){
             toggleTrackFavorite(track)
             
@@ -62,20 +60,18 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
     }
 
     const handleAddToPlaylist = () => {
-        setVisible(false)
         router.push({pathname: '/(modals)/addToPlaylist', params: { trackUrl: track.url }})
     }
 
     const handleFromToPlaylist = () => {
         if(!fromPlaylist) return
 
-        setVisible(false)
         removeToPlaylist(track.url, fromPlaylist.id)
         showToast(`Eliminado de ${fromPlaylist!.name}`)
     }
 
     return (
-        <TouchableHighlight onPress={() => handleTrackSelect(track)}>
+        <TouchableOpacity onPress={() => handleTrackSelect(track)}>
             <View style={styles.trackItemContainer}>
                 <View>
                     <FastImage
@@ -126,23 +122,19 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
                             dropdownWidth={220}
                         >
                             <MenuOption onSelect={handleToggleFavorite}>
-                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-                                    {(track.rating === 1) ? <FontAwesome6 name="heart-crack" size={18} color={colors.primary} /> : <FontAwesome name="heart" size={15} color={colors.primary} />}
-                                    <Text style={{color: colors.primary, fontSize: 18}}>{(track.rating === 1) ? 'Quitar de Favoritos' : 'Agregar a Favoritos'}</Text>
-                                </View>
+                                {(track.rating === 1)
+                                    ? <FontAwesome6 name="heart-crack" size={18} color={colors.text} />
+                                    : <FontAwesome6 name="heart" size={18} color={colors.text} />}
+                                <Text style={styles.menuOptionText}>{(track.rating === 1) ? 'Quitar favorito' : 'Añadir favorito'}</Text>
                             </MenuOption>
                             <MenuOption onSelect={handleAddToPlaylist}>
-                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-                                    <FontAwesome6 name="compact-disc" size={18} color="#2367A2" />
-                                    <Text style={{color: '#2367A2', fontSize: 18}}>Agregar a PlayList</Text>
-                                </View>
+                                <FontAwesome6 name="compact-disc" size={18} color={colors.text} />
+                                <Text style={styles.menuOptionText}>Añadir a playlist</Text>
                             </MenuOption>
                             {(fromPlaylist) ?
-                                <MenuOption onSelect={handleFromToPlaylist}>
-                                    <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-                                        <FontAwesome name="remove" size={18} color="#9ca3af" />
-                                        <Text style={{color: '#9ca3af', fontSize: 18}}>Quitar de PlayList</Text>
-                                    </View>
+                                <MenuOption onSelect={handleFromToPlaylist} separatorBefore>
+                                    <FontAwesome6 name="minus" size={18} color={colors.text} />
+                                    <Text style={styles.menuOptionText}>Quitar de lista</Text>
                                 </MenuOption>
                                 :
                                 null
@@ -151,7 +143,7 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
                     </StopPropagation>
                 </View>
             </View>
-        </TouchableHighlight>
+        </TouchableOpacity>
     )
 }
 
@@ -189,5 +181,10 @@ const styles = StyleSheet.create({
         color: colors.textMuted,
         fontSize: 14,
         marginTop: 4
+    },
+    menuOptionText: {
+        color: colors.text,
+        fontSize: 16,
+        fontWeight: '500',
     }
 })

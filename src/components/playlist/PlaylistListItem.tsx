@@ -1,37 +1,48 @@
-import { Playlist } from '@/helpers/types'
+import type { Playlist, Track } from '@/helpers/types'
 import { defaultStyles } from '@/styles'
-import { StyleSheet, Text, TouchableHighlight, TouchableHighlightProps, View } from 'react-native'
-import FastImage from 'react-native-fast-image'
-import { AntDesign } from '@expo/vector-icons'
+import { StyleSheet, Text, TouchableHighlightProps, TouchableOpacity, View } from 'react-native'
+import { MaterialIcons } from '@expo/vector-icons'
 import { colors } from '@/constants/tokens'
 import { unknownPlaylistImageUri } from '@/constants/images'
+import { useTracks } from '@/store/library'
+import { useMemo } from 'react'
+import { ArtistArtwork } from '@/components/artist/ArtistArtwork'
 
 type PlaylistListItemProps = {
     playlist: Playlist
 } & TouchableHighlightProps
 
 export const PlaylistListItem = ({playlist, ...props}: PlaylistListItemProps) => {
-  return (
-    <TouchableHighlight activeOpacity={0.8} {...props}>
-        <View style={styles.playlistItemContainer}>
-            <View>
-                <FastImage
-                    source={{
-                        uri: unknownPlaylistImageUri
-                    }}
-                    style={styles.playlistArtworkImage}
-                />
-            </View>
+    const tracks = useTracks()
+    const playlistTracks = useMemo(
+        () => (tracks ?? [])
+            .filter((track) => playlist.tracksUri.includes(track.url))
+            .sort((a, b) => a.title.localeCompare(b.title)),
+        [tracks, playlist.tracksUri]
+    )
+    const subtitle = getPlaylistSubtitle(playlistTracks)
 
-            <View style={{flexDirection: 'row', justifyContent:'space-between', alignItems: 'center', width: '100%'}}>
-                <Text numberOfLines={1} style={styles.playlistNameText}>
-                    {playlist.name}
-                </Text>
-                <AntDesign name='right' size={16} color={colors.icon} style={{ opacity: 0.5 }} />
+    return (
+        <TouchableOpacity activeOpacity={0.8} {...props}>
+            <View style={styles.playlistItemContainer}>
+                <ArtistArtwork
+                    tracks={playlistTracks}
+                    size={70}
+                    borderRadius={12}
+                    fallbackArtworkUri={unknownPlaylistImageUri}
+                />
+
+                <View style={styles.playlistTextContainer}>
+                    <Text numberOfLines={1} style={styles.playlistNameText}>{playlist.name}</Text>
+                    <Text numberOfLines={1} style={styles.playlistSubtitleText}>{subtitle}</Text>
+                </View>
+
+                <View style={styles.trailingIcon}>
+                    <MaterialIcons name="navigate-next" size={30} color={colors.textMuted} />
+                </View>
             </View>
-        </View>
-    </TouchableHighlight>
-  )
+        </TouchableOpacity>
+    )
 }
 
 const styles = StyleSheet.create({
@@ -39,17 +50,44 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		columnGap: 14,
 		alignItems: 'center',
-		paddingRight: 90,
+		minHeight: 84,
 	},
-	playlistArtworkImage: {
-		borderRadius: 8,
-		width: 70,
-		height: 70,
+	playlistTextContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		minWidth: 0,
 	},
 	playlistNameText: {
 		...defaultStyles.text,
 		fontSize: 17,
 		fontWeight: '600',
-		maxWidth: '80%',
+	},
+	playlistSubtitleText: {
+		...defaultStyles.text,
+		color: colors.textMuted,
+		fontSize: 13,
+		marginTop: 3,
+	},
+	trailingIcon: {
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 })
+
+const getPlaylistSubtitle = (tracks: Track[]) => {
+    const count = tracks.length
+    const countLabel = `${count} ${count === 1 ? 'canción' : 'canciones'}`
+    const hasAllDurations = count > 0 && tracks.every((track) => typeof track.duration === 'number' && track.duration > 0)
+    if (!hasAllDurations) return countLabel
+
+    const totalMinutes = Math.round(tracks.reduce((total, track) => total + (track.duration ?? 0), 0) / 60)
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+    const durationLabel = hours === 0
+        ? `${totalMinutes} ${totalMinutes === 1 ? 'minuto' : 'minutos'}`
+        : minutes === 0
+            ? `${hours} ${hours === 1 ? 'hora' : 'horas'}`
+            : `${hours} h ${minutes} min`
+
+    return `${countLabel} • ${durationLabel}`
+}

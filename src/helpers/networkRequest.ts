@@ -41,7 +41,7 @@ export const createLyricsAxiosInstance = (): AxiosInstance => {
       config.retryCount++;
       const delay = config.retryCount * 1500;
       
-      console.warn(`[RGMUSIC] Reintentando solicitud (intento ${config.retryCount}/3) en ${delay}ms...`)
+      console.warn(`[RYTHM] Reintentando solicitud (intento ${config.retryCount}/3) en ${delay}ms...`)
       await new Promise(resolve => setTimeout(resolve, delay));
       return instance(config);
     }
@@ -51,7 +51,7 @@ export const createLyricsAxiosInstance = (): AxiosInstance => {
 }
 
 export const logNetworkError = (error: any) => {
-  console.error('[RGMUSIC] Full error:', {
+  console.error('[RYTHM] Full error:', {
     message: error?.message,
     code: error?.code,
     errno: error?.errno,
@@ -68,8 +68,8 @@ export const logNetworkError = (error: any) => {
   })
   
   if (error?.code === 'ERR_NETWORK') {
-    console.warn('[RGMUSIC] Problema de red detectado')
-    console.warn('[RGMUSIC] Posibles causas: proxy, firewall, DNS, o problemas de SSL')
-    console.warn('[RGMUSIC] Intenta: 1) Cambiar de red WiFi 2) Usar datos móviles 3) Reiniciar el dispositivo')
+    console.warn('[RYTHM] Problema de red detectado')
+    console.warn('[RYTHM] Posibles causas: proxy, firewall, DNS, o problemas de SSL')
+    console.warn('[RYTHM] Intenta: 1) Cambiar de red WiFi 2) Usar datos móviles 3) Reiniciar el dispositivo')
   }
 }

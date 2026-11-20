@@ -54,7 +54,7 @@ jobs:
         run: |
           BUILD_ID=$(node -e "const result = require('./eas-build.json'); const builds = Array.isArray(result) ? result : [result]; const build = builds.find((item) => item.platform?.toUpperCase() === 'ANDROID'); if (!build?.id) process.exit(1); process.stdout.write(build.id)")
           npx --yes eas-cli@latest build:download --build-id "$BUILD_ID" --non-interactive --json > eas-download.json
-          node -e "const fs = require('node:fs'); const result = require('./eas-download.json'); if (!result.path) throw new Error('EAS did not return an APK path'); fs.mkdirSync('dist', { recursive: true }); fs.copyFileSync(result.path, 'dist/rg-music-' + process.env.APK_VERSION + '.apk')"
+          node -e "const fs = require('node:fs'); const result = require('./eas-download.json'); if (!result.path) throw new Error('EAS did not return an APK path'); fs.mkdirSync('dist', { recursive: true }); fs.copyFileSync(result.path, 'dist/rythm-' + process.env.APK_VERSION + '.apk')"
 
       - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4

@@ -8,6 +8,7 @@ type PlaylistState = {
   playlists: Playlist[] | null
   setPlaylists: (playlists: Playlist[] | null) => void
   addPlaylist: (playlistName: string) => boolean
+  renamePlaylist: (playlistId: string, playlistName: string) => boolean
   removePlaylist: (playlistId: string) => void
   addToPlaylist: (trackUri: string, playlistId: string) => void
   removeToPlaylist: (trackUri: string, playlistId: string) => void
@@ -31,6 +32,27 @@ export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
           ...playlists,
           { id: randomUUID(), name, tracksUri: [], artworkPreview: unknownTrackImageUri },
       ]
+
+      saveData('playlists', updatedPlaylists)
+      set({ playlists: updatedPlaylists })
+      return true
+    },
+    renamePlaylist: (playlistId, playlistName) => {
+      const name = playlistName.trim()
+      const playlists = get().playlists ?? []
+      const target = playlists.find((playlist) => playlist.id === playlistId)
+
+      if (!target || !name) return false
+
+      const alreadyExists = playlists.some(
+        (playlist) => playlist.id !== playlistId && playlist.name.trim().toLowerCase() === name.toLowerCase()
+      )
+
+      if (alreadyExists) return false
+
+      const updatedPlaylists = playlists.map((playlist) =>
+        playlist.id === playlistId ? { ...playlist, name } : playlist
+      )
 
       saveData('playlists', updatedPlaylists)
       set({ playlists: updatedPlaylists })

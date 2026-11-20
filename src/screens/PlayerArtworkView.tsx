@@ -2,13 +2,13 @@ import { MovingText } from '@/components/other/MovingText'
 import { PlayerArtwork } from '@/components/player/PlayerArtwork'
 import { PlayerControls } from '@/components/player/PlayerControls'
 import { PlayerProgressbar } from '@/components/player/PlayerProgressbar'
-import { PlayerVolumenbar } from '@/components/player/PlayerVolumenbar'
 import { colors, fontSize } from '@/constants/tokens'
 import { unknownTrackImageUri } from '@/constants/images'
 import type { Track } from '@/helpers/types'
 import { defaultStyles } from '@/styles'
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons'
-import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { LiquidGlassButton } from '@/components/common/LiquidGlassButton'
 import PlayerLyricsView from '@/screens/PlayerLyricsView'
 import Animated, { Easing, FadeIn, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
 import { scheduleOnRN } from 'react-native-worklets'
@@ -37,14 +37,36 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
    const previousShowLyrics = useRef(showLyrics)
    const artworkProgress = useSharedValue(showLyrics ? 1 : 0)
    const infoProgress = useSharedValue(showLyrics ? 1 : 0)
-   const playbackControlsHeight = useSharedValue(showLyrics ? 30 : 40)
+   const playbackControlsHeight = useSharedValue(showLyrics ? 25 : 40)
+   const titleFontSize = useSharedValue(showLyrics ? fontSize.base : fontSize.lg)
+   const subtitleFontSize = useSharedValue(showLyrics ? fontSize.sm : fontSize.base)
 
    useEffect(() => {
-      playbackControlsHeight.value = withTiming(showLyrics ? 30 : 40, {
+      playbackControlsHeight.value = withTiming(showLyrics ? 25 : 40, {
          duration: transitionDurationMs,
          easing: Easing.inOut(Easing.cubic)
       })
    }, [showLyrics, playbackControlsHeight])
+
+   useEffect(() => {
+      const delay = showLyrics ? transitionDelayMs : 0
+      titleFontSize.value = withDelay(delay, withTiming(showLyrics ? fontSize.base : fontSize.lg, {
+         duration: transitionDurationMs,
+         easing: Easing.inOut(Easing.cubic)
+      }))
+      subtitleFontSize.value = withDelay(delay, withTiming(showLyrics ? fontSize.sm : fontSize.base, {
+         duration: transitionDurationMs,
+         easing: Easing.inOut(Easing.cubic)
+      }))
+   }, [showLyrics, titleFontSize, subtitleFontSize])
+
+   const titleTextAnimatedStyle = useAnimatedStyle(() => ({
+      fontSize: titleFontSize.value
+   }), [titleFontSize])
+
+   const subtitleTextAnimatedStyle = useAnimatedStyle(() => ({
+      fontSize: subtitleFontSize.value
+   }), [subtitleFontSize])
 
    useEffect(() => {
       if (previousShowLyrics.current === showLyrics) return
@@ -76,31 +98,37 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
       }))
       infoProgress.value = withTiming(0, {
          duration: transitionDurationMs,
-         easing: Easing.inOut(Easing.cubic)
+         easing: Easing.inOut(Easing.cubic),
       })
    }, [showLyrics, artworkProgress, infoProgress])
 
    const artworkAnimatedStyle = useAnimatedStyle(() => {
       const compactSize = layoutSize.width * 0.2
-      const expandedHeight = layoutSize.height * 0.6 * 0.75
+      const expandedArtworkSize = Math.min(layoutSize.width * 0.9, layoutSize.height * 0.4)
+      const expandedArtworkTop = layoutSize.height * 0.025
+      const expandedArtworkLeft = (layoutSize.width - expandedArtworkSize) / 2
       const progress = artworkProgress.value
 
       return {
-         width: layoutSize.width + (compactSize - layoutSize.width) * progress,
-         height: expandedHeight + (compactSize - expandedHeight) * progress
+         width: expandedArtworkSize + (compactSize - expandedArtworkSize) * progress,
+         height: expandedArtworkSize + (compactSize - expandedArtworkSize) * progress,
+         left: expandedArtworkLeft * (1 - progress),
+         top: expandedArtworkTop * (1 - progress),
       }
    }, [layoutSize, artworkProgress])
 
    const trackInfoAnimatedStyle = useAnimatedStyle(() => {
       const progress = infoProgress.value
-      const expandedHeaderHeight = layoutSize.height * 0.6
-      const expandedInfoHeight = expandedHeaderHeight * 0.25
+      const expandedArtworkSize = Math.min(layoutSize.width * 0.9, layoutSize.height * 0.4)
+      const expandedArtworkTop = layoutSize.height * 0.025
+      const expandedInfoTop = expandedArtworkTop + expandedArtworkSize + layoutSize.height * 0.035
+      const expandedInfoHeight = layoutSize.height * 0.15
       const compactInfoLeft = layoutSize.width * 0.2 + 12
       const compactInfoHeight = layoutSize.width * 0.2
 
       return {
          left: compactInfoLeft * progress,
-         top: expandedHeaderHeight - expandedInfoHeight - (expandedHeaderHeight - expandedInfoHeight) * progress,
+         top: expandedInfoTop * (1 - progress),
          width: layoutSize.width - compactInfoLeft * progress,
          height: expandedInfoHeight + (compactInfoHeight - expandedInfoHeight) * progress
       }
@@ -130,97 +158,190 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
             <Animated.View style={[styles.trackInfo, trackInfoAnimatedStyle]}>
                <View style={styles.titleRow}>
                   <View style={styles.trackTitleContainer}>
-                     <MovingText text={track.title ?? ''} animationThreshold={30} style={styles.trackTitleText} />
+                     <MovingText
+                        text={track.title ?? ''}
+                        animationThreshold={0}
+                        style={styles.trackTitleText}
+                        animatedStyle={titleTextAnimatedStyle}
+                        animationEnabled={!showLyrics || headerCompact}
+                     />
                   </View>
-                  <View style={styles.trackActions}>
-                     {showLyrics && transitionComplete && (
-                        <Animated.View entering={FadeIn.duration(300)} exiting={FadeOut.duration(300)}>
-                           <TouchableOpacity onPress={onToggleLyricsType} accessibilityRole="button" accessibilityLabel={syncedLyrics ? 'Cambiar a letras sin sincronizar' : 'Cambiar a letras sincronizadas'}>
-                              <FontAwesome name={syncedLyrics ? 'microphone' : 'microphone-slash'} size={20} color={colors.icon} style={styles.actionIcon} />
-                           </TouchableOpacity>
-                        </Animated.View>
-                     )}
-                     <TrackActions isFavorite={isFavorite} onToggleFavorite={onToggleFavorite} onEditLyricId={onEditLyricId} />
-                  </View>
+                  <TrackActions
+                     isFavorite={isFavorite}
+                     onToggleFavorite={onToggleFavorite}
+                     onEditLyricId={onEditLyricId}
+                     compact={headerCompact}
+                  />
                </View>
 
                <View style={styles.subtitleRow}>
                   <TouchableOpacity onPress={onArtistPress} disabled={!track.artist} style={styles.artistContainer}>
-                     <Text numberOfLines={1} style={styles.trackArtistText}>{track.artist ?? ''}</Text>
+                     <Animated.Text
+                        numberOfLines={1}
+                        style={[styles.trackArtistText, subtitleTextAnimatedStyle]}
+                     >
+                        {track.artist ?? ''}
+                     </Animated.Text>
                   </TouchableOpacity>
                </View>
             </Animated.View>
          </Animated.View>
 
          <View style={styles.lyricsSpace}>
-            {showLyrics && transitionComplete && <PlayerLyricsView track={track} />}
+            {showLyrics && transitionComplete && (
+               <>
+                  <PlayerLyricsView track={track} />
+                  <Animated.View
+                     entering={FadeIn.duration(300)}
+                     exiting={FadeOut.duration(300)}
+                     style={styles.lyricsModeButtonPosition}
+                  >
+                     <LiquidGlassButton
+                        onPress={onToggleLyricsType}
+                        accessibilityRole="button"
+                        accessibilityLabel={syncedLyrics ? 'Cambiar a letras sin sincronizar' : 'Cambiar a letras sincronizadas'}
+                        style={styles.lyricsModeButton}
+                     >
+                        <FontAwesome name={syncedLyrics ? 'microphone' : 'microphone-slash'} size={18} color={colors.icon} />
+                     </LiquidGlassButton>
+                  </Animated.View>
+               </>
+            )}
          </View>
 
          <Animated.View style={[styles.playbackControls, playbackControlsAnimatedStyle]}>
             <PlayerProgressbar style={{marginTop: 18}} />
             <PlayerControls style={{marginTop: 15}} />
-            <PlayerVolumenbar style={{marginTop: 35, marginBottom: 14}} />
          </Animated.View>
       </View>
    )
 }
 
-const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId }: { isFavorite: boolean; onToggleFavorite: () => void; onEditLyricId: () => void }) => (
-   <View style={styles.trackActions}>
-      <TouchableOpacity onPress={onEditLyricId} accessibilityRole="button" accessibilityLabel="Editar identificador de letra">
-         <MaterialIcons name="info-outline" size={26} color={colors.icon} style={styles.actionIcon} />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={onToggleFavorite} accessibilityRole="button" accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}>
-         <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={26} color={isFavorite ? colors.primary : colors.icon} style={styles.actionIcon} />
-      </TouchableOpacity>
-   </View>
-)
+const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId, compact }: {
+   isFavorite: boolean
+   onToggleFavorite: () => void
+   onEditLyricId: () => void
+   compact: boolean
+}) => {
+   const buttonSize = compact ? 32 : 40
+   const iconSize = compact ? 16 : 20
+
+   return (
+      <View style={[styles.trackActions, compact && styles.compactTrackActions]}>
+         <LiquidGlassButton
+            onPress={onEditLyricId}
+            accessibilityRole="button"
+            accessibilityLabel="Editar identificador de letra"
+            style={[styles.actionButton, { width: buttonSize, height: buttonSize }]}
+         >
+            <MaterialIcons name="music-note" size={iconSize} color={colors.icon} />
+         </LiquidGlassButton>
+         <LiquidGlassButton
+            onPress={onToggleFavorite}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+            style={[styles.actionButton, { width: buttonSize, height: buttonSize }]}
+         >
+            <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={compact ? 14 : 18} color={isFavorite ? colors.primary : colors.icon} />
+         </LiquidGlassButton>
+      </View>
+   )
+}
 
 const styles = StyleSheet.create({
-   container: { flex: 1 },
-   header: {
-      flex: 0,
-      height: '60%',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-   },
-   compactHeader: {
-      height: '12%',
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'flex-start',
-      gap: 12
-   },
-   artworkSlot: { position: 'absolute', top: 0, left: 0, overflow: 'hidden' },
-   trackInfo: {
+	container: { flex: 1 },
+	header: {
+		flex: 0,
+		height: '60%',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+	},
+	compactHeader: {
+		height: '12%',
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+		alignItems: 'flex-start',
+		gap: 12,
+	},
+	artworkSlot: {
       position: 'absolute',
-      justifyContent: 'center',
-      zIndex: 1
+      top: 0,
+      left: 0,
+      overflow: 'hidden'
    },
-   trackTitleContainer: { flex: 1, overflow: 'hidden' },
-   titleRow: { flexDirection: 'row', alignItems: 'center' },
-   trackTitleText: {
-      ...defaultStyles.text,
-      fontSize: 22,
-      fontWeight: '700'
+	trackInfo: {
+		position: 'absolute',
+		justifyContent: 'center',
+		zIndex: 1,
+	},
+	trackTitleContainer: {
+      flex: 1,
+      flexShrink: 1,
+      minWidth: 0,
+      overflow: 'hidden'
    },
-   subtitleRow: {
+	titleRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: 6
+      width: '100%',
+      minWidth: 0,
+      gap: 5
    },
-   artistContainer: { flex: 1, overflow: 'hidden' },
-   trackArtistText: {
-      ...defaultStyles.text,
-      fontSize: fontSize.base,
-      opacity: 0.8
+	trackTitleText: {
+		...defaultStyles.text,
+		fontWeight: '500',
+		lineHeight: 32,
+	},
+	subtitleRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginTop: 6,
+	},
+	artistContainer: {
+      flex: 1,
+      overflow: 'hidden'
    },
-   trackActions: { flexDirection: 'row', alignItems: 'center', marginRight: 0 },
-   actionIcon: { marginLeft: 10, marginRight: 0 },
-   lyricsSpace: { flex: 1 },
-   playbackControls: {
-      justifyContent: 'center'
-   }
+	trackArtistText: {
+		...defaultStyles.text,
+      color: colors.primary,
+      fontWeight: '500',
+		opacity: 0.8,
+		lineHeight: 26,
+	},
+	trackActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexShrink: 0,
+      gap: 10,
+      marginRight: 0,
+   },
+   compactTrackActions: {
+      gap: 6,
+   },
+   actionButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+   },
+	lyricsSpace: {
+      flex: 1,
+      position: 'relative',
+   },
+   lyricsModeButtonPosition: {
+      position: 'absolute',
+      right: 8,
+      bottom: 8,
+      zIndex: 2,
+   },
+   lyricsModeButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+   },
+	playbackControls: {
+		justifyContent: 'center'
+	},
 })
 
 export default PlayerArtworkView

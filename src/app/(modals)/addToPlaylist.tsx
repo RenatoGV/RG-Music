@@ -2,18 +2,22 @@ import { PlaylistList } from '@/components/playlist/PlaylistList'
 import { Playlist } from '@/helpers/types'
 import { useTracks } from '@/store/library'
 import { useQueue } from '@/store/queue'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import TrackPlayer from '@/helpers/track-player-compat'
 import { StyleSheet, View } from 'react-native'
 import { defaultStyles } from '@/styles'
-import { screenPadding } from '@/constants/tokens'
 import { usePlaylistStore } from '@/store/playlist'
 import { showToast } from '@/helpers/toast'
-import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { filterPlaylistsByName } from '@/helpers/filter'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useState } from 'react'
+import { LinearGradient } from 'expo-linear-gradient'
+import { ScreenHeader } from '@/components/common/ScreenHeader'
 
 const AddToPlaylistModal = () => {
     const router = useRouter()
+    const insets = useSafeAreaInsets()
+    const [search, setSearch] = useState('')
 
     const { activeQueueId } = useQueue()
 
@@ -24,18 +28,6 @@ const AddToPlaylistModal = () => {
     const { playlists, addToPlaylist } = usePlaylistStore()
 
     const track = tracks?.find((currentTrack) => trackUrl === decodeURIComponent(currentTrack.url))
-
-    const search = useNavigationSearch({
-        searchBarOptions: {
-            hideWhenScrolling: true,
-            placeholder: 'Buscar canción',
-            textColor: '#fff',
-            tintColor: '#fff',
-            barTintColor: '#fff',
-            hintTextColor: '#fff',
-            headerIconColor: '#fff'
-        }
-    })
 
     if(!track) {
         return null
@@ -61,17 +53,33 @@ const AddToPlaylistModal = () => {
     }
 
     return (
-        <View style={[styles.modalContainer, {paddingTop: 10}]}>
+        <View style={defaultStyles.container}>
+			<Stack.Screen options={{ headerShown: false }} />
+            <ScreenGradient />
+            <ScreenHeader
+                title="Playlist"
+                subtitle={"Agregar a Playlist"}
+                onBackPress={() => router.dismiss()}
+                backAccessibilityLabel="Volver a la playlist"
+                searchValue={search}
+                onSearchChange={setSearch}
+                searchPlaceholder="Buscar canciones"
+                topInset={insets.top}
+            />
             <PlaylistList playlists={filteredPlaylists} onPlaylistPress={handlePlaylistPress} />
         </View>
     )
 }
 
-const styles = StyleSheet.create({
-    modalContainer: {
-        ...defaultStyles.container,
-        paddingHorizontal: screenPadding.horizontal
-    }
-})
+const ScreenGradient = () => (
+    <LinearGradient
+        pointerEvents="none"
+        colors={['#18553A', '#02181C', '#0E0E10']}
+        locations={[0, 0.21, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+    />
+)
 
 export default AddToPlaylistModal

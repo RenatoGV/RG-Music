@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "RG Music",
+    "name": "Rythm",
     "slug": "music-player",
-    "version": "3.10.32",
+    "version": "4.10.32",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.rengv.rgmusic",
+      "package": "com.rengv.rythm",
       "permissions": [
         "SCHEDULE_EXACT_ALARM",
         "SYSTEM_ALERT_WINDOW",

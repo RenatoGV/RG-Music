@@ -1,14 +1,15 @@
-import { FlatList, FlatListProps, Text, View } from 'react-native'
+import { FlatList, FlatListProps, StyleSheet, Text, View } from 'react-native'
 import { utilsStyles } from '@/styles'
 import TrackPlayer from '@/helpers/track-player-compat'
 import { Track, Playlist } from '@/helpers/types'
-import FastImage from 'react-native-fast-image'
-import { unknownTrackImageUri } from '@/constants/images'
 import { useQueue } from '@/store/queue'
 import { QueueControls } from '../other/QueueControls'
 import { TrackListItem } from './TrackListItem'
 import { shuffleTracks } from '@/helpers/shuffleTracks'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
+import LottieView from 'lottie-react-native'
+import notFound from '@/assets/lottie/not-found.json'
+import { screenPadding } from '@/constants/tokens'
 
 export type TrackListProps = Partial<FlatListProps<Track>> & {
   id: string
@@ -16,11 +17,12 @@ export type TrackListProps = Partial<FlatListProps<Track>> & {
   filteredTracks?: Track[]
   hideQueueControls?: boolean
   fromPlaylist?: Playlist
+  onTrackPress?: (track: Track) => void
 }
 
-const ItemDivider = () => <View style={{...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60}} />
+const ItemDivider = () => <View style={{ marginVertical: 10, marginLeft: 60}} />
 
-export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, ...flatlistProps } : TrackListProps) => {
+export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, fromPlaylist, onTrackPress, ...flatlistProps } : TrackListProps) => {
   const contentBottomPadding = useTabContentBottomPadding()
   const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleOriginalQueue } = useQueue()
 
@@ -28,6 +30,8 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
     const trackIndex = tracks.findIndex(track => track.url === selectedTrack.url)
 
     if(trackIndex === -1) return
+
+    onTrackPress?.(selectedTrack)
 
     if (shuffleEnabled) {
       const remainingTracks = tracks.filter((_, index) => index !== trackIndex)
@@ -69,7 +73,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
   return (
     <FlatList
       data={filteredTracks}
-      contentContainerStyle={{paddingTop: 10, paddingBottom: contentBottomPadding}}
+      contentContainerStyle={{paddingTop: 10, paddingBottom: contentBottomPadding, flexGrow: 1}}
       ListHeaderComponent={
         (!hideQueueControls && tracks.length > 0) ? <QueueControls queueId={id} tracks={tracks} style={{paddingBottom: 20}}/> : undefined
       }
@@ -79,12 +83,9 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
       windowSize={5}
       removeClippedSubviews={true}
       ListEmptyComponent={
-        <View>
-          <Text style={utilsStyles.emptyContentText}>No se encontraron canciones</Text>
-          <FastImage
-            source={{ uri: unknownTrackImageUri }}
-            style={utilsStyles.emptyContentImage}
-          />
+        <View style={styles.emptyContent}>
+          <Text style={utilsStyles.emptyContentText}>Sin resultados</Text>
+            <LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
         </View>
       }
       renderItem={({item : track}) => (
@@ -95,3 +96,11 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
     />
   )
 }
+
+const styles = StyleSheet.create({
+  emptyContent: {
+    flex: 1,
+    paddingHorizontal: screenPadding.horizontal,
+    alignItems: 'center'
+  }
+})

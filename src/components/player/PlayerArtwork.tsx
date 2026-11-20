@@ -1,5 +1,7 @@
 import { StyleSheet, Pressable, View } from 'react-native'
 import FastImage from 'react-native-fast-image'
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
+import { useEffect } from 'react'
 
 type Props = {
   artwork?: string
@@ -9,17 +11,30 @@ type Props = {
 }
 
 export const PlayerArtwork = ({ artwork, unknownTrackImageUri, onPress, compact = false }: Props) => {
+  const borderRadius = useSharedValue(compact ? 12 : 24)
+
+  useEffect(() => {
+    borderRadius.value = withDelay(compact ? 0 : 200, withTiming(compact ? 12 : 24, {
+      duration: 650,
+      easing: Easing.inOut(Easing.cubic),
+    }))
+  }, [borderRadius, compact])
+
+  const animatedBorderRadius = useAnimatedStyle(() => ({ borderRadius: borderRadius.value }))
+
   return (
     <View style={styles.artworkImageContainer}>
-      <Pressable style={styles.artworkPressable} onPress={onPress} accessibilityRole="button" accessibilityLabel={compact ? 'Cerrar letras' : 'Mostrar letras'}>
-      <FastImage
-        source={{
-          uri: artwork ?? unknownTrackImageUri
-        }}
-        objectFit="cover"
-        style={styles.artworkImage}
-      />
-      </Pressable>
+      <Animated.View style={[styles.artworkClipContainer, animatedBorderRadius]}>
+        <Pressable style={styles.artworkPressable} onPress={onPress} accessibilityRole="button" accessibilityLabel={compact ? 'Cerrar letras' : 'Mostrar letras'}>
+          <FastImage
+            source={{
+              uri: artwork ?? unknownTrackImageUri
+            }}
+            objectFit="cover"
+            style={styles.artworkImage}
+          />
+        </Pressable>
+      </Animated.View>
     </View>
   )
 }
@@ -38,10 +53,10 @@ const styles = StyleSheet.create({
       position: 'relative',
       flexShrink: 0
   },
-  artworkPressable: { flex: 1, overflow: 'hidden', borderRadius: 12 },
+  artworkClipContainer: { flex: 1, overflow: 'hidden' },
+  artworkPressable: { flex: 1, overflow: 'hidden' },
   artworkImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 12
   },
 })
