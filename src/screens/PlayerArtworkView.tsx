@@ -242,7 +242,7 @@ const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId, compact }: 
             accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
             style={[styles.actionButton, { width: buttonSize, height: buttonSize }]}
          >
-            <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={compact ? 14 : 18} color={isFavorite ? colors.primary : colors.icon} />
+            <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={compact ? 14 : 18} color={isFavorite ? colors.icon : colors.textMuted} />
          </LiquidGlassButton>
       </View>
    )
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
    },
 	trackArtistText: {
 		...defaultStyles.text,
-      color: colors.primary,
+      color: colors.textMuted,
       fontWeight: '500',
 		opacity: 0.8,
 		lineHeight: 26,

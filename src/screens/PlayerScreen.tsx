@@ -102,7 +102,7 @@ const PlayerScreen = () => {
    if(!activeTrack) {
       return (
          <View style={[defaultStyles.container, {justifyContent: 'center'}]}>
-               <ActivityIndicator color={colors.icon} />
+            <ActivityIndicator color={colors.icon} />
          </View>
       )
    }
