@@ -15,7 +15,7 @@ type PlaylistsListProps = {
 } & Partial<FlatListProps<Playlist>>
 
 const ItemDivider = () => {
-	return <View style={{...utilsStyles.itemSeparator, marginLeft: 80, marginVertical: 12}} />
+	return <View style={{marginLeft: 80, marginVertical: 10}} />
 }
 
 export const PlaylistList = ({playlists, onPlaylistPress: handlePlaylistPress, ...flatListProps} : PlaylistsListProps) => {

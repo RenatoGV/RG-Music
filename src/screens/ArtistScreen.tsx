@@ -16,7 +16,7 @@ import notFound from '@/assets/lottie/not-found.json'
 import { MaterialIcons } from '@expo/vector-icons'
 
 const ItemSeparatorComponent = () => {
-	return <View style={{ marginVertical: 10, marginLeft: 70 }} />
+	return <View style={{ marginVertical: 5, marginLeft: 70 }} />
 }
 
 const ArtistsScreen = () => {
