@@ -5,7 +5,7 @@ import Animated, { Easing, SlideInDown, SlideOutDown } from "react-native-reanim
 import type { BlurViewProps } from "expo-blur"
 import { colors, fontSize } from "@/constants/tokens"
 import { LiquidGlassSurface } from "@/components/glass/LiquidGlassSurface"
-import { GradientButton } from "@/components/common/GradientButton"
+import { PrimaryGlassButton } from "@/components/common/PrimaryGlassButton"
 import { LiquidGlassButton } from "@/components/common/LiquidGlassButton"
 
 interface EditLyricsIdModalProps {
@@ -71,12 +71,12 @@ const EditLyricsIdModal = ({ initialValue, onClose, onSave, blurTarget }: Readon
                   />
 
                   <View style={styles.actions}>
-                     <GradientButton style={styles.modalButton} onPress={handleSave}>
+                     <PrimaryGlassButton style={styles.modalButton} onPress={handleSave}>
                         <View style={styles.buttonContent}>
                            <FontAwesome6 name="check" size={16} color={colors.text} />
                            <Text style={styles.buttonText}>Guardar ID</Text>
                         </View>
-                     </GradientButton>
+                     </PrimaryGlassButton>
 
                      <LiquidGlassButton style={styles.modalButton} onPress={onClose}>
                         <View style={styles.buttonContent}>

@@ -6,7 +6,7 @@ import { colors, fontSize } from '@/constants/tokens'
 import { unknownTrackImageUri } from '@/constants/images'
 import type { Track } from '@/helpers/types'
 import { defaultStyles } from '@/styles'
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons'
+import { Entypo, FontAwesome } from '@expo/vector-icons'
 import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { LiquidGlassButton } from '@/components/common/LiquidGlassButton'
 import PlayerLyricsView from '@/screens/PlayerLyricsView'
@@ -210,7 +210,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
          </View>
 
          <Animated.View style={[styles.playbackControls, playbackControlsAnimatedStyle]}>
-            <PlayerProgressbar style={{marginTop: 18}} />
+            <PlayerProgressbar key={track.url} trackDuration={track.duration} style={{marginTop: 18}} />
             <PlayerControls style={{marginTop: 15}} />
          </Animated.View>
       </View>
@@ -234,7 +234,7 @@ const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId, compact }: 
             accessibilityLabel="Editar identificador de letra"
             style={[styles.actionButton, { width: buttonSize, height: buttonSize }]}
          >
-            <MaterialIcons name="music-note" size={iconSize} color={colors.icon} />
+            <Entypo name="note" size={iconSize} color={colors.icon} />
          </LiquidGlassButton>
          <LiquidGlassButton
             onPress={onToggleFavorite}
@@ -242,7 +242,7 @@ const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId, compact }: 
             accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
             style={[styles.actionButton, { width: buttonSize, height: buttonSize }]}
          >
-            <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={compact ? 14 : 18} color={isFavorite ? colors.primary : colors.icon} />
+            <FontAwesome name={isFavorite ? 'heart' : 'heart-o'} size={compact ? 14 : 18} color={isFavorite ? colors.icon : colors.textMuted} />
          </LiquidGlassButton>
       </View>
    )
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
    },
 	trackArtistText: {
 		...defaultStyles.text,
-      color: colors.primary,
+      color: colors.textMuted,
       fontWeight: '500',
 		opacity: 0.8,
 		lineHeight: 26,

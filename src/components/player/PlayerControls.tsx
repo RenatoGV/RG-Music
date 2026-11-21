@@ -31,7 +31,7 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
                 <PlayerRepeatToggle size={15} buttonSize={40} glass />
                 <SkipToPreviousButton iconSize={15} buttonSize={52} glass />
 
-                <PlayPauseButton iconSize={34} buttonSize={80} gradient />
+                <PlayPauseButton iconSize={34} buttonSize={80} glass />
 
                 <SkipToNextButton iconSize={15} buttonSize={52} glass />
                 <ShuffleButton iconSize={13} buttonSize={40} glass />
@@ -90,7 +90,7 @@ const ShuffleButton = ({ iconSize, buttonSize, glass }: { iconSize: number; butt
         <FontAwesome6
             name={'shuffle'}
             size={iconSize}
-            color={shuffleEnabled ? colors.primary : colors.text}
+            color={shuffleEnabled ? colors.text : colors.textMuted}
         />
     )
 
@@ -121,9 +121,21 @@ const ShuffleButton = ({ iconSize, buttonSize, glass }: { iconSize: number; butt
     )
 }
 
-export const PlayPauseButton = ({style, iconSize = 70, buttonSize = 80, gradient = false} : PlayerButtonProps & { gradient?: boolean }) => {
+export const PlayPauseButton = ({style, iconSize = 70, buttonSize = 80, glass = false, gradient = false} : PlayerButtonProps & { gradient?: boolean }) => {
     const { playing } = useIsPlaying()
     const icon = <FontAwesome6 name={playing ? 'pause' : 'play'} size={iconSize} color={colors.text} />
+
+    if (glass) {
+        return (
+            <LiquidGlassButton
+                onPress={playing ? TrackPlayer.pause : TrackPlayer.play}
+                accessibilityLabel={playing ? 'Pausar' : 'Reproducir'}
+                style={[styles.glassButton, { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2 }, style]}
+            >
+                {icon}
+            </LiquidGlassButton>
+        )
+    }
 
     if (gradient) {
         return (

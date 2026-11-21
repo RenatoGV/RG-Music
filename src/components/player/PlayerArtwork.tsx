@@ -30,6 +30,7 @@ export const PlayerArtwork = ({ artwork, unknownTrackImageUri, onPress, compact 
             source={{
               uri: artwork ?? unknownTrackImageUri
             }}
+            priority={FastImage.priority.high}
             objectFit="cover"
             style={styles.artworkImage}
           />

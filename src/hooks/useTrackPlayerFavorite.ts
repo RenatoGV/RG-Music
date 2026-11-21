@@ -1,13 +1,14 @@
 import { showToast } from '@/helpers/toast'
 import { useLibraryStore } from '@/store/library'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useActiveTrack } from '@/helpers/track-player-compat'
 
 export const useTrackPlayerFavorite = () => {
     const activeTrack = useActiveTrack()
     const { tracks, toggleTrackFavorite } = useLibraryStore()
 
-    const isFavoriteInStore = tracks?.find(t => t.url === activeTrack?.url)?.rating === 1
+    const tracksByUrl = useMemo(() => new Map((tracks ?? []).map((track) => [track.url, track])), [tracks])
+    const isFavoriteInStore = tracksByUrl.get(activeTrack?.url ?? '')?.rating === 1
     
     const [ isFavorite, setIsFavorite ] = useState(false)
 

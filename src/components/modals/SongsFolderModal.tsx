@@ -4,7 +4,7 @@ import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { LiquidGlassSurface } from "@/components/glass/LiquidGlassSurface"
 import { LiquidGlassBlurTargetRefContext } from "@/components/glass/LiquidGlassBlurTarget"
 import { useContext } from "react"
-import { GradientButton } from "../common/GradientButton"
+import { PrimaryGlassButton } from "../common/PrimaryGlassButton"
 import { LiquidGlassButton } from "../common/LiquidGlassButton"
 
 interface SongsFolderModalProps {
@@ -45,12 +45,12 @@ export const SongsFolderModal = ({visible, onClose, onRefresh, onSelectFolder}: 
                </View>
 
                <View style={styles.actions}>
-                  <GradientButton style={styles.modalButton} onPress={onRefresh}>
+                  <PrimaryGlassButton style={styles.modalButton} onPress={onRefresh}>
                      <View style={styles.buttonContent}>
                         <FontAwesome6 name="arrows-rotate" size={17} color={colors.text} />
                         <Text style={styles.buttonText}>Actualizar lista</Text>
                      </View>
-                  </GradientButton>
+                  </PrimaryGlassButton>
 
                   <LiquidGlassButton style={styles.modalButton} onPress={onSelectFolder}>
                      <View style={styles.buttonContent}>

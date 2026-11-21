@@ -4,16 +4,18 @@ import { defaultStyles } from '@/styles'
 import { useEffect } from 'react'
 import { StyleSheet, Text, View, ViewProps } from 'react-native'
 import { Slider } from 'react-native-awesome-slider'
-import { useSharedValue } from 'react-native-reanimated'
+import Animated, { useSharedValue } from 'react-native-reanimated'
 import TrackPlayer, { useProgress } from '@/helpers/track-player-compat'
-import { LinearGradient } from 'expo-linear-gradient'
-import Svg, { Defs, LinearGradient as SvgLinearGradient, Path, Stop } from 'react-native-svg'
+import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
 
-type Props = ViewProps & { compact?: boolean }
+type Props = ViewProps & { compact?: boolean; trackDuration?: number | null }
 
-export const PlayerProgressbar = ({style, compact = false} : Props) => {
+const THUMB_SIZE = 28
 
-    const {duration, position} = useProgress(250)
+export const PlayerProgressbar = ({style, compact = false, trackDuration} : Props) => {
+
+    const {duration: playerDuration, position} = useProgress(100)
+    const duration = playerDuration > 0 ? playerDuration : trackDuration ?? 0
 
     const isSliding = useSharedValue(false)
     const progress = useSharedValue(0)
@@ -37,47 +39,31 @@ export const PlayerProgressbar = ({style, compact = false} : Props) => {
                 maximumValue={max}
                 sliderHeight={28}
                 containerStyle={styles.sliderTrack}
-                thumbWidth={28}
+                style={styles.slider}
+                renderContainer={({ style: trackStyle, seekStyle }) => (
+                    <LiquidGlassSurface
+                        intensity={35}
+                        borderRadius={999}
+                        style={trackStyle}
+                    >
+                        <Animated.View style={[seekStyle, styles.glassProgress]} />
+                    </LiquidGlassSurface>
+                )}
+                thumbWidth={0}
+                thumbTouchSize={THUMB_SIZE}
                 renderThumb={() => (
-                    <View style={styles.thumbRing}>
-                        <LinearGradient
-                            colors={['#20D860', '#138A46']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.thumbFill}
-                        />
-                        <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={28} height={28} viewBox="0 0 28 28">
-                            <Defs>
-                                <SvgLinearGradient id="thumbRingTopLeft" x1={14} y1={1} x2={1} y2={14} gradientUnits="userSpaceOnUse">
-                                    <Stop offset="0%" stopColor="#FFFFFF" stopOpacity={0} />
-                                    <Stop offset="50%" stopColor="#FFFFFF" stopOpacity={0.82} />
-                                    <Stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
-                                </SvgLinearGradient>
-                                <SvgLinearGradient id="thumbRingBottomRight" x1={27} y1={14} x2={14} y2={27} gradientUnits="userSpaceOnUse">
-                                    <Stop offset="0%" stopColor="#FFFFFF" stopOpacity={0} />
-                                    <Stop offset="50%" stopColor="#FFFFFF" stopOpacity={0.82} />
-                                    <Stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
-                                </SvgLinearGradient>
-                            </Defs>
-                            <Path
-                                d="M 14 1 A 13 13 0 0 0 1 14"
-                                fill="none"
-                                stroke="url(#thumbRingTopLeft)"
-                                strokeWidth={1}
-                            />
-                            <Path
-                                d="M 27 14 A 13 13 0 0 1 14 27"
-                                fill="none"
-                                stroke="url(#thumbRingBottomRight)"
-                                strokeWidth={1}
-                            />
-                        </Svg>
-                    </View>
+                    <LiquidGlassSurface
+                        intensity={40}
+                        borderRadius={THUMB_SIZE / 2}
+                        style={[styles.thumbRing, styles.thumbCenterOffset]}
+                    >
+                        <View style={styles.thumbCore} />
+                    </LiquidGlassSurface>
                 )}
                 renderBubble={() => null}
                 theme={{
-                    minimumTrackTintColor: '#20D860',
-                    maximumTrackTintColor: 'rgba(32,216,96,0.2)'
+                    minimumTrackTintColor: 'transparent',
+                    maximumTrackTintColor: 'transparent'
                 }}
                 onSlidingStart={() => (isSliding.value = true)}
                 onValueChange={(value) => {
@@ -101,23 +87,38 @@ export const PlayerProgressbar = ({style, compact = false} : Props) => {
 }
 
 const styles = StyleSheet.create({
+    slider: {
+        height: 28,
+        zIndex: 1,
+    },
     sliderTrack: {
-        height: 6,
-        borderRadius: 3,
+        height: 8,
+        borderRadius: 999,
+        backgroundColor: 'transparent',
+    },
+    glassProgress: {
+        backgroundColor: 'rgba(255,255,255,0.76)',
     },
     thumbRing: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: 'rgba(255,255,255,0.12)',
+        width: THUMB_SIZE,
+        height: THUMB_SIZE,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 3,
     },
-    thumbFill: {
-        width: 20,
-        height: 20,
-        borderRadius: 11,
+    thumbCore: {
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: colors.text,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(255,255,255,0.72)',
+        shadowColor: '#cccccc',
+        shadowOpacity: 0.4,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    thumbCenterOffset: {
+        transform: [{ translateX: -THUMB_SIZE / 2 }],
     },
     timeRow: {
         flexDirection: 'row',
