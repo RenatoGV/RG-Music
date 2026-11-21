@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native'
+import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import type { FlatListProps } from 'react-native'
 import { utilsStyles } from '@/styles'
 import TrackPlayer from '@/helpers/track-player-compat'
@@ -35,6 +35,7 @@ const ItemDivider = () => <View style={{ marginVertical: 10, marginLeft: 60}} />
 
 export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = false, stickyQueueControls = false, stickyQueueControlsBackground, fromPlaylist, onTrackPress, ListHeaderComponent, ...flatlistProps } : TrackListProps) => {
   const contentBottomPadding = useTabContentBottomPadding()
+  const { height: windowHeight } = useWindowDimensions()
   const { activeQueueId, setActiveQueueId, shuffleEnabled, setShuffleOriginalQueue } = useQueue()
 
   const handleTrackSelect = (selectedTrack: Track) => {
@@ -91,9 +92,14 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
     : ListHeaderComponent
 
   const renderEmptyContent = () => (
-    <View style={styles.emptyContent}>
+    <View style={[styles.emptyContent, useStickyControls && { minHeight: windowHeight * 0.55, justifyContent: 'flex-start' }]}>
       <Text style={utilsStyles.emptyContentText}>Sin resultados</Text>
-      <LottieView source={notFound} style={{ width: '100%', height: '25%' }} autoPlay loop />
+      <LottieView
+        source={notFound}
+        style={{ width: '100%', height: useStickyControls ? Math.max(150, windowHeight * 0.25) : '25%' }}
+        autoPlay
+        loop
+      />
     </View>
   )
 
@@ -140,7 +146,7 @@ const styles = StyleSheet.create({
   emptyContent: {
     flex: 1,
     paddingHorizontal: screenPadding.horizontal,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   stickyQueueControls: {
     paddingHorizontal: screenPadding.horizontal,
