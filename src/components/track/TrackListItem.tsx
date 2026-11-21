@@ -16,6 +16,7 @@ import { useQueue } from '@/store/queue';
 import { usePlaylistStore } from '@/store/playlist';
 import { showToast } from '@/helpers/toast';
 import { useRouter } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
 
 export type TrackListItemProps = {
     track: Track
@@ -128,7 +129,12 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
                                 <Text style={styles.menuOptionText}>{(track.rating === 1) ? 'Quitar favorito' : 'Añadir favorito'}</Text>
                             </MenuOption>
                             <MenuOption onSelect={handleAddToPlaylist}>
-                                <FontAwesome6 name="compact-disc" size={18} color={colors.text} />
+                                <Svg width={22} height={22} viewBox="0 0 24 24">
+                                    <Path
+                                        fill={colors.icon}
+                                        d="M12.5 15q1.05 0 1.775-.725T15 12.5V7h3V5h-4v5.5q-.325-.25-.7-.375T12.5 10q-1.05 0-1.775.725T10 12.5t.725 1.775T12.5 15M8 18q-.825 0-1.412-.587T6 16V4q0-.825.588-1.412T8 2h12q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-4 4q-.825 0-1.412-.587T2 20V6h2v14h14v2z"
+                                    />
+                                </Svg>
                                 <Text style={styles.menuOptionText}>Añadir a playlist</Text>
                             </MenuOption>
                             {(fromPlaylist) ?

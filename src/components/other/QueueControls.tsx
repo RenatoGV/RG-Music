@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, ViewProps } from "react-native"
 import { useRef } from "react"
 import TrackPlayer from "@/helpers/track-player-compat"
 import { Track } from "@/helpers/types"
-import { Ionicons } from "@expo/vector-icons"
+import { FontAwesome6, Ionicons } from "@expo/vector-icons"
 import { useQueue } from "@/store/queue"
 import { shuffleTracks } from "@/helpers/shuffleTracks"
 import { reorderQueueAfterCurrent } from "@/helpers/reorderQueueAfterCurrent"
@@ -91,7 +91,7 @@ export const QueueControls = ({queueId, tracks, compact = false, style, ...viewP
                     onPress={handleToggleShuffle}
                     style={styles.compactButton}
                 >
-                    <Ionicons name="shuffle-sharp" size={18} color={shuffleEnabled ? colors.primary : colors.text} />
+                    <FontAwesome6 name="shuffle" size={18} color={shuffleEnabled ? colors.primary : colors.text} />
                 </LiquidGlassButton>
             </View>
         )
@@ -111,7 +111,7 @@ export const QueueControls = ({queueId, tracks, compact = false, style, ...viewP
             {/* Shuffle button */}
             <View style={{flex: 1}}>
                 <LiquidGlassButton onPress={handleToggleShuffle} accessibilityRole="switch" accessibilityState={{ checked: shuffleEnabled }} style={styles.button}>
-                    <Ionicons name="shuffle-sharp" size={22} color={shuffleEnabled ? colors.primary : colors.text} />
+                    <FontAwesome6 name="shuffle" size={16} color={shuffleEnabled ? colors.primary : colors.text} />
 
                     <Text style={shuffleEnabled ? styles.buttonTextActive : styles.buttonText}>Aleatorio</Text>
                 </LiquidGlassButton>

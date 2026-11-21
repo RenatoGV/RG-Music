@@ -22,11 +22,6 @@ export const utilsStyles = StyleSheet.create({
         height: 7,
         borderRadius: 16
     },
-    itemSeparator: {
-        borderColor: colors.textMuted,
-        borderWidth: StyleSheet.hairlineWidth,
-        opacity: 0.3
-    },
     emptyContentText: {
         ...defaultStyles.text,
         fontSize: fontSize.lg,

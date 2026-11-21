@@ -7,7 +7,6 @@ import { showToast } from '@/helpers/toast'
 import { useTracks } from '@/store/library'
 import { usePlaylistStore } from '@/store/playlist'
 import { defaultStyles } from '@/styles'
-import { FontAwesome6 } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Redirect, router, Stack, useLocalSearchParams } from 'expo-router'
 import { useMemo, useState } from 'react'
@@ -74,7 +73,6 @@ const AddTracksToPlaylistModal = () => {
 					onPress={handleAddTracks}
 				>
 					<View style={styles.addButtonContent}>
-						<FontAwesome6 name="plus" size={15} color={colors.text} />
 						<Text style={styles.addButtonText}>Agregar</Text>
 					</View>
 				</GradientButton>

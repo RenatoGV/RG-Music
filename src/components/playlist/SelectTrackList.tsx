@@ -13,7 +13,7 @@ export type Props = Partial<FlatListProps<Track>> & {
 	onTrackSelect: (trackUrl: string) => void
 }
 
-const ItemDivider = () => <View style={{ ...utilsStyles.itemSeparator, marginVertical: 9, marginLeft: 60 }} />
+const ItemDivider = () => <View style={{ marginVertical: 10, marginLeft: 60 }} />
 
 export const SelectTrackList = ({ tracks, selectedTracks, onTrackSelect, ...flatlistProps }: Props) => (
 	<FlatList
