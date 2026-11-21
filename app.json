@@ -2,7 +2,7 @@
   "expo": {
     "name": "Rythm",
     "slug": "music-player",
-    "version": "4.12.32",
+    "version": "4.12.33",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
