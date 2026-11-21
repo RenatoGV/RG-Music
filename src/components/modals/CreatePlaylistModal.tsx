@@ -4,7 +4,7 @@ import { FontAwesome6 } from '@expo/vector-icons'
 import { colors, fontSize } from '@/constants/tokens'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
 import { LiquidGlassBlurTargetRefContext } from '@/components/glass/LiquidGlassBlurTarget'
-import { GradientButton } from '@/components/common/GradientButton'
+import { PrimaryGlassButton } from '@/components/common/PrimaryGlassButton'
 import { LiquidGlassButton } from '@/components/common/LiquidGlassButton'
 
 interface CreatePlaylistModalProps {
@@ -80,7 +80,7 @@ const CreatePlaylistModal = ({ visible, onClose, onCreate }: Readonly<CreatePlay
 						/>
 
 						<View style={styles.actions}>
-							<GradientButton
+							<PrimaryGlassButton
 								accessibilityRole="button"
 								disabled={isDisabled}
 								style={[styles.modalButton, isDisabled && styles.disabledButton]}
@@ -90,7 +90,7 @@ const CreatePlaylistModal = ({ visible, onClose, onCreate }: Readonly<CreatePlay
 									<FontAwesome6 name="plus" size={16} color={colors.text} />
 									<Text style={styles.buttonText}>Crear playlist</Text>
 								</View>
-							</GradientButton>
+							</PrimaryGlassButton>
 
 							<LiquidGlassButton style={styles.modalButton} onPress={handleClose}>
 								<View style={styles.buttonContent}>

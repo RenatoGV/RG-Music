@@ -5,9 +5,10 @@ type SegmentedGlassBorderProps = {
   width: number
   height: number
   borderRadius: number
+  tintColor?: string
 }
 
-export const SegmentedGlassBorder = ({ width, height, borderRadius }: SegmentedGlassBorderProps) => {
+export const SegmentedGlassBorder = ({ width, height, borderRadius, tintColor = '#FFFFFF' }: SegmentedGlassBorderProps) => {
   if (width <= 0 || height <= 0) return null
 
   const inset = 0.5
@@ -23,14 +24,14 @@ export const SegmentedGlassBorder = ({ width, height, borderRadius }: SegmentedG
     <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
       <Defs>
         <LinearGradient id="glassBorderTopLeft" x1={topStart.x} y1={topStart.y} x2={topEnd.x} y2={topEnd.y} gradientUnits="userSpaceOnUse">
-          <Stop offset="0%" stopColor="#FFFFFF" stopOpacity={0} />
-          <Stop offset="50%" stopColor="#FFFFFF" stopOpacity={0.82} />
-          <Stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
+          <Stop offset="0%" stopColor={tintColor} stopOpacity={0} />
+          <Stop offset="50%" stopColor={tintColor} stopOpacity={0.82} />
+          <Stop offset="100%" stopColor={tintColor} stopOpacity={0} />
         </LinearGradient>
         <LinearGradient id="glassBorderBottomRight" x1={bottomStart.x} y1={bottomStart.y} x2={bottomEnd.x} y2={bottomEnd.y} gradientUnits="userSpaceOnUse">
-          <Stop offset="0%" stopColor="#FFFFFF" stopOpacity={0} />
-          <Stop offset="50%" stopColor="#FFFFFF" stopOpacity={0.82} />
-          <Stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
+          <Stop offset="0%" stopColor={tintColor} stopOpacity={0} />
+          <Stop offset="50%" stopColor={tintColor} stopOpacity={0.82} />
+          <Stop offset="100%" stopColor={tintColor} stopOpacity={0} />
         </LinearGradient>
       </Defs>
       <Path

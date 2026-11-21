@@ -1,5 +1,5 @@
 import { ScreenHeader } from '@/components/common/ScreenHeader'
-import { GradientButton } from '@/components/common/GradientButton'
+import { PrimaryGlassButton } from '@/components/common/PrimaryGlassButton'
 import { SelectTrackList } from '@/components/playlist/SelectTrackList'
 import { colors, screenPadding } from '@/constants/tokens'
 import { filterTrackByTitle } from '@/helpers/filter'
@@ -66,7 +66,7 @@ const AddTracksToPlaylistModal = () => {
 				<Text style={styles.selectionLabel}>
 					{selectedTracks.length} {selectedTracks.length === 1 ? 'seleccionada' : 'seleccionadas'}
 				</Text>
-				<GradientButton
+				<PrimaryGlassButton
 					accessibilityLabel={`Agregar ${selectedTracks.length} canciones a ${currentPlaylist.name}`}
 					disabled={selectedTracks.length === 0}
 					style={[styles.addButton, selectedTracks.length === 0 && styles.addButtonDisabled]}
@@ -75,7 +75,7 @@ const AddTracksToPlaylistModal = () => {
 					<View style={styles.addButtonContent}>
 						<Text style={styles.addButtonText}>Agregar</Text>
 					</View>
-				</GradientButton>
+				</PrimaryGlassButton>
 			</View>
 
 			<SelectTrackList

@@ -71,7 +71,7 @@ export const DeletePlaylist = ({ selectedPlaylist, setSelectedPlaylist }: Props)
 								</View>
 							</LiquidGlassButton>
 
-							<LiquidGlassButton style={styles.deleteButton} onPress={handleDelete}>
+							<LiquidGlassButton borderTintColor="#ff8585" style={styles.deleteButton} onPress={handleDelete}>
 								<View style={styles.buttonContent}>
 									<FontAwesome6 name="trash-can" size={16} color="#ff8585" />
 									<Text style={styles.deleteButtonText}>Eliminar playlist</Text>

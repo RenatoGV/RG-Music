@@ -19,6 +19,7 @@ type LiquidGlassButtonProps = Omit<PressableProps, 'children' | 'style'> & {
   style?: StyleProp<ViewStyle>
   intensity?: number
   borderRadius?: number
+  borderTintColor?: string
 }
 
 export const LiquidGlassButton = ({
@@ -26,6 +27,7 @@ export const LiquidGlassButton = ({
   style,
   intensity = 55,
   borderRadius = 999,
+  borderTintColor = '#FFFFFF',
   ...pressableProps
 }: LiquidGlassButtonProps) => {
   const [size, setSize] = useState({ width: 0, height: 0 })
@@ -63,7 +65,7 @@ export const LiquidGlassButton = ({
           end={{ x: 1, y: 0 }}
           style={[StyleSheet.absoluteFill, { borderRadius }]}
         />
-        <SegmentedGlassBorder width={size.width} height={size.height} borderRadius={borderRadius} />
+        <SegmentedGlassBorder width={size.width} height={size.height} borderRadius={borderRadius} tintColor={borderTintColor} />
         {children}
       </View>
     </Pressable>
