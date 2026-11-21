@@ -10,7 +10,7 @@
   [![React Native](https://img.shields.io/badge/React%20Native-0.76.6-blue.svg)](https://reactnative.dev/)
   [![Expo](https://img.shields.io/badge/Expo-~52.0.30-000020.svg)](https://expo.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue.svg)](https://www.typescriptlang.org/)
-</div>  
+</div>
 
 ## ✨ Características
 
