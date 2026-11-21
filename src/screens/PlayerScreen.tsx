@@ -87,7 +87,7 @@ const PlayerScreen = () => {
 
    return (
       <Animated.View style={[styles.screenDragContainer, { transform: [{ translateY: dismissTranslation }] }]}>
-         <LinearGradient style={{flex: 1}} colors={imageColors ? [lightenHex(imageColors.dominant, 0.3), darkenHex(imageColors.dominant, 0.65)] : [colors.primary, colors.secondary, colors.background]} start={{ x: 0.3, y: 0.2 }} end={{ x: 1, y: 1 }}>
+         <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.darkVibrant, lightenHex(imageColors.darkVibrant, 0.2), darkenHex(imageColors.darkVibrant, 0.5)] : [colors.primary, colors.secondary, colors.background]} start={{ x: 0.3, y: 0.2 }} end={{ x: 1, y: 1 }}>
             <BlurTargetView ref={playerBlurTargetRef} style={styles.playerBlurTarget}>
                <View style={styles.overlayContainer}>
                   <DismissPlayerSymbol enabled={Platform.OS === 'android' && showLyrics} translateY={dismissTranslation} />
