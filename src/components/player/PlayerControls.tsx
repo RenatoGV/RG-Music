@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native"
 import { useRef } from "react"
 import TrackPlayer, { useIsPlaying } from "@/helpers/track-player-compat"
-import { FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons"
+import { FontAwesome6 } from "@expo/vector-icons"
 import { colors } from "@/constants/tokens"
 import { playerControlsStyles } from "@/styles/playerControls"
 import { PlayerRepeatToggle } from '@/components/player/PlayerRepeatToggle'
@@ -34,7 +34,7 @@ export const PlayerControls = ({ style }: PlayerControlsProps) => {
                 <PlayPauseButton iconSize={34} buttonSize={80} gradient />
 
                 <SkipToNextButton iconSize={15} buttonSize={52} glass />
-                <ShuffleButton iconSize={20} buttonSize={40} glass />
+                <ShuffleButton iconSize={13} buttonSize={40} glass />
             </View>
         </View>
     )
@@ -87,7 +87,7 @@ const ShuffleButton = ({ iconSize, buttonSize, glass }: { iconSize: number; butt
     }
 
     const icon = (
-        <MaterialCommunityIcons
+        <FontAwesome6
             name={'shuffle'}
             size={iconSize}
             color={shuffleEnabled ? colors.primary : colors.text}

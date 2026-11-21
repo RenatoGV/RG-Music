@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { filterTrackByTitle } from '@/helpers/filter'
 import { useLibraryStore, useTracks } from '@/store/library'
 import { generateTrackListId } from '@/helpers/miscellaneous'
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome6, Ionicons } from '@expo/vector-icons'
 import { TracksList } from '@/components/track/TracksList'
 import { QueueControls } from '@/components/other/QueueControls'
 import { Bar } from 'react-native-progress'
@@ -143,7 +143,7 @@ const SongsScreen = () => {
 						title="Tu librería"
 						subtitle={subtitle}
 						onOtherActionPress={handleFolderButton}
-						onOtherActionIcon={<Ionicons name="folder-outline" size={16} color={colors.text} />}
+						onOtherActionIcon={<FontAwesome6 name="folder" size={17} color={colors.text} />}
 						otherActionAccessibilityLabel="Opciones de carpeta"
 						searchValue={search}
 						onSearchChange={setSearch}
