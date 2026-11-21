@@ -210,7 +210,7 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
          </View>
 
          <Animated.View style={[styles.playbackControls, playbackControlsAnimatedStyle]}>
-            <PlayerProgressbar style={{marginTop: 18}} />
+            <PlayerProgressbar key={track.url} trackDuration={track.duration} style={{marginTop: 18}} />
             <PlayerControls style={{marginTop: 15}} />
          </Animated.View>
       </View>

@@ -9,11 +9,12 @@ import TrackPlayer, { useProgress } from '@/helpers/track-player-compat'
 import { LinearGradient } from 'expo-linear-gradient'
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Path, Stop } from 'react-native-svg'
 
-type Props = ViewProps & { compact?: boolean }
+type Props = ViewProps & { compact?: boolean; trackDuration?: number | null }
 
-export const PlayerProgressbar = ({style, compact = false} : Props) => {
+export const PlayerProgressbar = ({style, compact = false, trackDuration} : Props) => {
 
-    const {duration, position} = useProgress(250)
+    const {duration: playerDuration, position} = useProgress(100)
+    const duration = playerDuration > 0 ? playerDuration : trackDuration ?? 0
 
     const isSliding = useSharedValue(false)
     const progress = useSharedValue(0)

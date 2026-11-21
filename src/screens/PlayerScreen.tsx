@@ -3,9 +3,9 @@ import { colors, screenPadding } from '@/constants/tokens'
 import { defaultStyles } from '@/styles'
 import { ActivityIndicator, Animated, Dimensions, PanResponder, Platform, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useActiveTrack } from '@/helpers/track-player-compat'
+import TrackPlayer, { useActiveTrack } from '@/helpers/track-player-compat'
 import { Track } from '@/helpers/types'
-import { usePlayerBackground } from '@/hooks/usePlayerBackground'
+import { preloadPlayerArtwork, usePlayerBackground } from '@/hooks/usePlayerBackground'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurTargetView } from 'expo-blur'
 import { useTrackPlayerFavorite } from '@/hooks/useTrackPlayerFavorite'
@@ -26,10 +26,10 @@ type NativeViewRef = ComponentRef<typeof View>
 const PlayerScreen = () => {
    const activeTrackRaw = useActiveTrack()
    const tracks = useLibraryStore(state => state.tracks)
-   
-   const activeTrack = activeTrackRaw && tracks
-      ? tracks.find(t => t.url === activeTrackRaw.url) ?? (activeTrackRaw as Track)
-      : (activeTrackRaw as Track | undefined)
+   const tracksByUrl = useMemo(() => new Map((tracks ?? []).map((track) => [track.url, track])), [tracks])
+   const activeTrack = activeTrackRaw
+      ? tracksByUrl.get(activeTrackRaw.url) ?? (activeTrackRaw as Track)
+      : undefined
    
    const { imageColors } = usePlayerBackground(activeTrack?.artwork ?? unknownTrackImageUri)
    const { showLyrics, setShowLyrics, syncedLyrics, setSyncedLyrics } = useLyricStore()
@@ -42,6 +42,21 @@ const PlayerScreen = () => {
    const playerBlurTargetRef = useRef<NativeViewRef | null>(null)
 
    const [ modalVisible, setModalVisible ] = useState(false)
+
+   useEffect(() => {
+      if (!activeTrackRaw?.url) return
+
+      const queue = TrackPlayer.getQueue()
+      const activeIndex = TrackPlayer.getActiveTrackIndex()
+      const currentIndex = activeIndex != null && queue[activeIndex]?.url === activeTrackRaw.url
+         ? activeIndex
+         : queue.findIndex((track) => track.url === activeTrackRaw.url)
+
+      if (currentIndex < 0) return
+
+      void preloadPlayerArtwork(queue[currentIndex - 1]?.artwork)
+      void preloadPlayerArtwork(queue[currentIndex + 1]?.artwork)
+   }, [activeTrackRaw?.url])
 
    const toggleLyrics = () => {
       setShowLyrics(!showLyrics)
