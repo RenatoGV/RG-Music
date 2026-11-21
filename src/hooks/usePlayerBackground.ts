@@ -2,12 +2,25 @@ import { unknownTrackImageUri } from "@/constants/images"
 import { colors } from "@/constants/tokens"
 import { useEffect, useState } from "react"
 import { getColors } from 'react-native-image-colors'
-import { AndroidImageColors } from "react-native-image-colors/build/types"
+import type { ImageColorsResult } from 'react-native-image-colors/build/types'
 import FastImage from 'react-native-fast-image'
 
-const playerArtworkColors = new Map<string, AndroidImageColors>()
-const pendingColorRequests = new Map<string, Promise<AndroidImageColors | null>>()
+export type PlayerArtworkColors = { vibrant: string; dominant: string }
+
+const playerArtworkColors = new Map<string, PlayerArtworkColors>()
+const pendingColorRequests = new Map<string, Promise<PlayerArtworkColors | null>>()
 const MAX_CACHED_ARTWORK_COLORS = 64
+
+const normalizeImageColors = (result: ImageColorsResult): PlayerArtworkColors => {
+	const vibrant = 'vibrant' in result ? result.vibrant : result.primary
+	const dominant = 'dominant' in result ? result.dominant : result.background
+	const isValidHex = (color: string) => /^#?[\da-f]{6}$/i.test(color)
+
+	return {
+		vibrant: isValidHex(vibrant) ? vibrant : colors.primary,
+		dominant: isValidHex(dominant) ? dominant : colors.background,
+	}
+}
 
 export const preloadPlayerArtwork = (imageUrl?: string) => {
 	if (!imageUrl || imageUrl === unknownTrackImageUri) return Promise.resolve(null)
@@ -33,7 +46,7 @@ export const preloadPlayerArtwork = (imageUrl?: string) => {
 			key: imageUrl,
 		}))
 		.then((result) => {
-			const imageColors = result as AndroidImageColors
+			const imageColors = normalizeImageColors(result)
 			playerArtworkColors.set(imageUrl, imageColors)
 			if (playerArtworkColors.size > MAX_CACHED_ARTWORK_COLORS) {
 				const oldestImageUrl = playerArtworkColors.keys().next().value

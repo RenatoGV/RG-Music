@@ -19,7 +19,7 @@ import { getArtistNames } from '@/helpers/groupTracksByArtist'
 import EditLyricsIdModal from '@/components/modals/EditLyricIdModal'
 import PlayerArtworkView from '@/screens/PlayerArtworkView'
 import type { ComponentRef } from 'react'
-import { darkenHex, lightenHex } from '@/helpers/color'
+import { darkenHex, lightenHexTone } from '@/helpers/color'
 
 type NativeViewRef = ComponentRef<typeof View>
 
@@ -32,6 +32,13 @@ const PlayerScreen = () => {
       : undefined
    
    const { imageColors } = usePlayerBackground(activeTrack?.artwork ?? unknownTrackImageUri)
+
+   const gradientColors = useMemo<[string, string, string]>(() => imageColors ? [
+      imageColors.vibrant,
+      lightenHexTone(imageColors.vibrant, 0.3),
+      darkenHex(imageColors.vibrant, 0.5),
+   ] : [colors.primary, colors.secondary, colors.background], [imageColors])
+
    const { showLyrics, setShowLyrics, syncedLyrics, setSyncedLyrics } = useLyricStore()
    const { updateTrackLyricId } = useLibraryStore()
 
@@ -102,7 +109,7 @@ const PlayerScreen = () => {
 
    return (
       <Animated.View style={[styles.screenDragContainer, { transform: [{ translateY: dismissTranslation }] }]}>
-         <LinearGradient style={{flex: 1}} colors={imageColors ? [imageColors.darkVibrant, lightenHex(imageColors.darkVibrant, 0.2), darkenHex(imageColors.darkVibrant, 0.5)] : [colors.primary, colors.secondary, colors.background]} start={{ x: 0.3, y: 0.2 }} end={{ x: 1, y: 1 }}>
+         <LinearGradient style={{flex: 1}} colors={gradientColors} start={{ x: 0.3, y: 0.2 }} end={{ x: 1, y: 1 }}>
             <BlurTargetView ref={playerBlurTargetRef} style={styles.playerBlurTarget}>
                <View style={styles.overlayContainer}>
                   <DismissPlayerSymbol enabled={Platform.OS === 'android' && showLyrics} translateY={dismissTranslation} />

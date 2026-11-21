@@ -6,7 +6,7 @@ import { colors, fontSize } from '@/constants/tokens'
 import { unknownTrackImageUri } from '@/constants/images'
 import type { Track } from '@/helpers/types'
 import { defaultStyles } from '@/styles'
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons'
+import { Entypo, FontAwesome } from '@expo/vector-icons'
 import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { LiquidGlassButton } from '@/components/common/LiquidGlassButton'
 import PlayerLyricsView from '@/screens/PlayerLyricsView'
@@ -234,7 +234,7 @@ const TrackActions = ({ isFavorite, onToggleFavorite, onEditLyricId, compact }: 
             accessibilityLabel="Editar identificador de letra"
             style={[styles.actionButton, { width: buttonSize, height: buttonSize }]}
          >
-            <MaterialIcons name="music-note" size={iconSize} color={colors.icon} />
+            <Entypo name="note" size={iconSize} color={colors.icon} />
          </LiquidGlassButton>
          <LiquidGlassButton
             onPress={onToggleFavorite}
