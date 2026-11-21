@@ -11,6 +11,8 @@ import Svg, { Defs, LinearGradient as SvgLinearGradient, Path, Stop } from 'reac
 
 type Props = ViewProps & { compact?: boolean; trackDuration?: number | null }
 
+const THUMB_SIZE = 28
+
 export const PlayerProgressbar = ({style, compact = false, trackDuration} : Props) => {
 
     const {duration: playerDuration, position} = useProgress(100)
@@ -38,9 +40,10 @@ export const PlayerProgressbar = ({style, compact = false, trackDuration} : Prop
                 maximumValue={max}
                 sliderHeight={28}
                 containerStyle={styles.sliderTrack}
-                thumbWidth={28}
+                thumbWidth={0}
+                thumbTouchSize={THUMB_SIZE}
                 renderThumb={() => (
-                    <View style={styles.thumbRing}>
+                    <View style={[styles.thumbRing, styles.thumbCenterOffset]}>
                         <LinearGradient
                             colors={['#20D860', '#138A46']}
                             start={{ x: 0, y: 0 }}
@@ -107,8 +110,8 @@ const styles = StyleSheet.create({
         borderRadius: 3,
     },
     thumbRing: {
-        width: 28,
-        height: 28,
+        width: THUMB_SIZE,
+        height: THUMB_SIZE,
         borderRadius: 14,
         backgroundColor: 'rgba(255,255,255,0.12)',
         alignItems: 'center',
@@ -119,6 +122,9 @@ const styles = StyleSheet.create({
         width: 20,
         height: 20,
         borderRadius: 11,
+    },
+    thumbCenterOffset: {
+        transform: [{ translateX: -THUMB_SIZE / 2 }],
     },
     timeRow: {
         flexDirection: 'row',
