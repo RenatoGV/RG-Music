@@ -15,12 +15,13 @@ const audioExtensions = ['.mp3', '.wav', '.aac', '.m4a']
 const MAX_METADATA_SIZE = 20 * 1024 * 1024 // 20 MB
 
 const removeExtension = (fileName : string) => {
-  for(const ext of audioExtensions) {
-    if (fileName.endsWith(ext)) {
-      return fileName.slice(0, -ext.length)
-    }
-  }
-  return fileName
+  const extensionIndex = fileName.lastIndexOf('.')
+  if (extensionIndex <= 0) return fileName
+
+  const extension = fileName.slice(extensionIndex).toLowerCase()
+  return audioExtensions.includes(extension)
+    ? fileName.slice(0, extensionIndex)
+    : fileName
 }
 
 type ImportMode = 'refresh' | 'replace'
@@ -47,7 +48,11 @@ export const importTracks = async (uri: string | null, mode: ImportMode = 'refre
       const previousTracks = savedTracks ?? []
       const isReplacing = mode === 'replace'
 
-      const tracks = isReplacing ? [] : previousTracks.filter(track => audioFileSet.has(track.url))
+      const tracks = isReplacing
+        ? []
+        : previousTracks
+            .filter(track => audioFileSet.has(track.url))
+            .map(track => ({ ...track, title: removeExtension(getTemporaryFileName(track.url)) }))
 
       const savedTrackUrls = new Set(tracks.map((track) => track.url))
       const filesToImport = audioFiles.filter((file) => !savedTrackUrls.has(file))
@@ -77,9 +82,8 @@ export const importTracks = async (uri: string | null, mode: ImportMode = 'refre
               if (tempPath) {
                 const { metadata } = await getAudioMetadata(
                   `file://${tempPath}`,
-                  ['artist', 'artwork', 'name']
+                  ['artist', 'artwork']
                 )
-                title = metadata.name?.trim() || title
                 artist = metadata.artist || artist
                 artwork = metadata.artwork || artwork
               }
