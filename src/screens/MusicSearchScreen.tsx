@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocalSearchParams } from 'expo-router'
 import {
   ActivityIndicator,
   FlatList,
@@ -30,6 +31,8 @@ import {
   addDownloadProgressListener,
   cancelAudioDownload,
   downloadAudio,
+  getYouTubeVideoId,
+  resolveYouTubeMusic,
   searchYouTubeMusic,
   type MusicSearchResult,
 } from '@/services/musicDownloadService'
@@ -43,6 +46,8 @@ const formatDuration = (seconds: number) => {
 }
 
 const MusicSearchScreen = () => {
+  const { videoId: sharedVideoId, share } = useLocalSearchParams<{ videoId?: string; share?: string }>()
+  const handledShare = useRef<string | undefined>(undefined)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<MusicSearchResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -64,25 +69,46 @@ const MusicSearchScreen = () => {
   const downloadInFlight = useRef(false)
   const busy = downloadState !== 'idle'
 
-  const search = useCallback(async (value = query) => {
+  const openDownloadOptions = useCallback((track: MusicSearchResult) => {
+    setSelectedTrack(track)
+    setFileName(track.title)
+    setAuthor(track.artist === 'Desconocido' ? '' : track.artist)
+    setAlbum(track.album ?? '')
+    setFolderUri(loadData<string>('selectedAlbum'))
+    setDownloadError('')
+  }, [])
+
+  const search = useCallback(async (value = query, videoId = getYouTubeVideoId(value)) => {
     const cleanQuery = value.trim()
-    if (!cleanQuery || searching) return
+    if (!cleanQuery) return
     const version = ++searchVersion.current
     Keyboard.dismiss()
     setSearching(true)
     setSearchError('')
     try {
-      const found = await searchYouTubeMusic(cleanQuery)
-      if (version === searchVersion.current) setResults(found)
+      const found = videoId ? [await resolveYouTubeMusic(videoId)] : await searchYouTubeMusic(cleanQuery)
+      if (version === searchVersion.current) {
+        setResults(found)
+        if (videoId) openDownloadOptions(found[0])
+      }
     } catch (error) {
       if (version === searchVersion.current) {
-        setSearchError(getReadableError(error, 'No se pudo buscar en YouTube.'))
+        setSearchError(getReadableError(error, videoId ? 'No se pudo abrir el enlace de YouTube.' : 'No se pudo buscar en YouTube.'))
         setResults([])
       }
     } finally {
       if (version === searchVersion.current) setSearching(false)
     }
-  }, [query, searching])
+  }, [query, openDownloadOptions])
+
+  useEffect(() => {
+    if (!sharedVideoId || !share || handledShare.current === share || busy) return
+    handledShare.current = share
+    const url = `https://www.youtube.com/watch?v=${sharedVideoId}`
+    setSelectedTrack(null)
+    setQuery(url)
+    void search(url, sharedVideoId)
+  }, [busy, search, share, sharedVideoId])
 
   useEffect(() => {
     if (Platform.OS !== 'android') return
@@ -97,15 +123,6 @@ const MusicSearchScreen = () => {
     if (busy) return
     Keyboard.dismiss()
     setSelectedTrack(null)
-  }
-
-  const openDownloadOptions = (track: MusicSearchResult) => {
-    setSelectedTrack(track)
-    setFileName(track.title)
-    setAuthor(track.artist === 'Desconocido' ? '' : track.artist)
-    setAlbum(track.album ?? '')
-    setFolderUri(loadData<string>('selectedAlbum'))
-    setDownloadError('')
   }
 
   const chooseFolder = async () => {
@@ -132,13 +149,14 @@ const MusicSearchScreen = () => {
       setDownloadStatus('Preparando la descarga…')
       setDownloadState('downloading')
       const result = await downloadAudio(selectedTrack.url, targetFolder, fileName, quality, author.trim(), album.trim())
+      const displayName = result.fileName.replace(/\.mp3$/i, '')
       setDownloadState('importing')
       try {
         await importDownloadedTrack(result.uri, result.fileName, author.trim())
-        showToast(`Añadida a tu biblioteca: ${result.fileName}`)
+        showToast(`Añadida a tu biblioteca: ${displayName}`)
       } catch (error) {
         console.warn('[IMPORT] No se pudo actualizar la biblioteca tras guardar el MP3', error)
-        showToast(`MP3 guardado: ${result.fileName}. Actualiza tu biblioteca para verlo.`)
+        showToast(`MP3 guardado: ${displayName}. Actualiza tu biblioteca para verlo.`)
       }
       setSelectedTrack(null)
     } catch (error) {
@@ -180,7 +198,7 @@ const MusicSearchScreen = () => {
             value={query}
             onChangeText={setQuery}
             onSubmitEditing={() => void search()}
-            placeholder="Canción o artista"
+            placeholder="Canción, artista o enlace"
             placeholderTextColor={colors.placeholder}
             returnKeyType="search"
             accessibilityLabel="Buscar canción o artista en YouTube Music"

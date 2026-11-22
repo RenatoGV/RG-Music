@@ -29,11 +29,24 @@ class MusicImportModule : Module() {
   }
 
   private val activeDownload = AtomicReference<Download?>()
+  private val pendingShare = AtomicReference<String?>()
   private var initialized = false
 
   override fun definition() = ModuleDefinition {
     Name("MusicImport")
-    Events("onAudioDownloadProgress")
+    Events("onAudioDownloadProgress", "onSharedMusic")
+
+    OnNewIntent { intent ->
+      takeSharedText(intent)?.let { text ->
+        pendingShare.set(text)
+        sendEvent("onSharedMusic", emptyMap<String, Any>())
+      }
+    }
+
+    Function("takeSharedMusic") {
+      val initial = takeSharedText(appContext.currentActivity?.intent)
+      pendingShare.getAndSet(null) ?: initial
+    }
 
     Function("start") {
       val context = requireNotNull(appContext.reactContext)
@@ -71,25 +84,22 @@ class MusicImportModule : Module() {
       val output = YoutubeDL.getInstance().execute(request).out
       val root = JSONObject(output)
       val entries = root.optJSONArray("entries")
-      (0 until (entries?.length() ?: 0)).mapNotNull { index ->
-        val item = entries?.optJSONObject(index) ?: return@mapNotNull null
-        val id = item.optString("id").takeIf { it.matches(Regex("[A-Za-z0-9_-]{11}")) } ?: return@mapNotNull null
-        mapOf(
-          "id" to id,
-          "title" to item.optString("title", "Sin título"),
-          "artist" to (item.optString("artist").ifBlank {
-            item.optString("uploader").ifBlank { item.optString("channel", "Desconocido") }
-          }),
-          "album" to item.optString("album").takeUnless { item.isNull("album") || it.isBlank() },
-          "duration" to item.optDouble("duration", 0.0),
-          "artwork" to (item.optString("thumbnail").ifBlank {
-            item.optJSONArray("thumbnails")?.optJSONObject(item.optJSONArray("thumbnails")!!.length() - 1)?.optString("url") ?: ""
-          }),
-          // Use YouTube's canonical watch URL. Flat YouTube Music results can
-          // expose a music.youtube.com URL that is less reliable for extraction.
-          "url" to "https://www.youtube.com/watch?v=$id"
-        )
-      }
+      (0 until (entries?.length() ?: 0)).mapNotNull { index -> entries?.optJSONObject(index)?.let(::musicResult) }
+    }
+
+    AsyncFunction("resolveYouTubeMusic") { videoId: String ->
+      require(videoId.matches(VIDEO_ID)) { "Enlace de YouTube no válido." }
+      ensureDownloaderInitialized()
+      val request = YoutubeDLRequest("https://www.youtube.com/watch?v=$videoId")
+      request.addOption("--ignore-config")
+      request.addOption("--no-playlist")
+      request.addOption("--no-js-runtimes")
+      request.addOption("--ignore-no-formats-error")
+      request.addOption("--skip-download")
+      request.addOption("--dump-single-json")
+      request.addOption("--socket-timeout", "20")
+      request.addOption("--cache-dir", File(requireNotNull(appContext.reactContext).cacheDir, "music-extractor").absolutePath)
+      requireNotNull(musicResult(JSONObject(YoutubeDL.getInstance().execute(request).out)))
     }
 
     AsyncFunction("downloadAudio") { videoUrl: String, folderUri: String, requestedName: String, quality: Int, author: String, album: String ->
@@ -184,6 +194,27 @@ class MusicImportModule : Module() {
     }
   }
 
+  private fun takeSharedText(intent: Intent?): String? {
+    val text = intent?.getStringExtra(SHARED_MUSIC_TEXT) ?: return null
+    intent.removeExtra(SHARED_MUSIC_TEXT)
+    return text
+  }
+
+  private fun musicResult(item: JSONObject): Map<String, Any?>? {
+    fun field(name: String) = item.optString(name).takeUnless { item.isNull(name) || it.isBlank() }
+    val id = field("id")?.takeIf(VIDEO_ID::matches) ?: return null
+    val thumbnails = item.optJSONArray("thumbnails")
+    return mapOf(
+      "id" to id,
+      "title" to (field("track") ?: field("title") ?: "Sin título"),
+      "artist" to (field("artist") ?: field("uploader") ?: field("channel") ?: "Desconocido"),
+      "album" to field("album"),
+      "duration" to item.optDouble("duration", 0.0),
+      "artwork" to (field("thumbnail") ?: thumbnails?.optJSONObject(thumbnails.length() - 1)?.optString("url") ?: ""),
+      "url" to "https://www.youtube.com/watch?v=$id"
+    )
+  }
+
   private fun reportProgress(progress: Double, message: String? = null) {
     sendEvent("onAudioDownloadProgress", mapOf("progress" to progress, "message" to message))
   }
@@ -271,3 +302,5 @@ class MusicImportModule : Module() {
     return null
   }
 }
+
+private val VIDEO_ID = Regex("[A-Za-z0-9_-]{11}")
