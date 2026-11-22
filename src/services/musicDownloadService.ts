@@ -20,7 +20,7 @@ type MusicDownloadNativeModule = EventEmitter<{
   onAudioDownloadProgress: (event: AudioDownloadProgress) => void
 }> & {
   searchYouTubeMusic: (query: string) => Promise<MusicSearchResult[]>
-  downloadAudio: (url: string, folderUri: string, fileName: string, quality: number) => Promise<{ uri: string; fileName: string }>
+  downloadAudio: (url: string, folderUri: string, fileName: string, quality: number, author: string, album: string) => Promise<{ uri: string; fileName: string }>
   cancelAudioDownload: () => void
 }
 
@@ -36,8 +36,8 @@ const getModule = () => {
 
 export const searchYouTubeMusic = (query: string) => getModule().searchYouTubeMusic(query)
 
-export const downloadAudio = (url: string, folderUri: string, fileName: string, quality: number) =>
-  getModule().downloadAudio(url, folderUri, fileName, quality)
+export const downloadAudio = (url: string, folderUri: string, fileName: string, quality: number, author: string, album: string) =>
+  getModule().downloadAudio(url, folderUri, fileName, quality, author, album)
 
 export const cancelAudioDownload = () => getModule().cancelAudioDownload()
 

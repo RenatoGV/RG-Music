@@ -7,6 +7,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -15,9 +16,10 @@ import {
 import { FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Bar } from 'react-native-progress'
-import { pickDirectory } from '@react-native-documents/picker'
+import { errorCodes, isErrorWithCode, pickDirectory } from '@react-native-documents/picker'
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { defaultStyles } from '@/styles'
+import { GradientButton } from '@/components/common/GradientButton'
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
@@ -47,6 +49,8 @@ const MusicSearchScreen = () => {
   const [searchError, setSearchError] = useState('')
   const [selectedTrack, setSelectedTrack] = useState<MusicSearchResult | null>(null)
   const [fileName, setFileName] = useState('')
+  const [author, setAuthor] = useState('')
+  const [album, setAlbum] = useState('')
   const [quality, setQuality] = useState(192)
   const [downloadState, setDownloadState] = useState<DownloadState>('idle')
   const [progress, setProgress] = useState(0)
@@ -89,9 +93,18 @@ const MusicSearchScreen = () => {
     return () => subscription.remove()
   }, [])
 
+  const closeDownloadOptions = () => {
+    if (busy) return
+    Keyboard.dismiss()
+    setSelectedTrack(null)
+  }
+
   const openDownloadOptions = (track: MusicSearchResult) => {
     setSelectedTrack(track)
     setFileName(track.title)
+    setAuthor(track.artist === 'Desconocido' ? '' : track.artist)
+    setAlbum(track.album ?? '')
+    setFolderUri(loadData<string>('selectedAlbum'))
     setDownloadError('')
   }
 
@@ -106,19 +119,22 @@ const MusicSearchScreen = () => {
   const startDownload = async () => {
     if (!selectedTrack || downloadInFlight.current) return
     downloadInFlight.current = true
-    let targetFolder = folderUri
+    const targetFolder = loadData<string>('selectedAlbum')
     try {
-      if (!targetFolder) targetFolder = await chooseFolder()
-      if (!targetFolder) return
+      if (!targetFolder) {
+        setFolderUri(null)
+        return
+      }
+      Keyboard.dismiss()
 
       setDownloadError('')
       setProgress(0)
       setDownloadStatus('Preparando la descarga…')
       setDownloadState('downloading')
-      const result = await downloadAudio(selectedTrack.url, targetFolder, fileName, quality)
+      const result = await downloadAudio(selectedTrack.url, targetFolder, fileName, quality, author.trim(), album.trim())
       setDownloadState('importing')
       try {
-        await importDownloadedTrack(result.uri, result.fileName, selectedTrack.artist)
+        await importDownloadedTrack(result.uri, result.fileName, author.trim())
         showToast(`Añadida a tu biblioteca: ${result.fileName}`)
       } catch (error) {
         console.warn('[IMPORT] No se pudo actualizar la biblioteca tras guardar el MP3', error)
@@ -142,10 +158,12 @@ const MusicSearchScreen = () => {
     cancelAudioDownload()
   }
 
-  const changeFolder = async () => {
+  const selectLibraryFolder = async () => {
     try {
+      Keyboard.dismiss()
       await chooseFolder()
     } catch (error) {
+      if (isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED) return
       showToast(getReadableError(error, 'No se pudo seleccionar la carpeta'))
     }
   }
@@ -173,7 +191,7 @@ const MusicSearchScreen = () => {
               <Ionicons name="close-circle" size={19} color={colors.textMuted} />
             </Pressable>
           )}
-          <Pressable
+          <GradientButton
             onPress={() => void search()}
             accessibilityRole="button"
             accessibilityLabel="Buscar"
@@ -181,16 +199,8 @@ const MusicSearchScreen = () => {
             disabled={searching || !query.trim()}
           >
             {searching ? <ActivityIndicator size="small" color={colors.background} /> : <Ionicons name="arrow-forward" size={19} color={colors.background} />}
-          </Pressable>
+          </GradientButton>
         </View>
-
-        <Pressable onPress={() => void changeFolder()} style={styles.folderRow} accessibilityRole="button">
-          <FontAwesome6 name="folder" size={16} color={colors.primary} />
-          <Text numberOfLines={1} style={styles.folderText}>
-            {folderUri ? 'Guardar en la carpeta de tu biblioteca' : 'Selecciona dónde guardar tus descargas'}
-          </Text>
-          <Text style={styles.changeFolder}>Cambiar</Text>
-        </Pressable>
 
         {searching && results.length === 0 ? (
           <View style={styles.centerState}>
@@ -234,71 +244,84 @@ const MusicSearchScreen = () => {
         )}
       </View>
 
-      <Modal visible={selectedTrack !== null} transparent animationType="fade" onRequestClose={() => {
-        if (!busy) setSelectedTrack(null)
-      }}>
-        <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => !busy && setSelectedTrack(null)} />
-          <LiquidGlassSurface style={styles.optionsCard} borderRadius={28} intensity={32}>
-            <View style={styles.modalGrabber} />
-            <View style={styles.modalTitleRow}>
-              {selectedTrack?.artwork ? <Image source={{ uri: selectedTrack.artwork }} style={styles.modalArtwork} /> : null}
-              <View style={styles.resultInfo}>
-                <Text numberOfLines={1} style={styles.trackTitle}>{selectedTrack?.title}</Text>
-                <Text numberOfLines={1} style={styles.artistLine}>{selectedTrack?.artist}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.inputLabel}>Nombre del archivo</Text>
-            <View style={styles.fileNameInputWrap}>
-              <TextInput
-                value={fileName}
-                onChangeText={setFileName}
-                placeholder="Nombre de la canción"
-                placeholderTextColor={colors.placeholder}
-                editable={!busy}
-                selectTextOnFocus
-                accessibilityLabel="Nombre del archivo MP3"
-                style={styles.fileNameInput}
-              />
-              <Text style={styles.extension}>.mp3</Text>
-            </View>
-
-            <Text style={styles.inputLabel}>Calidad del audio</Text>
-            <View style={styles.qualityRow}>
-              {[128, 192, 320].map((bitrate) => (
-                <Pressable key={bitrate} disabled={busy} onPress={() => setQuality(bitrate)} style={[styles.qualityOption, quality === bitrate && styles.qualityOptionActive]}>
-                  <Text style={[styles.qualityText, quality === bitrate && styles.qualityTextActive]}>{bitrate} kbps</Text>
-                </Pressable>
-              ))}
-            </View>
-
-            <Text style={styles.metadataHint}>
-              <Ionicons name="information-circle-outline" size={15} color={colors.textMuted} />  Se incluirán los metadatos y la portada disponibles.
-            </Text>
-            {downloadError ? <Text style={styles.errorText}>{downloadError}</Text> : null}
-
-            {busy ? (
-              <View style={styles.progressCard}>
-                <View style={styles.progressHeader}>
-                  <Text accessibilityLiveRegion="polite" style={styles.progressTitle}>
-                    {downloadState === 'importing' ? 'Añadiendo a la biblioteca…' : cancelling ? 'Cancelando…' : downloadStatus || `Descargando · ${Math.round(progress * 100)}%`}
-                  </Text>
-                  {downloadState === 'downloading' && !cancelling && (
-                    <Pressable accessibilityRole="button" accessibilityLabel="Cancelar descarga" onPress={cancelDownload} style={styles.cancelButton}>
-                      <Ionicons name="close" size={17} color={colors.text} />
-                    </Pressable>
-                  )}
+      <Modal visible={selectedTrack !== null} transparent statusBarTranslucent navigationBarTranslucent animationType="fade" onRequestClose={closeDownloadOptions}>
+        <View style={[styles.modalOverlay, { paddingTop: safeInsets.top + 10, paddingBottom: safeInsets.bottom + 10 }]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={closeDownloadOptions} />
+          <LiquidGlassSurface style={styles.optionsCard} borderRadius={24} intensity={32}>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.optionsContent} bounces={false}>
+              <View style={styles.modalTitleRow}>
+                {selectedTrack?.artwork ? <Image source={{ uri: selectedTrack.artwork }} style={styles.modalArtwork} /> : null}
+                <View style={styles.resultInfo}>
+                  <Text numberOfLines={1} style={styles.trackTitle}>{selectedTrack?.title}</Text>
+                  <Text numberOfLines={1} style={styles.artistLine}>{selectedTrack?.artist}</Text>
                 </View>
-                <Bar progress={downloadState === 'importing' ? 1 : progress} width={null} height={4} color={colors.primary} borderWidth={0} unfilledColor="rgba(255,255,255,0.12)" />
+                <Pressable accessibilityRole="button" accessibilityLabel="Cerrar" hitSlop={10} disabled={busy} onPress={closeDownloadOptions} style={[styles.closeButton, busy && styles.disabledButton]}>
+                  <FontAwesome6 name="xmark" size={14} color={colors.text} />
+                </Pressable>
               </View>
-            ) : (
-              <Pressable onPress={() => void startDownload()} disabled={!fileName.trim() || Platform.OS !== 'android'} style={[styles.primaryButton, (!fileName.trim() || Platform.OS !== 'android') && styles.disabledButton]}>
-                <Ionicons name="download" size={19} color={colors.background} />
-                <Text style={styles.primaryButtonText}>Descargar MP3</Text>
-              </Pressable>
-            )}
-            {Platform.OS !== 'android' ? <Text style={styles.errorText}>Esta función está disponible solo en Android.</Text> : null}
+
+              <Text style={styles.inputLabel}>Nombre del archivo</Text>
+              <View style={styles.fileNameInputWrap}>
+                <TextInput
+                  value={fileName}
+                  onChangeText={setFileName}
+                  placeholder="Nombre de la canción"
+                  placeholderTextColor={colors.placeholder}
+                  editable={!busy}
+                  selectTextOnFocus
+                  accessibilityLabel="Nombre del archivo MP3"
+                  style={styles.fileNameInput}
+                />
+                <Text style={styles.extension}>.mp3</Text>
+              </View>
+
+              <Text style={styles.inputLabel}>Álbum</Text>
+              <View style={styles.fileNameInputWrap}>
+                <TextInput value={album} onChangeText={setAlbum} placeholder="Opcional" placeholderTextColor={colors.placeholder} accessibilityLabel="Álbum" editable={!busy} style={styles.fileNameInput} />
+              </View>
+
+              <Text style={styles.inputLabel}>Autor</Text>
+              <View style={styles.fileNameInputWrap}>
+                <TextInput value={author} onChangeText={setAuthor} placeholder="Opcional" placeholderTextColor={colors.placeholder} accessibilityLabel="Autor" editable={!busy} style={styles.fileNameInput} />
+              </View>
+
+              <Text style={styles.inputLabel}>Calidad del audio</Text>
+              <View style={styles.qualityRow}>
+                {[128, 192, 320].map((bitrate) => (
+                  <Pressable key={bitrate} disabled={busy} onPress={() => setQuality(bitrate)} style={[styles.qualityOption, quality === bitrate && styles.qualityOptionActive]}>
+                    <Text style={[styles.qualityText, quality === bitrate && styles.qualityTextActive]}>{bitrate} kbps</Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <Text style={styles.metadataHint}>
+                <Ionicons name="information-circle-outline" size={15} color={colors.textMuted} />  Se incluirán los metadatos y la portada disponibles.
+              </Text>
+              <Text style={[styles.metadataHint, { color: colors.primary }]}>{folderUri ? 'Guardando en la carpeta de la biblioteca' : 'Debes escoger la carpeta de la biblioteca de la aplicación.'}</Text>
+              {downloadError ? <Text style={styles.errorText}>{downloadError}</Text> : null}
+
+              {busy ? (
+                <View style={styles.progressCard}>
+                  <View style={styles.progressHeader}>
+                    <Text accessibilityLiveRegion="polite" style={styles.progressTitle}>
+                      {downloadState === 'importing' ? 'Añadiendo a la biblioteca…' : cancelling ? 'Cancelando…' : downloadStatus || `Descargando · ${Math.round(progress * 100)}%`}
+                    </Text>
+                    {downloadState === 'downloading' && !cancelling && (
+                      <Pressable accessibilityRole="button" accessibilityLabel="Cancelar descarga" onPress={cancelDownload} style={styles.cancelButton}>
+                        <Ionicons name="close" size={17} color={colors.text} />
+                      </Pressable>
+                    )}
+                  </View>
+                  <Bar progress={downloadState === 'importing' ? 1 : progress} width={null} height={4} color={colors.primary} borderWidth={0} unfilledColor="rgba(255,255,255,0.12)" />
+                </View>
+              ) : (
+                <GradientButton onPress={() => void (folderUri ? startDownload() : selectLibraryFolder())} disabled={Platform.OS !== 'android' || (!!folderUri && !fileName.trim())} style={[styles.primaryButton, (Platform.OS !== 'android' || (!!folderUri && !fileName.trim())) && styles.disabledButton]}>
+                  <MaterialIcons name="download" size={19} color={colors.background} />
+                  <Text style={styles.primaryButtonText}>{folderUri ? 'Descargar MP3' : 'Elegir carpeta de la biblioteca'}</Text>
+                </GradientButton>
+              )}
+              {Platform.OS !== 'android' ? <Text style={styles.errorText}>Esta función está disponible solo en Android.</Text> : null}
+            </ScrollView>
           </LiquidGlassSurface>
         </View>
       </Modal>
@@ -365,26 +388,7 @@ const styles = StyleSheet.create({
 		borderRadius: 14,
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: colors.primary,
 	},
-	folderRow: {
-		marginTop: 15,
-		marginBottom: 8,
-		flexDirection: 'row',
-		alignItems: 'center',
-		columnGap: 8,
-		minHeight: 25,
-	},
-	folderText: {
-    flex: 1,
-    color: colors.textMuted,
-    fontSize: 12
-  },
-	changeFolder: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: '600'
-  },
 	resultsList: {
     paddingBottom: 12
   },
@@ -492,23 +496,22 @@ const styles = StyleSheet.create({
 	modalOverlay: {
 		flex: 1,
 		backgroundColor: 'rgba(0,0,0,0.70)',
-		justifyContent: 'flex-end',
-		padding: 10,
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingHorizontal: 20,
 	},
 	optionsCard: {
+        flexShrink: 1,
+        width: '100%',
+        maxWidth: 460,
+        backgroundColor: 'rgba(21,25,28,0.98)',
+    },
+    optionsContent: {
 		paddingHorizontal: 20,
-		paddingTop: 12,
+		paddingTop: 20,
 		paddingBottom: 24,
-		backgroundColor: 'rgba(21,25,28,0.98)',
 	},
-	modalGrabber: {
-		width: 40,
-		height: 4,
-		borderRadius: 2,
-		backgroundColor: 'rgba(255,255,255,0.30)',
-		alignSelf: 'center',
-		marginBottom: 18,
-	},
+  closeButton: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
 	modalTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -585,7 +588,6 @@ const styles = StyleSheet.create({
 	primaryButton: {
 		minHeight: 50,
 		borderRadius: 16,
-		backgroundColor: colors.primary,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',

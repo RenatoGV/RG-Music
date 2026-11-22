@@ -80,7 +80,7 @@ class MusicImportModule : Module() {
           "artist" to (item.optString("artist").ifBlank {
             item.optString("uploader").ifBlank { item.optString("channel", "Desconocido") }
           }),
-          "album" to item.optString("album").takeIf { it.isNotBlank() },
+          "album" to item.optString("album").takeUnless { item.isNull("album") || it.isBlank() },
           "duration" to item.optDouble("duration", 0.0),
           "artwork" to (item.optString("thumbnail").ifBlank {
             item.optJSONArray("thumbnails")?.optJSONObject(item.optJSONArray("thumbnails")!!.length() - 1)?.optString("url") ?: ""
@@ -92,7 +92,7 @@ class MusicImportModule : Module() {
       }
     }
 
-    AsyncFunction("downloadAudio") { videoUrl: String, folderUri: String, requestedName: String, quality: Int ->
+    AsyncFunction("downloadAudio") { videoUrl: String, folderUri: String, requestedName: String, quality: Int, author: String, album: String ->
       val context = requireNotNull(appContext.reactContext)
       val folder = Uri.parse(folderUri)
       require(DocumentsContract.isTreeUri(folder)) { "Selecciona de nuevo la carpeta de música." }
@@ -126,6 +126,10 @@ class MusicImportModule : Module() {
           request.addOption("--audio-format", "mp3")
           request.addOption("--audio-quality", "${quality}K")
           request.addOption("--embed-metadata")
+          // yt-dlp splits these arguments with shlex. Empty values remove the source tags.
+          val artistTag = quotePostprocessorArg("artist=$author")
+          val albumTag = quotePostprocessorArg("album=$album")
+          request.addOption("--postprocessor-args", "Metadata+ffmpeg_o:-metadata $artistTag -metadata $albumTag")
           request.addOption("--embed-thumbnail")
           request.addOption("--output", "${workDir.absolutePath}/audio.%(ext)s")
 
@@ -183,6 +187,8 @@ class MusicImportModule : Module() {
   private fun reportProgress(progress: Double, message: String? = null) {
     sendEvent("onAudioDownloadProgress", mapOf("progress" to progress, "message" to message))
   }
+
+  private fun quotePostprocessorArg(value: String): String = "'" + value.replace("'", "'\"'\"'") + "'"
 
   private fun providerMayHelp(failure: String): Boolean = listOf(
     "requested format is not available", "no video formats found", "only images are available",
