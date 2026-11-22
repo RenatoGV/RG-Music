@@ -32,6 +32,16 @@
 - **Búsqueda rápida**: Encuentra canciones fácilmente con la barra de búsqueda.
 - **Favoritos**: Marca tus canciones favoritas para acceso rápido.
 
+### Descargas MP3 en Android
+
+La pestaña **Descubrir música** usa `ytsearch` de YouTube. Android descarga el audio, lo convierte con FFmpeg y guarda el MP3 en la carpeta de la biblioteca con los metadatos y la portada disponibles. Rythm añade el archivo nuevo a la biblioteca sin releer el resto de la carpeta. La descarga y la conversión se ejecutan en el teléfono.
+
+El prototipo web de `lyrics-cloud-downloads` usaba `ytmusicapi` para buscar y un servidor en Render para obtener el audio. En Android, los intentos incluyeron actualizar yt-dlp en ejecución, restaurar el extractor del AAR para mantener FFmpeg, probar varios clientes de YouTube y arrancar BGUtils en el teléfono. El APK anterior volvía a instalar yt-dlp `2025.11.12`. Con ese extractor, encontrar un video en la búsqueda no garantizaba que hubiera un formato descargable.
+
+Gradle fija la versión de yt-dlp y verifica el SHA-256 de su publicación oficial. El APK incluye sus componentes EJS y usa el QuickJS de `youtubedl-android`. La app prueba la selección de formatos de yt-dlp primero y arranca BGUtils localmente cuando el error indica que puede ayudar. Deno se usa para ese proveedor.
+
+Con un teléfono conectado por USB, ejecuta `npm run android` para recompilar e instalar el build de desarrollo. Para probarlo, elige una pista cuya descarga esté autorizada, confirma que aparece en la biblioteca y reprodúcela sin conexión. Si falla, `adb logcat -d -s RythmDownloader` muestra la etapa y el error del motor nativo.
+
 ### 🎨 Playlists Personalizadas
 - **Crear playlists**: Organiza tu música en listas de reproducción personalizadas.
 - **Agregar canciones**: Añade múltiples canciones a tus playlists.
