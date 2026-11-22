@@ -23,6 +23,7 @@ import { defaultStyles } from '@/styles'
 import { GradientButton } from '@/components/common/GradientButton'
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
+import { LiquidGlassBlurTarget } from '@/components/glass/LiquidGlassBlurTarget'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 import { importDownloadedTrack } from '@/helpers/import'
 import { loadData, saveData } from '@/helpers/storage'
@@ -93,6 +94,7 @@ const MusicSearchScreen = () => {
       }
     } catch (error) {
       if (version === searchVersion.current) {
+        console.warn('Error al buscar en YouTube', error)
         setSearchError(getReadableError(error, videoId ? 'No se pudo abrir el enlace de YouTube.' : 'No se pudo buscar en YouTube.'))
         setResults([])
       }
@@ -187,7 +189,7 @@ const MusicSearchScreen = () => {
   }
 
   return (
-    <View style={defaultStyles.container}>
+    <LiquidGlassBlurTarget style={defaultStyles.container}>
       <View style={styles.backgroundGlow} />
       <ScreenHeader title="Descubrir música" subtitle="Busca y guarda en tu dispositivo" topInset={safeInsets.top} />
 
@@ -343,12 +345,13 @@ const MusicSearchScreen = () => {
           </LiquidGlassSurface>
         </View>
       </Modal>
-    </View>
+    </LiquidGlassBlurTarget>
   )
 }
 
 const getReadableError = (error: unknown, fallback: string) => {
   const message = error instanceof Error ? error.message : String(error ?? '')
+  if (/failed to initialize|ExceptionInInitializerError|no se pudo preparar el extractor/i.test(message)) return 'No se pudo iniciar el motor de búsqueda en el dispositivo.'
   if (/cancel|destroy|interrupt/i.test(message)) return 'Descarga cancelada.'
   if (/postprocessing:|ffmpeg.*not found|sin generar el MP3/i.test(message)) {
     return 'Se obtuvo el audio, pero no se pudo convertir o preparar el MP3.'
