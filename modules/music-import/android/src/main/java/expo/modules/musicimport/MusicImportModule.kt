@@ -7,6 +7,7 @@ import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.system.Os
 import android.util.Log
+import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -112,6 +113,7 @@ class MusicImportModule : Module() {
       val workDir = File(context.cacheDir, "music-download-${download.processId}")
       try {
         ensureDownloaderInitialized()
+        FFmpeg.getInstance().init(context.applicationContext)
         download.checkCancelled()
         check(workDir.mkdirs()) { "No se pudo crear la carpeta temporal" }
 
@@ -244,9 +246,6 @@ class MusicImportModule : Module() {
         temporary.delete()
       }
       YoutubeDL.getInstance().init(context)
-      val ffmpegClass = Class.forName("com.yausername.ffmpeg.FFmpeg")
-      val ffmpeg = ffmpegClass.getMethod("getInstance").invoke(null)
-      ffmpegClass.getMethod("init", android.content.Context::class.java).invoke(ffmpeg, context)
       initialized = true
     }
   }
