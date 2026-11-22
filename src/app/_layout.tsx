@@ -129,7 +129,7 @@ const RootNavigation = () => {
 				showToast('Comparte un enlace de una canción o un video de YouTube.')
 				return
 			}
-			routerRef.current.navigate({ pathname: '/download', params: { videoId, share: String(++shareSequence.current) } })
+			routerRef.current.navigate({ pathname: '/(tabs)/download', params: { videoId, share: String(++shareSequence.current) } })
 		})
 	}, [navigationReady])
 	
