@@ -1,5 +1,6 @@
-import { colors, fontSize, screenPadding } from '@/constants/tokens'
-import { defaultStyles, utilsStyles } from '@/styles'
+import { colors, screenPadding } from '@/constants/tokens'
+import { defaultStyles } from '@/styles'
+import { EmptyState } from '@/components/common/EmptyState'
 import { StyleSheet, Text, View } from 'react-native'
 import { useEffect, useMemo, useState } from 'react'
 import { filterTrackByTitle } from '@/helpers/filter'
@@ -19,7 +20,6 @@ import { saveData } from '@/helpers/storage'
 import { GradientButton } from '@/components/common/GradientButton'
 import LottieView from 'lottie-react-native'
 import musicLoading from '@/assets/lottie/music-loading.json'
-import notFound from '@/assets/lottie/not-found.json'
 
 const SongsScreen = () => {
    const [modalFolderVisible, setModalFolderVisible] = useState(false)
@@ -125,18 +125,17 @@ const SongsScreen = () => {
 					</View>
 				</View>
 			) : tracks === null ? (
-				<View style={styles.emptyContent}>
-					<Text style={utilsStyles.emptyContentText}>Sin Canciones</Text>
-					<Text style={styles.emptyHint}>
-						Seleccione una carpeta para importar canciones (.mp3 o .wav)
-					</Text>
-					<LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
-
-					<GradientButton onPress={handleSelectFolder} style={styles.button}>
-						<Ionicons name="folder-outline" size={22} color={colors.text} />
-						<Text style={styles.buttonText}>Seleccionar carpeta</Text>
-					</GradientButton>
-				</View>
+				<EmptyState
+					title="Tu biblioteca está vacía"
+					description="Selecciona una carpeta para importar canciones en formato MP3 o WAV."
+					style={styles.emptyContent}
+					footer={
+						<GradientButton onPress={handleSelectFolder} style={styles.button}>
+							<Ionicons name="folder-outline" size={22} color={colors.text} />
+							<Text style={styles.buttonText}>Seleccionar carpeta</Text>
+						</GradientButton>
+					}
+				/>
 			) : (
 				<>
 					<ScreenHeader
@@ -162,6 +161,10 @@ const SongsScreen = () => {
 							id={songsQueueId}
 							tracks={sortedTracks}
 							filteredTracks={filteredTracks}
+							emptyStateTitle={sortedTracks.length === 0 ? 'Aún no hay canciones en tu biblioteca' : 'No se encontraron canciones'}
+							emptyStateDescription={sortedTracks.length === 0
+								? 'Importa canciones desde una carpeta para escucharlas aquí.'
+								: 'Prueba con otro título o artista.'}
 							hideQueueControls
 							style={styles.trackList}
 						/>
@@ -203,16 +206,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	emptyContent: {
-		flex: 1,
 		paddingHorizontal: screenPadding.horizontal,
-		alignItems: 'center',
 		justifyContent: 'center'
-	},
-	emptyHint: {
-		color: colors.textMuted,
-		fontSize: fontSize.sm,
-		textAlign: 'center',
-		marginBottom: 10,
 	},
 	content: {
 		flex: 1,

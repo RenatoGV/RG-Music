@@ -63,6 +63,10 @@ const PlaylistsScreen = () => {
          <PlaylistList
             playlists={filteredPlaylists}
             onPlaylistPress={handlePlaylistPress}
+            emptyStateTitle={sortedPlaylists.length === 0 ? 'Aún no tienes playlists' : 'No hay playlists que coincidan'}
+            emptyStateDescription={sortedPlaylists.length === 0
+               ? 'Crea una playlist para organizar las canciones que te gustan.'
+               : 'Prueba con otro nombre.'}
             contentInsetAdjustmentBehavior="automatic"
          />
       </View>

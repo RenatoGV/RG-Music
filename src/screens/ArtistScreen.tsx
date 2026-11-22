@@ -5,14 +5,13 @@ import { filterArtistsByName } from '@/helpers/filter'
 import type { Track } from '@/helpers/types'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 import { useArtists } from '@/store/library'
-import { defaultStyles, utilsStyles } from '@/styles'
+import { defaultStyles } from '@/styles'
+import { EmptyState } from '@/components/common/EmptyState'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Link } from 'expo-router'
-import LottieView from 'lottie-react-native'
 import { useMemo, useState } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import notFound from '@/assets/lottie/not-found.json'
 import { MaterialIcons } from '@expo/vector-icons'
 
 const ItemSeparatorComponent = () => {
@@ -47,10 +46,13 @@ const ArtistsScreen = () => {
 				contentContainerStyle={{ paddingHorizontal: screenPadding.horizontal, paddingBottom: contentBottomPadding, flexGrow: 1 }}
 				ItemSeparatorComponent={ItemSeparatorComponent}
 				ListEmptyComponent={
-					<View style={styles.emptyContent}>
-						<Text style={utilsStyles.emptyContentText}>Sin resultados</Text>
-							<LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
-					</View>
+					<EmptyState
+						title={sortedArtists.length === 0 ? 'Aún no hay artistas' : 'No se encontraron artistas'}
+						description={sortedArtists.length === 0
+							? 'Importa canciones con información de artista para verlas aquí.'
+							: 'Prueba con otro nombre de artista.'}
+						style={styles.emptyContent}
+					/>
 				}
 				data={filteredArtists}
 				showsVerticalScrollIndicator={false}

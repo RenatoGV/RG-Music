@@ -1,5 +1,4 @@
 import { ScreenHeader } from '@/components/common/ScreenHeader'
-import { PrimaryGlassButton } from '@/components/common/PrimaryGlassButton'
 import { SelectTrackList } from '@/components/playlist/SelectTrackList'
 import { colors, screenPadding } from '@/constants/tokens'
 import { filterTrackByTitle } from '@/helpers/filter'
@@ -12,6 +11,7 @@ import { Redirect, router, Stack, useLocalSearchParams } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { GradientButton } from '@/components/common/GradientButton'
 
 const AddTracksToPlaylistModal = () => {
 	const { playlistId } = useLocalSearchParams<{ playlistId: string }>()
@@ -66,7 +66,7 @@ const AddTracksToPlaylistModal = () => {
 				<Text style={styles.selectionLabel}>
 					{selectedTracks.length} {selectedTracks.length === 1 ? 'seleccionada' : 'seleccionadas'}
 				</Text>
-				<PrimaryGlassButton
+				<GradientButton
 					accessibilityLabel={`Agregar ${selectedTracks.length} canciones a ${currentPlaylist.name}`}
 					disabled={selectedTracks.length === 0}
 					style={[styles.addButton, selectedTracks.length === 0 && styles.addButtonDisabled]}
@@ -75,13 +75,23 @@ const AddTracksToPlaylistModal = () => {
 					<View style={styles.addButtonContent}>
 						<Text style={styles.addButtonText}>Agregar</Text>
 					</View>
-				</PrimaryGlassButton>
+				</GradientButton>
 			</View>
 
 			<SelectTrackList
 				tracks={filteredTracks}
 				selectedTracks={selectedTracks}
 				onTrackSelect={handleToggleTrack}
+				emptyStateTitle={tracks?.length === 0
+					? 'Tu biblioteca está vacía'
+					: availableTracks.length === 0
+						? 'Ya agregaste todas las canciones'
+						: 'No hay canciones que coincidan'}
+				emptyStateDescription={tracks?.length === 0
+					? 'Importa canciones a tu biblioteca para añadirlas a esta playlist.'
+					: availableTracks.length === 0
+						? 'Todas las canciones de tu biblioteca ya están en esta playlist.'
+						: 'Prueba con otro título o artista.'}
 				style={styles.trackList}
 				contentContainerStyle={styles.trackListContent}
 			/>

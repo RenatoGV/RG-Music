@@ -145,6 +145,10 @@ const PlaylistScreen = () => {
 				id={queueId}
 				tracks={playlistTracks}
 				filteredTracks={filteredTracks}
+				emptyStateTitle={playlistTracks.length === 0 ? 'Esta playlist está vacía' : 'No se encontraron canciones'}
+				emptyStateDescription={playlistTracks.length === 0
+					? 'Añade canciones a esta playlist para encontrarlas aquí.'
+					: 'Prueba con otro título o artista.'}
 				fromPlaylist={playlist}
 				hideQueueControls
 				onTrackPress={() => {

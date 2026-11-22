@@ -116,6 +116,8 @@ const RootNavigation = () => {
 	const { showLyrics } = useLyricStore()
 	const { top } = useSafeAreaInsets()
 	const router = useRouter()
+	const routerRef = useRef(router)
+	routerRef.current = router
 	const navigationReady = Boolean(useRootNavigationState()?.key)
 	const shareSequence = useRef(0)
 
@@ -127,9 +129,9 @@ const RootNavigation = () => {
 				showToast('Comparte un enlace de una canción o un video de YouTube.')
 				return
 			}
-			router.navigate({ pathname: '/download', params: { videoId, share: String(++shareSequence.current) } })
+			routerRef.current.navigate({ pathname: '/download', params: { videoId, share: String(++shareSequence.current) } })
 		})
-	}, [navigationReady, router])
+	}, [navigationReady])
 	
 	return (
 		<CustomStack>

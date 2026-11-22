@@ -66,7 +66,14 @@ const AddToPlaylistModal = () => {
                 searchPlaceholder="Buscar canciones"
                 topInset={insets.top}
             />
-            <PlaylistList playlists={filteredPlaylists} onPlaylistPress={handlePlaylistPress} />
+            <PlaylistList
+                playlists={filteredPlaylists}
+                onPlaylistPress={handlePlaylistPress}
+                emptyStateTitle={availablePlaylists?.length === 0 ? 'No hay playlists disponibles' : 'No hay playlists que coincidan'}
+                emptyStateDescription={availablePlaylists?.length === 0
+                    ? 'Todas tus playlists ya contienen esta canción.'
+                    : 'Prueba con otro nombre.'}
+            />
         </View>
     )
 }

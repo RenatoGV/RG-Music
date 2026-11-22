@@ -48,6 +48,7 @@
       "expo-asset",
       "expo-font",
       "expo-system-ui",
+      "./plugins/withTransparentNavigationBar",
       [
         "expo-build-properties",
         {

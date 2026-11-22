@@ -83,6 +83,10 @@ const ArtistDetailScreen = () => {
 				id={queueId}
 				tracks={sortedTracks}
 				filteredTracks={filteredTracks}
+				emptyStateTitle={sortedTracks.length === 0 ? 'Este artista no tiene canciones' : 'No se encontraron canciones'}
+				emptyStateDescription={sortedTracks.length === 0
+					? 'No hay canciones de este artista en tu biblioteca.'
+					: 'Prueba con otro título.'}
 				hideQueueControls
 				stickyQueueControls
 				stickyQueueControlsBackground={(
