@@ -17,6 +17,9 @@ import { restorePlaybackSession } from '@/services/playbackSessionService';
 import { loadPersistedAppData } from '@/services/appDataService';
 import { usePersistPlaybackPosition } from '@/hooks/usePersistPlaybackPosition';
 import { Platform } from 'react-native';
+import { useRootNavigationState, useRouter } from 'expo-router';
+import { getYouTubeVideoId, subscribeToSharedMusic } from '@/services/musicDownloadService';
+import { showToast } from '@/helpers/toast';
 
 const CustomStack = Stack
 
@@ -112,6 +115,21 @@ const App = () => {
 const RootNavigation = () => {
 	const { showLyrics } = useLyricStore()
 	const { top } = useSafeAreaInsets()
+	const router = useRouter()
+	const navigationReady = Boolean(useRootNavigationState()?.key)
+	const shareSequence = useRef(0)
+
+	useEffect(() => {
+		if (Platform.OS !== 'android' || !navigationReady) return
+		return subscribeToSharedMusic((text) => {
+			const videoId = getYouTubeVideoId(text)
+			if (!videoId) {
+				showToast('Comparte un enlace de una canción o un video de YouTube.')
+				return
+			}
+			router.navigate({ pathname: '/download', params: { videoId, share: String(++shareSequence.current) } })
+		})
+	}, [navigationReady, router])
 	
 	return (
 		<CustomStack>

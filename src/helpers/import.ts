@@ -26,6 +26,39 @@ const removeExtension = (fileName : string) => {
 
 type ImportMode = 'refresh' | 'replace'
 
+export const importDownloadedTrack = async (uri: string, fileName: string, fallbackArtist: string) => {
+  const title = removeExtension(fileName)
+  const duration = await getAudioDuration(uri)
+  let artist = fallbackArtist || 'Desconocido'
+  let artwork = unknownTrackImageUri
+  let tempDir = ''
+
+  try {
+    tempDir = await createTempSessionDir()
+    const temporaryUri = `file://${tempDir}/download.mp3`
+    await FileSystem.copyAsync({ from: uri, to: temporaryUri })
+    const { metadata } = await getAudioMetadata(temporaryUri, ['artist', 'artwork'])
+    artist = metadata.artist || artist
+    artwork = metadata.artwork || artwork
+  } catch (error) {
+    console.warn('[IMPORT] No se pudieron leer las etiquetas del MP3 descargado', error)
+  } finally {
+    if (tempDir) {
+      try {
+        await deleteTempSessionDir(tempDir)
+      } catch (error) {
+        console.warn('[IMPORT] No se pudo eliminar el temporal del MP3', error)
+      }
+    }
+  }
+
+  const { tracks, setTracks } = useLibraryStore.getState()
+  if (tracks?.some((track) => track.url === uri)) return
+  const updated = [...(tracks ?? []), { url: uri, title, artist, artwork, duration }]
+  saveData('tracks', updated)
+  setTracks(updated)
+}
+
 export const importTracks = async (uri: string | null, mode: ImportMode = 'refresh') => {
   const { tracks : savedTracks, setTracks, setIsLoading, setProgressLoading, resetProgressLoading } = useLibraryStore.getState()
 

@@ -113,6 +113,10 @@ const TabsNavigation = () => {
             title: 'Artistas',
             tabBarIcon: ({ focused }) => <LiquidGlassTabIndicator active={focused} index={3}><FontAwesome6 name="users-line" size={19} color={colors.icon} /></LiquidGlassTabIndicator>
           }} />
+          <Tabs.Screen name="download" options={{
+            title: 'Descubrir',
+            tabBarIcon: ({ focused }) => <LiquidGlassTabIndicator active={focused} index={4}><FontAwesome name="cloud-download" size={21} color={colors.icon} /></LiquidGlassTabIndicator>
+          }} />
       </Tabs>
 
       <FloatingPlayer style={{
@@ -133,6 +137,8 @@ const getTabIndex = (pathname: string) => pathname.includes('/favorites')
     ? 1
     : pathname.includes('/artists')
       ? 3
-      : 2
+      : pathname.includes('/download')
+        ? 4
+        : 2
 
 export default TabsNavigation

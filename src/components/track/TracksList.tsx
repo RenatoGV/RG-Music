@@ -75,8 +75,7 @@ export const TracksList = ({ id, tracks, filteredTracks, hideQueueControls = fal
 
     setShuffleOriginalQueue(null)
     TrackPlayer.setShuffleEnabled(false)
-    TrackPlayer.setQueue(tracks)
-    TrackPlayer.skip(trackIndex)
+    TrackPlayer.setQueue(tracks, trackIndex)
 
     setActiveQueueId(id)
     TrackPlayer.play()

@@ -144,7 +144,7 @@ const TrackPlayer = {
   add: (track: Track | Track[]) => Array.isArray(track)
     ? TrackPlayerV5.addMediaItems(track.map(toMediaItem))
     : TrackPlayerV5.addMediaItem(toMediaItem(track)),
-  setQueue: (tracks: Track[]) => TrackPlayerV5.setMediaItems(tracks.map(toMediaItem)),
+  setQueue: (tracks: Track[], startIndex = 0) => TrackPlayerV5.setMediaItems(tracks.map(toMediaItem), startIndex),
   setShuffleEnabled: TrackPlayerV5.setShuffleEnabled,
   move: TrackPlayerV5.moveMediaItem,
   skip: TrackPlayerV5.skipToIndex,

@@ -59,10 +59,12 @@
         {
           "android": {
             "kotlinVersion": "2.2.10",
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "useLegacyPackaging": true
           }
         }
       ],
+      "./plugins/withYtDlpAndroid",
       "expo-status-bar"
     ],
     "experiments": {

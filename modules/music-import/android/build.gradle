@@ -8,4 +8,51 @@ version = '1.0.0'
 
 android {
    namespace "expo.modules.musicimport"
+   defaultConfig {
+      consumerProguardFiles 'consumer-rules.pro'
+   }
+}
+
+// The wrapper's AAR still embeds yt-dlp 2025.11.12. Package the official
+// Python zipapp with a matching EJS release instead of updating on the phone.
+def ytDlpVersion = '2026.11.21.232659'
+def ytDlpSha256 = 'de111e0a1009cf99b010bf502ca8333b6450e1cfa15731186d742dd6def88360'
+def ytDlpAssets = layout.buildDirectory.dir('generated/ytDlpAssets')
+def bundleYtDlp = tasks.register('bundleYtDlp') {
+   inputs.property('version', ytDlpVersion)
+   inputs.property('sha256', ytDlpSha256)
+   def asset = ytDlpAssets.map { it.file('music-import/yt-dlp') }
+   outputs.file(asset)
+   doLast {
+      def destination = asset.get().asFile
+      destination.parentFile.mkdirs()
+      def temporary = new File(destination.parentFile, 'yt-dlp.part')
+      try {
+         def url = URI.create("https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/download/${ytDlpVersion}/yt-dlp").toURL()
+         def connection = url.openConnection()
+         connection.connectTimeout = 20000
+         connection.readTimeout = 60000
+         try {
+            connection.inputStream.withCloseable { input ->
+               temporary.withOutputStream { output -> input.transferTo(output) }
+            }
+         } finally {
+            connection.disconnect()
+         }
+         def digest = java.security.MessageDigest.getInstance('SHA-256').digest(temporary.bytes).encodeHex().toString()
+         if (digest != ytDlpSha256) throw new GradleException("yt-dlp ${ytDlpVersion}: SHA-256 does not match the official release")
+         java.nio.file.Files.move(temporary.toPath(), destination.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+      } finally {
+         temporary.delete()
+      }
+   }
+}
+android.sourceSets.main.assets.srcDir(ytDlpAssets.get().asFile)
+tasks.named('preBuild').configure { dependsOn(bundleYtDlp) }
+
+dependencies {
+   implementation("io.github.junkfood02.youtubedl-android:library:0.18.1")
+   implementation("io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1")
+   // yt-dlp uses the wrapper's QuickJS. Deno runs the optional local provider.
+   implementation("io.github.deniscerri:ytdlnis_packages.deno:2.7.7")
 }

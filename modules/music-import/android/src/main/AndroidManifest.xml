@@ -3,6 +3,16 @@
    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
    <application>
+      <activity
+         android:name="expo.modules.musicimport.SharedMusicActivity"
+         android:exported="true"
+         android:theme="@android:style/Theme.NoDisplay">
+         <intent-filter>
+            <action android:name="android.intent.action.SEND" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <data android:mimeType="text/plain" />
+         </intent-filter>
+      </activity>
       <service
          android:name="expo.modules.musicimport.MusicImportService"
          android:exported="false"
