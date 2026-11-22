@@ -164,7 +164,7 @@ const SongsScreen = () => {
 							emptyStateTitle={sortedTracks.length === 0 ? 'Aún no hay canciones en tu biblioteca' : 'No se encontraron canciones'}
 							emptyStateDescription={sortedTracks.length === 0
 								? 'Importa canciones desde una carpeta para escucharlas aquí.'
-								: 'Prueba con otro título o artista.'}
+								: 'Prueba con otro título.'}
 							hideQueueControls
 							style={styles.trackList}
 						/>

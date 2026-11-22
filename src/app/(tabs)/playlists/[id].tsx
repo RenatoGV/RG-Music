@@ -46,7 +46,8 @@ const PlaylistScreen = () => {
 	)
 	const filteredTracks = useMemo(() => filterTrackByTitle(playlistTracks, search), [playlistTracks, search])
 	const queueId = `playlist:${playlist?.id ?? id}`
-	const artworkSize = Math.min(230, Math.max(170, screenWidth * 0.58))
+	const heroArtworkHeight = Math.max(260, Math.min(320, screenWidth * 0.76))
+	const artworkSpacerHeight = Math.max(100, heroArtworkHeight - insets.top - 118)
 	const hasAllDurations = playlistTracks.length > 0 && playlistTracks.every(
 		(track) => typeof track.duration === 'number' && track.duration > 0,
 	)
@@ -79,6 +80,22 @@ const PlaylistScreen = () => {
 	return (
 		<View style={defaultStyles.container}>
 			<ScreenGradient />
+			<View pointerEvents="none" style={[styles.artworkBackdrop, { height: heroArtworkHeight }]}>
+				<ArtistArtwork
+					tracks={playlistTracks}
+					width={screenWidth}
+					height={heroArtworkHeight}
+					borderRadius={0}
+					fallbackArtworkUri={unknownPlaylistImageUri}
+				/>
+				<LinearGradient
+					colors={['rgba(2,24,28,0.12)', 'rgba(2,24,28,0.42)', '#02181C']}
+					locations={[0, 0.58, 1]}
+					start={{ x: 0.5, y: 0 }}
+					end={{ x: 0.5, y: 1 }}
+					style={StyleSheet.absoluteFill}
+				/>
+			</View>
 			<ScreenHeader
 				onBackPress={() => router.back()}
 				backAccessibilityLabel="Volver a playlists"
@@ -113,16 +130,7 @@ const PlaylistScreen = () => {
 			</DropdownMenu>
 
 			<View style={styles.profileSection}>
-				{!searchOpen && (
-					<View style={styles.artworkContainer}>
-						<ArtistArtwork
-							tracks={playlistTracks}
-							size={artworkSize}
-							borderRadius={24}
-							fallbackArtworkUri={unknownPlaylistImageUri}
-						/>
-					</View>
-				)}
+				{!searchOpen && <View style={{ height: artworkSpacerHeight }} />}
 
 				<View style={styles.titleRow}>
 					<Text numberOfLines={1} style={styles.playlistName}>{playlist.name}</Text>
@@ -148,7 +156,7 @@ const PlaylistScreen = () => {
 				emptyStateTitle={playlistTracks.length === 0 ? 'Esta playlist está vacía' : 'No se encontraron canciones'}
 				emptyStateDescription={playlistTracks.length === 0
 					? 'Añade canciones a esta playlist para encontrarlas aquí.'
-					: 'Prueba con otro título o artista.'}
+					: 'Prueba con otro título.'}
 				fromPlaylist={playlist}
 				hideQueueControls
 				onTrackPress={() => {
@@ -190,20 +198,23 @@ const ScreenGradient = () => (
 )
 
 const styles = StyleSheet.create({
+	artworkBackdrop: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		overflow: 'hidden',
+	},
 	profileSection: {
 		paddingHorizontal: screenPadding.horizontal,
-		paddingTop: 4,
-	},
-	artworkContainer: {
-		width: '100%',
-		alignItems: 'center',
+		paddingTop: 0,
 	},
 	titleRow: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		columnGap: 8,
-		marginTop: 20,
+		marginTop: 0,
 	},
 	playlistName: {
 		...defaultStyles.text,

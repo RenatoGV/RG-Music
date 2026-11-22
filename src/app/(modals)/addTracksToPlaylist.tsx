@@ -91,7 +91,7 @@ const AddTracksToPlaylistModal = () => {
 					? 'Importa canciones a tu biblioteca para añadirlas a esta playlist.'
 					: availableTracks.length === 0
 						? 'Todas las canciones de tu biblioteca ya están en esta playlist.'
-						: 'Prueba con otro título o artista.'}
+						: 'Prueba con otro título.'}
 				style={styles.trackList}
 				contentContainerStyle={styles.trackListContent}
 			/>

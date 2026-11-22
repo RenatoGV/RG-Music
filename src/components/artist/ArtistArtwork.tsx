@@ -6,6 +6,8 @@ import FastImage from 'react-native-fast-image'
 type ArtistArtworkProps = {
 	tracks: Track[]
 	size?: number
+	width?: number
+	height?: number
 	borderRadius?: number
 	fallbackArtworkUri?: string
 }
@@ -13,6 +15,8 @@ type ArtistArtworkProps = {
 export const ArtistArtwork = ({
 	tracks,
 	size = 56,
+	width,
+	height,
 	borderRadius = 12,
 	fallbackArtworkUri = unknownArtistImageUri,
 }: ArtistArtworkProps) => {
@@ -23,7 +27,7 @@ export const ArtistArtwork = ({
 			&& artwork !== unknownPlaylistImageUri
 			&& artwork !== unknownTrackImageUri)
 		.slice(0, 4)
-	const containerStyle = [styles.container, { width: size, height: size, borderRadius }]
+	const containerStyle = [styles.container, { width: width ?? size, height: height ?? size, borderRadius }]
 
 	if (artworks.length === 0) {
 		return <FastImage source={{ uri: fallbackArtworkUri }} style={containerStyle} />
