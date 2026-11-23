@@ -1,21 +1,21 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native'
+import { FlatList, StyleSheet, View } from 'react-native'
 import type { FlatListProps } from 'react-native'
 import type { Track } from '@/helpers/types'
 import { SelectTrackListItem } from './SelectTrackListItem'
-import { utilsStyles } from '@/styles'
-import LottieView from 'lottie-react-native'
-import notFound from '@/assets/lottie/not-found.json'
+import { EmptyState } from '@/components/common/EmptyState'
 import { screenPadding } from '@/constants/tokens'
 
 export type Props = Partial<FlatListProps<Track>> & {
 	tracks: Track[]
 	selectedTracks: string[]
 	onTrackSelect: (trackUrl: string) => void
+	emptyStateTitle?: string
+	emptyStateDescription?: string
 }
 
 const ItemDivider = () => <View style={{ marginVertical: 10, marginLeft: 60 }} />
 
-export const SelectTrackList = ({ tracks, selectedTracks, onTrackSelect, ...flatlistProps }: Props) => (
+export const SelectTrackList = ({ tracks, selectedTracks, onTrackSelect, emptyStateTitle = 'No hay canciones para agregar', emptyStateDescription = 'Importa canciones a tu biblioteca y luego podrás añadirlas a esta playlist.', ...flatlistProps }: Props) => (
 	<FlatList
 		data={tracks}
 		ItemSeparatorComponent={ItemDivider}
@@ -24,10 +24,11 @@ export const SelectTrackList = ({ tracks, selectedTracks, onTrackSelect, ...flat
 		windowSize={5}
 		removeClippedSubviews
 		ListEmptyComponent={
-			<View style={styles.emptyContent}>
-				<Text style={utilsStyles.emptyContentText}>Sin resultados</Text>
-					<LottieView source={notFound} style={{width: '100%', height: '25%'}} autoPlay loop={true} />
-			</View>
+			<EmptyState
+				title={emptyStateTitle}
+				description={emptyStateDescription}
+				style={styles.emptyContent}
+			/>
 		}
 		ListFooterComponent={<View style={{ height: 20 }} />}
 		renderItem={({ item: track }) => (

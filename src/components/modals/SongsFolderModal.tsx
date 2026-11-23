@@ -1,4 +1,4 @@
-import { colors } from "@/constants/tokens"
+import { colors, fontSize } from "@/constants/tokens"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { LiquidGlassSurface } from "@/components/glass/LiquidGlassSurface"
@@ -98,13 +98,13 @@ const styles = StyleSheet.create({
    },
    title: {
       color: colors.text,
-      fontSize: 20,
+      fontSize: fontSize.base,
       lineHeight: 25,
       fontWeight: '700',
    },
    description: {
       color: 'rgba(255,255,255,0.72)',
-      fontSize: 14,
+      fontSize: fontSize.xs,
       lineHeight: 20,
    },
    actions: {
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
    },
    buttonText: {
       color: colors.text,
-      fontSize: 15,
+      fontSize: fontSize.sm,
       fontWeight: '600',
       textAlign: 'center',
    },

@@ -1,4 +1,4 @@
-import { colors } from "@/constants/tokens"
+import { colors, fontSize } from "@/constants/tokens"
 import { defaultStyles } from "@/styles"
 import { StyleSheet, Text, View, ViewProps } from "react-native"
 import { useRef } from "react"
@@ -145,14 +145,14 @@ const styles = StyleSheet.create({
         ...defaultStyles.text,
         color: colors.text,
         fontWeight: '600',
-        fontSize: 18,
+        fontSize: fontSize.base,
         textAlign: 'center'
     },
     buttonTextActive: {
         ...defaultStyles.text,
         color: colors.primary,
         fontWeight: '600',
-        fontSize: 18,
+        fontSize: fontSize.base,
         textAlign: 'center'
     }
 })

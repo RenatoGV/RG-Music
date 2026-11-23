@@ -77,8 +77,10 @@ export const TrackListItem = ({track, onTrackSelect : handleTrackSelect, fromPla
                 <View>
                     <FastImage
                         source={{
-                            uri: track.artwork ?? unknownTrackImageUri
+                            uri: track.artwork ?? unknownTrackImageUri,
+                            priority: 'high',
                         }}
+                        placeholder={unknownTrackImageUri}
                         style={{
                             ...styles.trackArtworkImage,
                             opacity: isActiveTrack ? 0.6 : 1
@@ -185,12 +187,12 @@ const styles = StyleSheet.create({
     trackArtistText: {
         ...defaultStyles.text,
         color: colors.textMuted,
-        fontSize: 14,
+        fontSize: fontSize.xs,
         marginTop: 4
     },
     menuOptionText: {
         color: colors.text,
-        fontSize: 16,
+        fontSize: fontSize.sm,
         fontWeight: '500',
     }
 })

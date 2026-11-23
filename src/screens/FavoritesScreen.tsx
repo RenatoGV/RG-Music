@@ -49,6 +49,10 @@ const FavoritesScreen = () => {
                id={songsQueueId}
 				   tracks={sortedTracks}
                filteredTracks={filteredTracks}
+               emptyStateTitle={sortedTracks.length === 0 ? 'Aún no tienes favoritos' : 'No hay favoritos que coincidan'}
+               emptyStateDescription={sortedTracks.length === 0
+                  ? 'Marca como favoritas las canciones de tu biblioteca para encontrarlas aquí.'
+                  : 'Prueba con otro título.'}
                hideQueueControls
                style={styles.trackList}
             />

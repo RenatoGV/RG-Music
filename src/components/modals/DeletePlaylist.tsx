@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { FontAwesome6 } from '@expo/vector-icons'
-import { colors } from '@/constants/tokens'
+import { colors, fontSize } from '@/constants/tokens'
 import { showToast } from '@/helpers/toast'
 import type { Playlist } from '@/helpers/types'
 import { usePlaylistStore } from '@/store/playlist'
@@ -118,13 +118,13 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		color: colors.text,
-		fontSize: 20,
+		fontSize: fontSize.base,
 		lineHeight: 25,
 		fontWeight: '700',
 	},
 	description: {
 		color: 'rgba(255,255,255,0.72)',
-		fontSize: 14,
+		fontSize: fontSize.xs,
 		lineHeight: 20,
 	},
 	actions: {
@@ -154,13 +154,13 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		color: colors.text,
-		fontSize: 15,
+		fontSize: fontSize.sm,
 		fontWeight: '600',
 		textAlign: 'center',
 	},
 	deleteButtonText: {
 		color: '#ff8585',
-		fontSize: 15,
+		fontSize: fontSize.sm,
 		fontWeight: '600',
 		textAlign: 'center',
 	},

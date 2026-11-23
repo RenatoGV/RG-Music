@@ -34,7 +34,7 @@ export const Lyrics = ({trackUrl, track, artist, lyricId} : Props) => {
       <View style={[styles.container, styles.fillContainer]}>
         <Text style={styles.textError}>{error}</Text>
 
-        <LiquidGlassButton style={styles.retryButton} onPress={retry}>
+        <LiquidGlassButton style={styles.retryButton} onPress={retry} borderRadius={15}>
           <Text style={styles.retryText}>Reintentar</Text>
         </LiquidGlassButton>
       </View>

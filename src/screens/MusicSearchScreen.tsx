@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   ActivityIndicator,
   FlatList,
@@ -21,9 +21,9 @@ import { errorCodes, isErrorWithCode, pickDirectory } from '@react-native-docume
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { defaultStyles } from '@/styles'
 import { GradientButton } from '@/components/common/GradientButton'
+import { EmptyState } from '@/components/common/EmptyState'
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
-import { LiquidGlassBlurTarget } from '@/components/glass/LiquidGlassBlurTarget'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 import { importDownloadedTrack } from '@/helpers/import'
 import { loadData, saveData } from '@/helpers/storage'
@@ -48,10 +48,12 @@ const formatDuration = (seconds: number) => {
 
 const MusicSearchScreen = () => {
   const { videoId: sharedVideoId, share } = useLocalSearchParams<{ videoId?: string; share?: string }>()
+  const router = useRouter()
   const handledShare = useRef<string | undefined>(undefined)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<MusicSearchResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [searchError, setSearchError] = useState('')
   const [selectedTrack, setSelectedTrack] = useState<MusicSearchResult | null>(null)
   const [fileName, setFileName] = useState('')
@@ -84,6 +86,8 @@ const MusicSearchScreen = () => {
     if (!cleanQuery) return
     const version = ++searchVersion.current
     Keyboard.dismiss()
+    setHasSearched(true)
+    setResults([])
     setSearching(true)
     setSearchError('')
     try {
@@ -103,14 +107,22 @@ const MusicSearchScreen = () => {
     }
   }, [query, openDownloadOptions])
 
+  const handleQueryChange = (value: string) => {
+    setQuery(value)
+    setHasSearched(false)
+    setResults([])
+    setSearchError('')
+  }
+
   useEffect(() => {
     if (!sharedVideoId || !share || handledShare.current === share || busy) return
     handledShare.current = share
     const url = `https://www.youtube.com/watch?v=${sharedVideoId}`
     setSelectedTrack(null)
     setQuery(url)
+    router.setParams({ videoId: undefined, share: undefined })
     void search(url, sharedVideoId)
-  }, [busy, search, share, sharedVideoId])
+  }, [busy, router, search, share, sharedVideoId])
 
   useEffect(() => {
     if (Platform.OS !== 'android') return
@@ -189,7 +201,7 @@ const MusicSearchScreen = () => {
   }
 
   return (
-    <LiquidGlassBlurTarget style={defaultStyles.container}>
+    <View style={defaultStyles.container}>
       <View style={styles.backgroundGlow} />
       <ScreenHeader title="Descubrir música" subtitle="Busca y guarda en tu dispositivo" topInset={safeInsets.top} />
 
@@ -198,17 +210,18 @@ const MusicSearchScreen = () => {
           <Ionicons name="search" size={20} color={colors.textMuted} />
           <TextInput
             value={query}
-            onChangeText={setQuery}
+            onChangeText={handleQueryChange}
             onSubmitEditing={() => void search()}
             placeholder="Canción, artista o enlace"
             placeholderTextColor={colors.placeholder}
+            selectionColor={colors.primary}
             returnKeyType="search"
             accessibilityLabel="Buscar canción o artista en YouTube Music"
             style={styles.searchInput}
           />
           {query.length > 0 && (
             <Pressable accessibilityLabel="Borrar búsqueda" onPress={() => setQuery('')} hitSlop={10}>
-              <Ionicons name="close-circle" size={19} color={colors.textMuted} />
+              <Ionicons name="close" size={19} color={colors.textMuted} />
             </Pressable>
           )}
           <GradientButton
@@ -234,11 +247,13 @@ const MusicSearchScreen = () => {
             <Text style={styles.stateText}>{searchError}</Text>
           </View>
         ) : results.length === 0 ? (
-          <View style={styles.centerState}>
-            <View style={styles.emptyIcon}><Ionicons name="musical-notes-outline" size={30} color={colors.primary} /></View>
-            <Text style={styles.stateTitle}>Encuentra tu próxima canción</Text>
-            <Text style={styles.stateText}>Busca por título o artista. Los resultados vienen de YouTube.</Text>
-          </View>
+          <EmptyState
+            title={hasSearched ? 'No se encontraron canciones' : 'Encuentra tu próxima canción'}
+            description={hasSearched
+              ? 'Prueba con otro título, artista o enlace de YouTube.'
+              : 'Busca por título o artista. Los resultados vienen de YouTube.'}
+            style={styles.centerState}
+          />
         ) : (
           <FlatList
             data={results}
@@ -315,7 +330,7 @@ const MusicSearchScreen = () => {
               </View>
 
               <Text style={styles.metadataHint}>
-                <Ionicons name="information-circle-outline" size={15} color={colors.textMuted} />  Se incluirán los metadatos y la portada disponibles.
+                <FontAwesome6 name="circle-info" size={15} color={colors.textMuted} />  Se incluirán los metadatos y la portada disponibles.
               </Text>
               <Text style={[styles.metadataHint, { color: colors.primary }]}>{folderUri ? 'Guardando en la carpeta de la biblioteca' : 'Debes escoger la carpeta de la biblioteca de la aplicación.'}</Text>
               {downloadError ? <Text style={styles.errorText}>{downloadError}</Text> : null}
@@ -345,7 +360,7 @@ const MusicSearchScreen = () => {
           </LiquidGlassSurface>
         </View>
       </Modal>
-    </LiquidGlassBlurTarget>
+    </View>
   )
 }
 
@@ -375,7 +390,7 @@ const styles = StyleSheet.create({
 	backgroundGlow: {
 		position: 'absolute',
 		top: -120,
-		left: -50,
+		left: -100,
 		width: 360,
 		height: 360,
 		borderRadius: 180,
@@ -415,7 +430,7 @@ const styles = StyleSheet.create({
   },
 	resultsHeading: {
 		color: colors.textMuted,
-		fontSize: 13,
+		fontSize: fontSize.xs,
 		fontWeight: '600',
 		marginTop: 17,
 		marginBottom: 6,
@@ -444,12 +459,12 @@ const styles = StyleSheet.create({
   },
 	trackTitle: {
     color: colors.text,
-    fontSize: 15,
+    fontSize: fontSize.sm,
     fontWeight: '600'
   },
 	artistLine: {
     color: colors.textMuted,
-    fontSize: 12,
+    fontSize: fontSize.xs,
     marginTop: 4
   },
 	downloadIcon: {
@@ -467,25 +482,16 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 18,
 		paddingBottom: 45,
 	},
-	emptyIcon: {
-		width: 62,
-		height: 62,
-		borderRadius: 22,
-		backgroundColor: 'rgba(32,216,96,0.12)',
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginBottom: 18,
-	},
 	stateTitle: {
 		color: colors.text,
-		fontSize: 17,
+		fontSize: fontSize.sm,
 		fontWeight: '600',
 		textAlign: 'center',
 		marginTop: 14,
 	},
 	stateText: {
 		color: colors.textMuted,
-		fontSize: 13,
+		fontSize: fontSize.xs,
 		lineHeight: 20,
 		textAlign: 'center',
 		marginTop: 8,
@@ -502,7 +508,7 @@ const styles = StyleSheet.create({
 	progressTitle: {
     flex: 1,
     color: colors.text,
-    fontSize: 13,
+    fontSize: fontSize.xs,
     fontWeight: '600'
   },
 	cancelButton: {
@@ -546,7 +552,7 @@ const styles = StyleSheet.create({
   },
 	inputLabel: {
 		color: colors.textMuted,
-		fontSize: 12,
+		fontSize: fontSize.xs,
 		fontWeight: '600',
 		marginBottom: 8,
 		marginTop: 4,
@@ -562,11 +568,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 48,
     color: colors.text,
-    fontSize: 14
+    fontSize: fontSize.sm
   },
 	extension: {
     color: colors.textMuted,
-    fontSize: 13
+    fontSize: fontSize.xs
   },
 	qualityRow: {
     flexDirection: 'row',
@@ -588,7 +594,7 @@ const styles = StyleSheet.create({
 	},
 	qualityText: {
     color: colors.textMuted,
-    fontSize: 12,
+    fontSize: fontSize.xs,
     fontWeight: '600'
   },
 	qualityTextActive: {
@@ -596,13 +602,13 @@ const styles = StyleSheet.create({
   },
 	metadataHint: {
     color: colors.textMuted,
-    fontSize: 11,
+    fontSize: fontSize.xs,
     lineHeight: 17,
-    marginBottom: 14
+    marginBottom: 14,
   },
 	errorText: {
     color: '#ff7b7b',
-    fontSize: 12,
+    fontSize: fontSize.xs,
     lineHeight: 18,
     marginBottom: 12
   },
@@ -619,7 +625,7 @@ const styles = StyleSheet.create({
   },
 	primaryButtonText: {
     color: colors.background,
-    fontSize: 15,
+    fontSize: fontSize.sm,
     fontWeight: '700'
   },
 })

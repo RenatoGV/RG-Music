@@ -13,7 +13,7 @@ export const getLiquidGlassTabBarHorizontalInsets = (leftSafeInset = 0, rightSaf
   right: Math.max(0, rightSafeInset) + LIQUID_GLASS_TAB_BAR_MIN_HORIZONTAL_INSET,
 })
 
-const TAB_COUNT = 4
+const TAB_COUNT = 5
 
 type LiquidGlassTabIndicatorProps = PropsWithChildren<{
   active: boolean

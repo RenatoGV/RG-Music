@@ -28,6 +28,10 @@ export const ArtistTracksList = ({artist}: {artist: Artist}) => {
     return <TracksList
         id={queueId}
         hideQueueControls={true}
+        emptyStateTitle={sortedTracks.length === 0 ? 'Este artista no tiene canciones' : 'No se encontraron canciones'}
+        emptyStateDescription={sortedTracks.length === 0
+            ? 'No hay canciones de este artista en tu biblioteca.'
+            : 'Prueba con otro título.'}
         ListHeaderComponentStyle={styles.artistHeaderContainer}
         ListHeaderComponent={
             <View>

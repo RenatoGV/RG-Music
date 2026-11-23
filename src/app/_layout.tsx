@@ -18,6 +18,9 @@ import { loadPersistedAppData } from '@/services/appDataService';
 import { usePersistPlaybackPosition } from '@/hooks/usePersistPlaybackPosition';
 import { Platform } from 'react-native';
 import { useRootNavigationState, useRouter } from 'expo-router';
+import { Entypo, FontAwesome, FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import * as Font from 'expo-font';
+import FastImage from 'react-native-fast-image';
 import { getYouTubeVideoId, subscribeToSharedMusic } from '@/services/musicDownloadService';
 import { showToast } from '@/helpers/toast';
 
@@ -31,11 +34,28 @@ const App = () => {
 	const { setPlaylists } = usePlaylistStore()
 	const [appReady, setAppReady] = useState(false)
 	const [playerReady, setPlayerReady] = useState(false)
+	const [iconFontsReady, setIconFontsReady] = useState(false)
 	const [animationFinished, setAnimationFinished] = useState(false)
 	const [skipAnimation, setSkipAnimation] = useState(false)
 
 	useEffect(() => {
 		void SplashScreen.hideAsync().catch(() => {})
+	}, [])
+
+	useEffect(() => {
+		let mounted = true
+		void Promise.all([
+			Entypo.loadFont(),
+			FontAwesome.loadFont(),
+			Font.loadAsync(FontAwesome6.font),
+			Ionicons.loadFont(),
+			MaterialIcons.loadFont(),
+		]).catch((error) => {
+			console.warn('No se pudieron cargar algunas fuentes de iconos', error)
+		}).finally(() => {
+			if (mounted) setIconFontsReady(true)
+		})
+		return () => { mounted = false }
 	}, [])
 
 	usePersistPlaybackPosition(appReady && playerReady)
@@ -60,6 +80,17 @@ const App = () => {
 			setTracks(tracks)
 			setPlaylists(playlists)
 
+			const startupArtworkTracks = [...(tracks ?? [])]
+				.filter((track) => track.rating === 1 && Boolean(track.artwork))
+				.sort((a, b) => a.title.localeCompare(b.title))
+				.slice(0, 8)
+			if (startupArtworkTracks.length > 0) {
+				void FastImage.preload(startupArtworkTracks.map((track) => ({
+					uri: track.artwork!,
+					priority: 'high',
+				}))).catch((error) => console.warn('No se pudieron precargar las portadas', error))
+			}
+
 			if (isPlayerReady) {
 				try {
 					await restorePlaybackSession()
@@ -74,7 +105,7 @@ const App = () => {
 		}
 	}, [setPlaylists, setTracks])
 
-	const showApp = appReady && (skipAnimation || animationFinished)
+	const showApp = appReady && iconFontsReady && (skipAnimation || animationFinished)
 
 	useEffect(() => {
 		if(!showApp || notificationsStarted.current) return
@@ -116,6 +147,8 @@ const RootNavigation = () => {
 	const { showLyrics } = useLyricStore()
 	const { top } = useSafeAreaInsets()
 	const router = useRouter()
+	const routerRef = useRef(router)
+	routerRef.current = router
 	const navigationReady = Boolean(useRootNavigationState()?.key)
 	const shareSequence = useRef(0)
 
@@ -127,9 +160,9 @@ const RootNavigation = () => {
 				showToast('Comparte un enlace de una canción o un video de YouTube.')
 				return
 			}
-			router.navigate({ pathname: '/download', params: { videoId, share: String(++shareSequence.current) } })
+			routerRef.current.navigate({ pathname: '/(tabs)/download', params: { videoId, share: String(++shareSequence.current) } })
 		})
-	}, [navigationReady, router])
+	}, [navigationReady])
 	
 	return (
 		<CustomStack>

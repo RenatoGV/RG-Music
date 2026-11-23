@@ -1,7 +1,7 @@
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { ArtistArtwork } from '@/components/artist/ArtistArtwork'
 import { TracksList } from '@/components/track/TracksList'
-import { colors, screenPadding } from '@/constants/tokens'
+import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { filterTrackByTitle } from '@/helpers/filter'
 import { useArtists } from '@/store/library'
 import { defaultStyles } from '@/styles'
@@ -83,6 +83,10 @@ const ArtistDetailScreen = () => {
 				id={queueId}
 				tracks={sortedTracks}
 				filteredTracks={filteredTracks}
+				emptyStateTitle={sortedTracks.length === 0 ? 'Este artista no tiene canciones' : 'No se encontraron canciones'}
+				emptyStateDescription={sortedTracks.length === 0
+					? 'No hay canciones de este artista en tu biblioteca.'
+					: 'Prueba con otro título.'}
 				hideQueueControls
 				stickyQueueControls
 				stickyQueueControlsBackground={(
@@ -159,7 +163,7 @@ const styles = StyleSheet.create({
 	},
 	artistName: {
 		...defaultStyles.text,
-		fontSize: 25,
+		fontSize: fontSize.lg,
 		fontWeight: '600',
 		marginTop: 16,
 		maxWidth: '90%',
@@ -176,13 +180,13 @@ const styles = StyleSheet.create({
 	},
 	statValue: {
 		...defaultStyles.text,
-		fontSize: 22,
+		fontSize: fontSize.base,
 		fontWeight: '500',
 	},
 	statLabel: {
 		...defaultStyles.text,
 		color: colors.textMuted,
-		fontSize: 16,
+		fontSize: fontSize.sm,
 		marginTop: 3,
 	},
 	listHeading: {
@@ -191,7 +195,7 @@ const styles = StyleSheet.create({
 	},
 	songsHeading: {
 		...defaultStyles.text,
-		fontSize: 20,
+		fontSize: fontSize.base,
 		fontWeight: '600',
 	},
 	sortButtonWrap: {
