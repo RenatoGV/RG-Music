@@ -330,7 +330,7 @@ const MusicSearchScreen = () => {
               </View>
 
               <Text style={styles.metadataHint}>
-                <Ionicons name="information-circle-outline" size={15} color={colors.textMuted} />  Se incluirán los metadatos y la portada disponibles.
+                <FontAwesome6 name="circle-info" size={15} color={colors.textMuted} />  Se incluirán los metadatos y la portada disponibles.
               </Text>
               <Text style={[styles.metadataHint, { color: colors.primary }]}>{folderUri ? 'Guardando en la carpeta de la biblioteca' : 'Debes escoger la carpeta de la biblioteca de la aplicación.'}</Text>
               {downloadError ? <Text style={styles.errorText}>{downloadError}</Text> : null}
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: fontSize.xs,
     lineHeight: 17,
-    marginBottom: 14
+    marginBottom: 14,
   },
 	errorText: {
     color: '#ff7b7b',

@@ -7,7 +7,7 @@ import { unknownTrackImageUri } from '@/constants/images'
 import type { Track } from '@/helpers/types'
 import { defaultStyles } from '@/styles'
 import { Entypo, FontAwesome } from '@expo/vector-icons'
-import { LayoutChangeEvent, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { LiquidGlassButton } from '@/components/common/LiquidGlassButton'
 import PlayerLyricsView from '@/screens/PlayerLyricsView'
 import Animated, { Easing, FadeIn, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
@@ -39,7 +39,6 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
    const infoProgress = useSharedValue(showLyrics ? 1 : 0)
    const playbackControlsHeight = useSharedValue(showLyrics ? 25 : 40)
    const titleFontSize = useSharedValue(showLyrics ? fontSize.base : fontSize.lg)
-   const subtitleFontSize = useSharedValue(showLyrics ? fontSize.sm : fontSize.base)
 
    useEffect(() => {
       playbackControlsHeight.value = withTiming(showLyrics ? 25 : 40, {
@@ -54,19 +53,11 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
          duration: transitionDurationMs,
          easing: Easing.inOut(Easing.cubic)
       }))
-      subtitleFontSize.value = withDelay(delay, withTiming(showLyrics ? fontSize.sm : fontSize.base, {
-         duration: transitionDurationMs,
-         easing: Easing.inOut(Easing.cubic)
-      }))
-   }, [showLyrics, titleFontSize, subtitleFontSize])
+   }, [showLyrics, titleFontSize])
 
    const titleTextAnimatedStyle = useAnimatedStyle(() => ({
       fontSize: titleFontSize.value
    }), [titleFontSize])
-
-   const subtitleTextAnimatedStyle = useAnimatedStyle(() => ({
-      fontSize: subtitleFontSize.value
-   }), [subtitleFontSize])
 
    useEffect(() => {
       if (previousShowLyrics.current === showLyrics) return
@@ -176,12 +167,13 @@ const PlayerArtworkView = ({ track, isFavorite, onToggleFavorite, onOpenLyrics, 
 
                <View style={styles.subtitleRow}>
                   <TouchableOpacity onPress={onArtistPress} disabled={!track.artist} style={styles.artistContainer}>
-                     <Animated.Text
+                     <Text
                         numberOfLines={1}
-                        style={[styles.trackArtistText, subtitleTextAnimatedStyle]}
+                        ellipsizeMode="tail"
+                        style={[styles.trackArtistText, headerCompact && styles.compactTrackArtistText]}
                      >
                         {track.artist ?? ''}
-                     </Animated.Text>
+                     </Text>
                   </TouchableOpacity>
                </View>
             </Animated.View>
@@ -295,18 +287,28 @@ const styles = StyleSheet.create({
 	subtitleRow: {
 		flexDirection: 'row',
 		alignItems: 'center',
+		width: '100%',
+		minWidth: 0,
 		marginTop: 6,
 	},
 	artistContainer: {
       flex: 1,
-      overflow: 'hidden'
+      flexShrink: 1,
+      minWidth: 0,
+      overflow: 'hidden',
    },
 	trackArtistText: {
 		...defaultStyles.text,
       color: colors.textMuted,
       fontWeight: '500',
+		width: '100%',
+		flexShrink: 1,
+		minWidth: 0,
 		opacity: 0.8,
 		lineHeight: 26,
+	},
+	compactTrackArtistText: {
+		fontSize: fontSize.sm,
 	},
 	trackActions: {
       flexDirection: 'row',
