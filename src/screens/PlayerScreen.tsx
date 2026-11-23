@@ -81,11 +81,11 @@ const PlayerScreen = () => {
       const names = getArtistNames(activeTrack?.artist)
 
       if(names.length !== 1) {
-         router.navigate('/(tabs)/artists')
+         router.dismissTo('/(tabs)/artists')
          return
       }
 
-      router.navigate({
+      router.dismissTo({
          pathname: '/(tabs)/artists/[name]',
          params: { name: names[0] }
       })
