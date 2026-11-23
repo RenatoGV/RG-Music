@@ -67,8 +67,10 @@ export const FloatingPlayer = ({ style, blurTarget }: FloatingPlayerProps) => {
             >
                 <FastImage
                     source={{
-                        uri: currentTrack.artwork ?? unknownTrackImageUri
+                        uri: currentTrack.artwork ?? unknownTrackImageUri,
+                        priority: 'high',
                     }}
+                    placeholder={unknownTrackImageUri}
                     style={styles.trackArtworkImage}
                 />
 

@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     trackArtistText: {
         ...defaultStyles.text,
         color: colors.textMuted,
-        fontSize: 14,
+        fontSize: fontSize.xs,
         marginTop: 4
     }
 })

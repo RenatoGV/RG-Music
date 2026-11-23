@@ -1,4 +1,4 @@
-import { colors } from '@/constants/tokens'
+import { colors, fontSize } from '@/constants/tokens'
 import { FontAwesome } from '@expo/vector-icons'
 import type { ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
@@ -46,14 +46,14 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.text,
-    fontSize: 17,
+    fontSize: fontSize.sm,
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 14,
   },
   description: {
     color: colors.textMuted,
-    fontSize: 13,
+    fontSize: fontSize.xs,
     lineHeight: 20,
     textAlign: 'center',
     marginTop: 8,

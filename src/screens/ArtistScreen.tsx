@@ -1,6 +1,6 @@
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { ArtistArtwork } from '@/components/artist/ArtistArtwork'
-import { colors, screenPadding } from '@/constants/tokens'
+import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { filterArtistsByName } from '@/helpers/filter'
 import type { Track } from '@/helpers/types'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
@@ -129,12 +129,12 @@ const styles = StyleSheet.create({
 	},
 	artistNameText: {
 		...defaultStyles.text,
-		fontSize: 17,
+		fontSize: fontSize.sm,
 	},
 	artistSubtitleText: {
 		...defaultStyles.text,
 		color: '#9ca3af',
-		fontSize: 13,
+		fontSize: fontSize.xs,
 		marginTop: 3,
 	},
 })

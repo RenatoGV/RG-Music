@@ -14,7 +14,7 @@ export const colors = {
 export const fontSize = {
 	xs: 12,
 	sm: 16,
-	base: 20,
+	base: 18,
 	lg: 24,
 	xl: 35,
 	xxl: 48

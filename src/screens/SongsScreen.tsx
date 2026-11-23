@@ -1,4 +1,4 @@
-import { colors, screenPadding } from '@/constants/tokens'
+import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { defaultStyles } from '@/styles'
 import { EmptyState } from '@/components/common/EmptyState'
 import { StyleSheet, Text, View } from 'react-native'
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
 		...defaultStyles.text,
 		color: colors.text,
 		fontWeight: '600',
-		fontSize: 18,
+		fontSize: fontSize.base,
 		textAlign: 'center',
 	}
 })

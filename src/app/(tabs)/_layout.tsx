@@ -1,7 +1,7 @@
 import { colors } from "@/constants/tokens"
 import { Tabs, usePathname } from "expo-router"
 import { StyleSheet, View } from "react-native"
-import { FontAwesome, FontAwesome6 } from "@expo/vector-icons"
+import { FontAwesome } from "@expo/vector-icons"
 import Svg, { Path } from "react-native-svg"
 import React, { useEffect, useState } from "react"
 import { FloatingPlayer } from "@/components/player/FloatingPlayer"
@@ -111,7 +111,7 @@ const TabsNavigation = () => {
           }} />
           <Tabs.Screen name="artists" options={{
             title: 'Artistas',
-            tabBarIcon: ({ focused }) => <LiquidGlassTabIndicator active={focused} index={3}><FontAwesome6 name="users-line" size={19} color={colors.icon} /></LiquidGlassTabIndicator>
+            tabBarIcon: ({ focused }) => <LiquidGlassTabIndicator active={focused} index={3}><FontAwesome name="users" size={19} color={colors.icon} /></LiquidGlassTabIndicator>
           }} />
           <Tabs.Screen name="download" options={{
             title: 'Descubrir',

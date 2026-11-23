@@ -28,10 +28,11 @@ export const PlayerArtwork = ({ artwork, unknownTrackImageUri, onPress, compact 
         <Pressable style={styles.artworkPressable} onPress={onPress} accessibilityRole="button" accessibilityLabel={compact ? 'Cerrar letras' : 'Mostrar letras'}>
           <FastImage
             source={{
-              uri: artwork ?? unknownTrackImageUri
+              uri: artwork ?? unknownTrackImageUri,
+              priority: 'high',
             }}
-            priority={FastImage.priority.high}
             objectFit="cover"
+            placeholder={unknownTrackImageUri}
             style={styles.artworkImage}
           />
         </Pressable>

@@ -1,6 +1,6 @@
 import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { SelectTrackList } from '@/components/playlist/SelectTrackList'
-import { colors, screenPadding } from '@/constants/tokens'
+import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { filterTrackByTitle } from '@/helpers/filter'
 import { showToast } from '@/helpers/toast'
 import { useTracks } from '@/store/library'
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
 	},
 	selectionLabel: {
 		color: colors.primary,
-		fontSize: 15,
+		fontSize: fontSize.sm,
 		fontWeight: '500',
 	},
 	addButton: {
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
 	},
 	addButtonText: {
 		color: colors.text,
-		fontSize: 15,
+		fontSize: fontSize.sm,
 		fontWeight: '600',
 	},
 	trackList: {

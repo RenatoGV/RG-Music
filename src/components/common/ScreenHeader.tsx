@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: colors.textMuted,
-    fontSize: 16,
+    fontSize: fontSize.sm,
     marginTop: 2,
   },
   spacer: {
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   searchInput: {
     width: '100%',
     color: colors.text,
-    fontSize: 16,
+    fontSize: fontSize.sm,
     paddingVertical: 0,
   },
   closeButtonWrap: {

@@ -2,7 +2,7 @@ import type { Playlist, Track } from '@/helpers/types'
 import { defaultStyles } from '@/styles'
 import { StyleSheet, Text, TouchableHighlightProps, TouchableOpacity, View } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
-import { colors } from '@/constants/tokens'
+import { colors, fontSize } from '@/constants/tokens'
 import { unknownPlaylistImageUri } from '@/constants/images'
 import { useTracks } from '@/store/library'
 import { useMemo } from 'react'
@@ -59,13 +59,13 @@ const styles = StyleSheet.create({
 	},
 	playlistNameText: {
 		...defaultStyles.text,
-		fontSize: 17,
+		fontSize: fontSize.sm,
 		fontWeight: '600',
 	},
 	playlistSubtitleText: {
 		...defaultStyles.text,
 		color: colors.textMuted,
-		fontSize: 13,
+		fontSize: fontSize.xs,
 		marginTop: 3,
 	},
 	trailingIcon: {

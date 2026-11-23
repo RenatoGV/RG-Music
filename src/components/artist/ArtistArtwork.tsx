@@ -36,10 +36,10 @@ export const ArtistArtwork = ({
 	if (artworks.length === 3) {
 		return (
 			<View style={containerStyle}>
-				<FastImage source={{ uri: artworks[0] }} style={styles.threeArtworkMain} />
+				<FastImage source={{ uri: artworks[0], priority: 'high' }} placeholder={fallbackArtworkUri} style={styles.threeArtworkMain} />
 				<View style={styles.threeArtworkSide}>
-					<FastImage source={{ uri: artworks[1] }} style={styles.threeArtworkTile} />
-					<FastImage source={{ uri: artworks[2] }} style={styles.threeArtworkTile} />
+					<FastImage source={{ uri: artworks[1], priority: 'high' }} placeholder={fallbackArtworkUri} style={styles.threeArtworkTile} />
+					<FastImage source={{ uri: artworks[2], priority: 'high' }} placeholder={fallbackArtworkUri} style={styles.threeArtworkTile} />
 				</View>
 			</View>
 		)
@@ -50,7 +50,8 @@ export const ArtistArtwork = ({
 			{artworks.map((artwork, index) => (
 				<FastImage
 					key={`${artwork}-${index}`}
-					source={{ uri: artwork }}
+					source={{ uri: artwork, priority: 'high' }}
+					placeholder={fallbackArtworkUri}
 					style={artworks.length === 1 ? styles.singleArtworkImage : artworks.length === 2 ? styles.halfArtworkTile : styles.quarterArtworkTile}
 				/>
 			))}

@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   },
 	resultsHeading: {
 		color: colors.textMuted,
-		fontSize: 13,
+		fontSize: fontSize.xs,
 		fontWeight: '600',
 		marginTop: 17,
 		marginBottom: 6,
@@ -459,12 +459,12 @@ const styles = StyleSheet.create({
   },
 	trackTitle: {
     color: colors.text,
-    fontSize: 15,
+    fontSize: fontSize.sm,
     fontWeight: '600'
   },
 	artistLine: {
     color: colors.textMuted,
-    fontSize: 12,
+    fontSize: fontSize.xs,
     marginTop: 4
   },
 	downloadIcon: {
@@ -484,14 +484,14 @@ const styles = StyleSheet.create({
 	},
 	stateTitle: {
 		color: colors.text,
-		fontSize: 17,
+		fontSize: fontSize.sm,
 		fontWeight: '600',
 		textAlign: 'center',
 		marginTop: 14,
 	},
 	stateText: {
 		color: colors.textMuted,
-		fontSize: 13,
+		fontSize: fontSize.xs,
 		lineHeight: 20,
 		textAlign: 'center',
 		marginTop: 8,
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
 	progressTitle: {
     flex: 1,
     color: colors.text,
-    fontSize: 13,
+    fontSize: fontSize.xs,
     fontWeight: '600'
   },
 	cancelButton: {
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   },
 	inputLabel: {
 		color: colors.textMuted,
-		fontSize: 12,
+		fontSize: fontSize.xs,
 		fontWeight: '600',
 		marginBottom: 8,
 		marginTop: 4,
@@ -568,11 +568,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 48,
     color: colors.text,
-    fontSize: 14
+    fontSize: fontSize.sm
   },
 	extension: {
     color: colors.textMuted,
-    fontSize: 13
+    fontSize: fontSize.xs
   },
 	qualityRow: {
     flexDirection: 'row',
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
 	},
 	qualityText: {
     color: colors.textMuted,
-    fontSize: 12,
+    fontSize: fontSize.xs,
     fontWeight: '600'
   },
 	qualityTextActive: {
@@ -602,13 +602,13 @@ const styles = StyleSheet.create({
   },
 	metadataHint: {
     color: colors.textMuted,
-    fontSize: 11,
+    fontSize: fontSize.xs,
     lineHeight: 17,
     marginBottom: 14
   },
 	errorText: {
     color: '#ff7b7b',
-    fontSize: 12,
+    fontSize: fontSize.xs,
     lineHeight: 18,
     marginBottom: 12
   },
@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
   },
 	primaryButtonText: {
     color: colors.background,
-    fontSize: 15,
+    fontSize: fontSize.sm,
     fontWeight: '700'
   },
 })

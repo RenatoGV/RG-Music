@@ -7,7 +7,7 @@ import { DropdownMenu, MenuOption } from '@/components/other/DropdownMenu'
 import { QueueControls } from '@/components/other/QueueControls'
 import { TracksList } from '@/components/track/TracksList'
 import { unknownPlaylistImageUri } from '@/constants/images'
-import { colors, screenPadding } from '@/constants/tokens'
+import { colors, fontSize, screenPadding } from '@/constants/tokens'
 import { filterTrackByTitle } from '@/helpers/filter'
 import { showToast } from '@/helpers/toast'
 import type { Playlist } from '@/helpers/types'
@@ -219,12 +219,12 @@ const styles = StyleSheet.create({
 	playlistName: {
 		...defaultStyles.text,
 		flex: 1,
-		fontSize: 23,
+		fontSize: fontSize.lg,
 		fontWeight: '700',
 	},
 	menuOptionText: {
 		...defaultStyles.text,
-		fontSize: 15,
+		fontSize: fontSize.sm,
 	},
 	actions: {
 		flexDirection: 'row',
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
 	summary: {
 		...defaultStyles.text,
 		color: colors.textMuted,
-		fontSize: 15,
+		fontSize: fontSize.sm,
 		marginTop: 8,
 	},
 	trackList: {
