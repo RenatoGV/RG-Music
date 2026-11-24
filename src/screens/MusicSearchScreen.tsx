@@ -256,6 +256,7 @@ const MusicSearchScreen = () => {
           />
         ) : (
           <FlatList
+            showsVerticalScrollIndicator={false}
             data={results}
             keyExtractor={(item) => item.id}
             keyboardShouldPersistTaps="handled"
@@ -498,7 +499,6 @@ const styles = StyleSheet.create({
 	},
 	progressCard: {
     padding: 15,
-    backgroundColor: 'rgba(14,18,21,0.82)'
   },
 	progressHeader: {
     flexDirection: 'row',
