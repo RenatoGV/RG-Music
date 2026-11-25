@@ -13,6 +13,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native'
 import { FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons'
@@ -28,6 +29,7 @@ import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 import { importDownloadedTrack } from '@/helpers/import'
+import { usePlaylistStore } from '@/store/playlist'
 import { loadData, saveData } from '@/helpers/storage'
 import { showToast } from '@/helpers/toast'
 import {
@@ -64,6 +66,7 @@ const MusicSearchScreen = () => {
   const [searchError, setSearchError] = useState('')
   const [selectedTrack, setSelectedTrack] = useState<MusicSearchResult | null>(null)
   const [selectedPlaylist, setSelectedPlaylist] = useState<MusicPlaylistResult | null>(null)
+  const [createLocalPlaylist, setCreateLocalPlaylist] = useState(false)
   const [fileName, setFileName] = useState('')
   const [author, setAuthor] = useState('')
   const [album, setAlbum] = useState('')
@@ -112,6 +115,7 @@ const MusicSearchScreen = () => {
         if (playlist) {
           setSelectedTrack(null)
           setSelectedPlaylist(playlist)
+          setCreateLocalPlaylist(false)
           setFolderUri(loadData<string>('selectedAlbum'))
           setDownloadError('')
         } else if (videoId) openDownloadOptions(found[0])
@@ -176,6 +180,7 @@ const MusicSearchScreen = () => {
 
   const startDownload = async () => {
     const playlist = selectedPlaylist
+    const importedUris: string[] = []
     const tracks = playlist?.tracks ?? (selectedTrack ? [selectedTrack] : [])
     if (tracks.length === 0 || downloadInFlight.current) return
     downloadInFlight.current = true
@@ -221,6 +226,7 @@ const MusicSearchScreen = () => {
           setDownloadState('importing')
           try {
             await importDownloadedTrack(result.uri, result.fileName, playlist ? track.artist : author.trim())
+            importedUris.push(result.uri)
           } catch (error) {
             console.warn('[IMPORT] No se pudo actualizar la biblioteca tras guardar el MP3', error)
           }
@@ -238,6 +244,16 @@ const MusicSearchScreen = () => {
       }
 
       if (playlist) {
+        if (createLocalPlaylist && importedUris.length > 0) {
+          const { playlists, addPlaylist } = usePlaylistStore.getState()
+          const baseName = playlist.title.trim() || 'Playlist de YouTube'
+          const names = new Set(playlists?.map(({ name }) => name.trim().toLowerCase()))
+          let name = baseName
+          for (let suffix = 2; names.has(name.toLowerCase()); suffix++) {
+            name = `${baseName} (${suffix})`
+          }
+          addPlaylist(name, importedUris)
+        }
         const message = `${savedCount} de ${tracks.length} canciones guardadas${failedCount ? ` · ${failedCount} fallidas` : ''}`
         if (savedCount > 0) {
           showToast(message)
@@ -450,8 +466,20 @@ const MusicSearchScreen = () => {
               <Text style={styles.metadataHint}>
                 <FontAwesome6 name="circle-info" size={15} color={colors.textMuted} />  {selectedPlaylist ? 'Se conservarán los metadatos y la portada disponibles de cada video.' : 'Se incluirán los metadatos y la portada disponibles.'}
               </Text>
-              <Text style={[styles.metadataHint, { color: colors.primary }]}>{folderUri ? 'Guardando en la carpeta de la biblioteca' : 'Debes escoger la carpeta de la biblioteca de la aplicación.'}</Text>
+              <Text style={[styles.metadataHint, { color: colors.text }]}>{folderUri ? 'Guardando en la carpeta de la biblioteca' : 'Debes escoger la carpeta de la biblioteca de la aplicación.'}</Text>
               {downloadError ? <Text style={styles.errorText}>{downloadError}</Text> : null}
+
+              {selectedPlaylist && !busy && (
+                <TouchableOpacity
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: createLocalPlaylist }}
+                  onPress={() => setCreateLocalPlaylist((enabled) => !enabled)}
+                  style={styles.createPlaylistOption}
+                >
+                  <FontAwesome6 name={createLocalPlaylist ? 'circle-check' : 'circle'} size={12} color={colors.primary} />
+                  <Text style={styles.createPlaylistLabel}>Crear playlist en la aplicación</Text>
+                </TouchableOpacity>
+              )}
 
               {busy ? (
                 <View style={styles.progressCard}>
@@ -509,6 +537,17 @@ const getReadableError = (error: unknown, fallback: string) => {
 }
 
 const styles = StyleSheet.create({
+  createPlaylistOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    minHeight: 44,
+    marginBottom: 14,
+  },
+  createPlaylistLabel: {
+    color: colors.primary,
+    fontSize: fontSize.xs,
+  },
 	backgroundGlow: {
 		position: 'absolute',
 		top: -120,

@@ -7,7 +7,7 @@ import { create } from "zustand"
 type PlaylistState = {
   playlists: Playlist[] | null
   setPlaylists: (playlists: Playlist[] | null) => void
-  addPlaylist: (playlistName: string) => boolean
+  addPlaylist: (playlistName: string, tracksUri?: string[]) => boolean
   renamePlaylist: (playlistId: string, playlistName: string) => boolean
   removePlaylist: (playlistId: string) => void
   addToPlaylist: (trackUri: string, playlistId: string) => void
@@ -18,7 +18,7 @@ type PlaylistState = {
 export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
     playlists: null,
     setPlaylists: (playlists) => set({playlists: playlists}),
-    addPlaylist: (playlistName) => {
+    addPlaylist: (playlistName, tracksUri = []) => {
       const name = playlistName.trim()
       const playlists = get().playlists ?? []
 
@@ -30,7 +30,7 @@ export const usePlaylistStore = create<PlaylistState>()((set, get) => ({
 
       const updatedPlaylists = [
           ...playlists,
-          { id: randomUUID(), name, tracksUri: [], artworkPreview: unknownTrackImageUri },
+          { id: randomUUID(), name, tracksUri: [...new Set(tracksUri)], artworkPreview: unknownTrackImageUri },
       ]
 
       saveData('playlists', updatedPlaylists)
