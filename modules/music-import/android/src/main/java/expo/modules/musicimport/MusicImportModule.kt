@@ -6,6 +6,7 @@ import android.content.Intent
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.system.Os
+import android.system.OsConstants
 import android.util.Log
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
@@ -32,6 +33,7 @@ class MusicImportModule : Module() {
   private val activeDownload = AtomicReference<Download?>()
   private val pendingShare = AtomicReference<String?>()
   private var initialized = false
+  private var converterReady = false
 
   override fun definition() = ModuleDefinition {
     Name("MusicImport")
@@ -58,6 +60,18 @@ class MusicImportModule : Module() {
     Function("stop") {
       val context = requireNotNull(appContext.reactContext)
       context.stopService(Intent(context, MusicImportService::class.java))
+      Unit
+    }
+
+    Function("startDownloadService") { title: String ->
+      val context = requireNotNull(appContext.reactContext)
+      context.startForegroundService(Intent(context, MusicDownloadService::class.java).putExtra("title", title))
+      Unit
+    }
+
+    Function("stopDownloadService") {
+      val context = requireNotNull(appContext.reactContext)
+      context.stopService(Intent(context, MusicDownloadService::class.java))
       Unit
     }
 
@@ -88,6 +102,25 @@ class MusicImportModule : Module() {
       (0 until (entries?.length() ?: 0)).mapNotNull { index -> entries?.optJSONObject(index)?.let(::musicResult) }
     }
 
+    AsyncFunction("resolveYouTubePlaylist") { url: String ->
+      val id = Uri.parse(url).getQueryParameter("list")
+      require(id != null && id.matches(Regex("[A-Za-z0-9_-]+"))) { "Playlist no válida." }
+      ensureDownloaderInitialized()
+      val request = YoutubeDLRequest("https://www.youtube.com/playlist?list=$id")
+      request.addOption("--flat-playlist")
+      request.addOption("--ignore-config")
+      request.addOption("--dump-single-json")
+      val root = JSONObject(YoutubeDL.getInstance().execute(request).out)
+      val entries = root.getJSONArray("entries")
+      val tracks = (0 until entries.length()).mapNotNull { index ->
+        entries.optJSONObject(index)?.takeUnless {
+          it.optString("availability") == "private" || it.optString("title") in setOf("[Private video]", "[Deleted video]")
+        }?.let(::musicResult)
+      }
+      require(tracks.isNotEmpty()) { "La playlist no contiene canciones disponibles." }
+      mapOf("title" to root.optString("title", "Playlist de YouTube"), "tracks" to tracks)
+    }
+
     AsyncFunction("resolveYouTubeMusic") { videoId: String ->
       require(videoId.matches(VIDEO_ID)) { "Enlace de YouTube no válido." }
       ensureDownloaderInitialized()
@@ -103,7 +136,7 @@ class MusicImportModule : Module() {
       requireNotNull(musicResult(JSONObject(YoutubeDL.getInstance().execute(request).out)))
     }
 
-    AsyncFunction("downloadAudio") { videoUrl: String, folderUri: String, requestedName: String, quality: Int, author: String, album: String ->
+    AsyncFunction("downloadAudio") { videoUrl: String, folderUri: String, requestedName: String, quality: Int, author: String, album: String, preserveTags: Boolean ->
       val context = requireNotNull(appContext.reactContext)
       val folder = Uri.parse(folderUri)
       require(DocumentsContract.isTreeUri(folder)) { "Selecciona de nuevo la carpeta de música." }
@@ -113,7 +146,7 @@ class MusicImportModule : Module() {
       val workDir = File(context.cacheDir, "music-download-${download.processId}")
       try {
         ensureDownloaderInitialized()
-        FFmpeg.getInstance().init(context.applicationContext)
+        prepareConverter(context.applicationContext)
         download.checkCancelled()
         check(workDir.mkdirs()) { "No se pudo crear la carpeta temporal" }
 
@@ -141,7 +174,7 @@ class MusicImportModule : Module() {
           // yt-dlp splits these arguments with shlex. Empty values remove the source tags.
           val artistTag = quotePostprocessorArg("artist=$author")
           val albumTag = quotePostprocessorArg("album=$album")
-          request.addOption("--postprocessor-args", "Metadata+ffmpeg_o:-metadata $artistTag -metadata $albumTag")
+          if (!preserveTags) request.addOption("--postprocessor-args", "Metadata+ffmpeg_o:-metadata $artistTag -metadata $albumTag")
           request.addOption("--embed-thumbnail")
           request.addOption("--output", "${workDir.absolutePath}/audio.%(ext)s")
 
@@ -194,6 +227,27 @@ class MusicImportModule : Module() {
       }
       Unit
     }
+  }
+
+  @Synchronized
+  private fun prepareConverter(context: android.content.Context) {
+    if (converterReady) return
+    FFmpeg.getInstance().init(context)
+    val nativeDir = File(context.applicationInfo.nativeLibraryDir)
+    val libDir = File(context.noBackupFilesDir, "${YoutubeDL.baseName}/packages/ffmpeg/usr/lib")
+    val names = mutableListOf("libc++_shared.so")
+    if (Os.sysconf(OsConstants._SC_PAGESIZE) >= 16384L) {
+      names += listOf("libwebp.so", "libwebpdecoder.so", "libwebpdemux.so", "libwebpmux.so", "libsharpyuv.so")
+    }
+    for (name in names) {
+      val source = File(nativeDir, name)
+      check(source.isFile) { "Falta $name en el conversor de audio." }
+      val temporary = File(libDir, "$name.new")
+      temporary.delete()
+      Os.symlink(source.absolutePath, temporary.absolutePath)
+      Os.rename(temporary.absolutePath, File(libDir, name).absolutePath)
+    }
+    converterReady = true
   }
 
   private fun takeSharedText(intent: Intent?): String? {

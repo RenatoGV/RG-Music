@@ -84,4 +84,5 @@ yarn-error.*
 # custom modules
 /modules/**/build/
 /modules/**/.gradle/
+/modules/**/.cxx/
 /modules/**/.kotlin/
