@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
   ActivityIndicator,
+  AppState,
   FlatList,
   Image,
   Keyboard,
@@ -12,6 +13,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native'
 import { FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons'
@@ -19,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Bar } from 'react-native-progress'
 import { errorCodes, isErrorWithCode, pickDirectory } from '@react-native-documents/picker'
 import { colors, fontSize, screenPadding } from '@/constants/tokens'
+import { unknownTrackImageUri } from '@/constants/images'
 import { defaultStyles } from '@/styles'
 import { GradientButton } from '@/components/common/GradientButton'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -26,15 +29,21 @@ import { ScreenHeader } from '@/components/common/ScreenHeader'
 import { LiquidGlassSurface } from '@/components/glass/LiquidGlassSurface'
 import { useTabContentBottomPadding } from '@/hooks/useTabContentBottomPadding'
 import { importDownloadedTrack } from '@/helpers/import'
+import { usePlaylistStore } from '@/store/playlist'
 import { loadData, saveData } from '@/helpers/storage'
 import { showToast } from '@/helpers/toast'
 import {
   addDownloadProgressListener,
   cancelAudioDownload,
   downloadAudio,
+  finishDownloadService,
+  getYouTubePlaylistUrl,
   getYouTubeVideoId,
+  resolveYouTubePlaylist,
   resolveYouTubeMusic,
   searchYouTubeMusic,
+  startDownloadService,
+  type MusicPlaylistResult,
   type MusicSearchResult,
 } from '@/services/musicDownloadService'
 
@@ -47,7 +56,7 @@ const formatDuration = (seconds: number) => {
 }
 
 const MusicSearchScreen = () => {
-  const { videoId: sharedVideoId, share } = useLocalSearchParams<{ videoId?: string; share?: string }>()
+  const { videoId: sharedVideoId, playlistUrl: sharedPlaylistUrl, share } = useLocalSearchParams<{ videoId?: string; playlistUrl?: string; share?: string }>()
   const router = useRouter()
   const handledShare = useRef<string | undefined>(undefined)
   const [query, setQuery] = useState('')
@@ -56,6 +65,8 @@ const MusicSearchScreen = () => {
   const [hasSearched, setHasSearched] = useState(false)
   const [searchError, setSearchError] = useState('')
   const [selectedTrack, setSelectedTrack] = useState<MusicSearchResult | null>(null)
+  const [selectedPlaylist, setSelectedPlaylist] = useState<MusicPlaylistResult | null>(null)
+  const [createLocalPlaylist, setCreateLocalPlaylist] = useState(false)
   const [fileName, setFileName] = useState('')
   const [author, setAuthor] = useState('')
   const [album, setAlbum] = useState('')
@@ -70,9 +81,14 @@ const MusicSearchScreen = () => {
   const safeInsets = useSafeAreaInsets()
   const searchVersion = useRef(0)
   const downloadInFlight = useRef(false)
+  const cancelRequested = useRef(false)
+  const minimized = useRef(false)
+  const currentTrackLabel = useRef('')
+  const [hidden, setHidden] = useState(false)
   const busy = downloadState !== 'idle'
 
   const openDownloadOptions = useCallback((track: MusicSearchResult) => {
+    setSelectedPlaylist(null)
     setSelectedTrack(track)
     setFileName(track.title)
     setAuthor(track.artist === 'Desconocido' ? '' : track.artist)
@@ -83,7 +99,8 @@ const MusicSearchScreen = () => {
 
   const search = useCallback(async (value = query, videoId = getYouTubeVideoId(value)) => {
     const cleanQuery = value.trim()
-    if (!cleanQuery) return
+    if (!cleanQuery || downloadInFlight.current) return
+    const playlistUrl = getYouTubePlaylistUrl(cleanQuery)
     const version = ++searchVersion.current
     Keyboard.dismiss()
     setHasSearched(true)
@@ -91,10 +108,17 @@ const MusicSearchScreen = () => {
     setSearching(true)
     setSearchError('')
     try {
-      const found = videoId ? [await resolveYouTubeMusic(videoId)] : await searchYouTubeMusic(cleanQuery)
+      const playlist = playlistUrl ? await resolveYouTubePlaylist(playlistUrl) : null
+      const found = playlist ? playlist.tracks : videoId ? [await resolveYouTubeMusic(videoId)] : await searchYouTubeMusic(cleanQuery)
       if (version === searchVersion.current) {
         setResults(found)
-        if (videoId) openDownloadOptions(found[0])
+        if (playlist) {
+          setSelectedTrack(null)
+          setSelectedPlaylist(playlist)
+          setCreateLocalPlaylist(false)
+          setFolderUri(loadData<string>('selectedAlbum'))
+          setDownloadError('')
+        } else if (videoId) openDownloadOptions(found[0])
       }
     } catch (error) {
       if (version === searchVersion.current) {
@@ -115,28 +139,35 @@ const MusicSearchScreen = () => {
   }
 
   useEffect(() => {
-    if (!sharedVideoId || !share || handledShare.current === share || busy) return
+    if ((!sharedVideoId && !sharedPlaylistUrl) || !share || handledShare.current === share || busy) return
     handledShare.current = share
-    const url = `https://www.youtube.com/watch?v=${sharedVideoId}`
+    const url = sharedPlaylistUrl ?? `https://www.youtube.com/watch?v=${sharedVideoId}`
     setSelectedTrack(null)
+    setSelectedPlaylist(null)
     setQuery(url)
-    router.setParams({ videoId: undefined, share: undefined })
+    router.setParams({ videoId: undefined, playlistUrl: undefined, share: undefined })
     void search(url, sharedVideoId)
-  }, [busy, router, search, share, sharedVideoId])
+  }, [busy, router, search, share, sharedPlaylistUrl, sharedVideoId])
 
   useEffect(() => {
     if (Platform.OS !== 'android') return
     const subscription = addDownloadProgressListener(({ progress: nextProgress, message }) => {
       setProgress(Math.min(1, Math.max(0, nextProgress)))
-      setDownloadStatus(message ?? '')
+      setDownloadStatus([currentTrackLabel.current, message || `Descargando · ${Math.round(nextProgress * 100)}%`].filter(Boolean).join(' · '))
     })
     return () => subscription.remove()
   }, [])
 
   const closeDownloadOptions = () => {
-    if (busy) return
+    if (busy) {
+      minimized.current = true
+      showToast('Descargando en segundo plano')
+      setHidden(true)
+      return
+    }
     Keyboard.dismiss()
     setSelectedTrack(null)
+    setSelectedPlaylist(null)
   }
 
   const chooseFolder = async () => {
@@ -148,9 +179,19 @@ const MusicSearchScreen = () => {
   }
 
   const startDownload = async () => {
-    if (!selectedTrack || downloadInFlight.current) return
+    const playlist = selectedPlaylist
+    const importedUris: string[] = []
+    const tracks = playlist?.tracks ?? (selectedTrack ? [selectedTrack] : [])
+    if (tracks.length === 0 || downloadInFlight.current) return
     downloadInFlight.current = true
+    cancelRequested.current = false
+    minimized.current = false
     const targetFolder = loadData<string>('selectedAlbum')
+    let savedCount = 0
+    let failedCount = 0
+    let serviceStarted = false
+    let wasCancelled = false
+    let failureMessage = ''
     try {
       if (!targetFolder) {
         setFolderUri(null)
@@ -162,30 +203,102 @@ const MusicSearchScreen = () => {
       setProgress(0)
       setDownloadStatus('Preparando la descarga…')
       setDownloadState('downloading')
-      const result = await downloadAudio(selectedTrack.url, targetFolder, fileName, quality, author.trim(), album.trim())
-      const displayName = result.fileName.replace(/\.mp3$/i, '')
-      setDownloadState('importing')
-      try {
-        await importDownloadedTrack(result.uri, result.fileName, author.trim())
-        showToast(`Añadida a tu biblioteca: ${displayName}`)
-      } catch (error) {
-        console.warn('[IMPORT] No se pudo actualizar la biblioteca tras guardar el MP3', error)
-        showToast(`MP3 guardado: ${displayName}. Actualiza tu biblioteca para verlo.`)
+      startDownloadService(`Descargando ${playlist?.title ?? fileName}`)
+      serviceStarted = true
+
+      for (const [index, track] of tracks.entries()) {
+        if (cancelRequested.current) { wasCancelled = true; break }
+        if (playlist) {
+          currentTrackLabel.current = `Pista ${index + 1}/${tracks.length} · ${track.title}`
+          setDownloadStatus(currentTrackLabel.current)
+          setProgress(0)
+        }
+        try {
+          const result = await downloadAudio(
+            track.url,
+            targetFolder,
+            playlist ? track.title : fileName,
+            playlist ? 192 : quality,
+            playlist ? '' : author.trim(),
+            playlist ? '' : album.trim(),
+            !!playlist,
+          )
+          setDownloadState('importing')
+          try {
+            await importDownloadedTrack(result.uri, result.fileName, playlist ? track.artist : author.trim())
+            importedUris.push(result.uri)
+          } catch (error) {
+            console.warn('[IMPORT] No se pudo actualizar la biblioteca tras guardar el MP3', error)
+          }
+          savedCount += 1
+          setDownloadState('downloading')
+        } catch (error) {
+          if (!playlist) throw error
+          if (/cancel|destroy|interrupt/i.test(String(error))) {
+            wasCancelled = true
+            break
+          }
+          failedCount += 1
+          console.warn(`[PLAYLIST] No se pudo descargar ${track.title}`, error)
+        }
       }
-      setSelectedTrack(null)
+
+      if (playlist) {
+        if (createLocalPlaylist && importedUris.length > 0) {
+          const { playlists, addPlaylist } = usePlaylistStore.getState()
+          const baseName = playlist.title.trim() || 'Playlist de YouTube'
+          const names = new Set(playlists?.map(({ name }) => name.trim().toLowerCase()))
+          let name = baseName
+          for (let suffix = 2; names.has(name.toLowerCase()); suffix++) {
+            name = `${baseName} (${suffix})`
+          }
+          addPlaylist(name, importedUris)
+        }
+        const message = `${savedCount} de ${tracks.length} canciones guardadas${failedCount ? ` · ${failedCount} fallidas` : ''}`
+        if (savedCount > 0) {
+          showToast(message)
+          setSelectedPlaylist(null)
+        } else if (wasCancelled) {
+          setDownloadError('Descarga cancelada.')
+        } else {
+          throw new Error('No se pudo guardar ninguna canción de la playlist.')
+        }
+      } else {
+        showToast(`Canción guardada: ${fileName}`)
+        setSelectedTrack(null)
+      }
     } catch (error) {
+      console.warn('[DOWNLOAD] Falló la descarga o preparación del MP3', error)
       const message = getReadableError(error, 'No se pudo descargar la canción.')
-      const wasCancelled = /cancelad/i.test(message)
+      wasCancelled = cancelRequested.current || /cancelad/i.test(message)
+      failureMessage = message
       setDownloadError(wasCancelled ? 'Descarga cancelada.' : message)
       if (!wasCancelled) showToast('No se pudo descargar la canción')
     } finally {
+      if (serviceStarted) {
+        const message = playlist
+          ? `${savedCount} de ${tracks.length} canciones guardadas`
+          : failureMessage || (savedCount > 0 ? 'La canción se agregó a la biblioteca' : 'La descarga terminó')
+        try {
+          finishDownloadService(
+            wasCancelled ? 'Descarga cancelada' : failedCount || failureMessage ? 'Descarga con errores' : playlist ? 'Playlist descargada' : 'Canción descargada',
+            message,
+            AppState.currentState !== 'active' || minimized.current,
+          )
+        } catch (error) {
+          console.warn('[DOWNLOAD] No se pudo cerrar el servicio de notificación', error)
+        }
+      }
       downloadInFlight.current = false
+      currentTrackLabel.current = ''
+      setHidden(false)
       setCancelling(false)
       setDownloadState('idle')
     }
   }
 
   const cancelDownload = () => {
+    cancelRequested.current = true
     setCancelling(true)
     cancelAudioDownload()
   }
@@ -206,6 +319,11 @@ const MusicSearchScreen = () => {
       <ScreenHeader title="Descubrir música" subtitle="Busca y guarda en tu dispositivo" topInset={safeInsets.top} />
 
       <View style={styles.content}>
+        {busy && hidden && (
+          <Pressable accessibilityRole="button" onPress={() => { setHidden(false); minimized.current = false }}>
+            <Text style={styles.progressTitle}>Ver descarga en curso</Text>
+          </Pressable>
+        )}
         <View style={styles.searchRow}>
           <Ionicons name="search" size={20} color={colors.textMuted} />
           <TextInput
@@ -229,7 +347,7 @@ const MusicSearchScreen = () => {
             accessibilityRole="button"
             accessibilityLabel="Buscar"
             style={styles.searchButton}
-            disabled={searching || !query.trim()}
+            disabled={busy || searching || !query.trim()}
           >
             {searching ? <ActivityIndicator size="small" color={colors.background} /> : <Ionicons name="arrow-forward" size={19} color={colors.background} />}
           </GradientButton>
@@ -249,20 +367,19 @@ const MusicSearchScreen = () => {
         ) : results.length === 0 ? (
           <EmptyState
             title={hasSearched ? 'No se encontraron canciones' : 'Encuentra tu próxima canción'}
-            description={hasSearched
-              ? 'Prueba con otro título, artista o enlace de YouTube.'
-              : 'Busca por título o artista. Los resultados vienen de YouTube.'}
+            description={hasSearched ? 'Prueba con otro título, artista o enlace de YouTube.' : 'Busca por título o artista. Los resultados vienen de YouTube.'}
             style={styles.centerState}
           />
         ) : (
           <FlatList
+            showsVerticalScrollIndicator={false}
             data={results}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={[styles.resultsList, { paddingBottom: tabContentBottomPadding }]}
             ListHeaderComponent={<Text style={styles.resultsHeading}>Resultados · {results.length}</Text>}
             renderItem={({ item }) => (
-              <Pressable onPress={() => openDownloadOptions(item)} style={styles.resultRow} accessibilityRole="button">
+              <Pressable disabled={busy} onPress={() => openDownloadOptions(item)} style={styles.resultRow} accessibilityRole="button">
                 {item.artwork ? (
                   <Image source={{ uri: item.artwork }} style={styles.artwork} />
                 ) : (
@@ -279,64 +396,93 @@ const MusicSearchScreen = () => {
         )}
       </View>
 
-      <Modal visible={selectedTrack !== null} transparent statusBarTranslucent navigationBarTranslucent animationType="fade" onRequestClose={closeDownloadOptions}>
+      <Modal visible={!hidden && (selectedTrack !== null || selectedPlaylist !== null)} transparent statusBarTranslucent navigationBarTranslucent animationType="fade" onRequestClose={closeDownloadOptions}>
         <View style={[styles.modalOverlay, { paddingTop: safeInsets.top + 10, paddingBottom: safeInsets.bottom + 10 }]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={closeDownloadOptions} />
           <LiquidGlassSurface style={styles.optionsCard} borderRadius={24} intensity={32}>
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.optionsContent} bounces={false}>
               <View style={styles.modalTitleRow}>
-                {selectedTrack?.artwork ? <Image source={{ uri: selectedTrack.artwork }} style={styles.modalArtwork} /> : null}
+                {!selectedPlaylist && selectedTrack?.artwork ? <Image source={{ uri: selectedTrack.artwork }} style={styles.modalArtwork} /> : null}
                 <View style={styles.resultInfo}>
-                  <Text numberOfLines={1} style={styles.trackTitle}>{selectedTrack?.title}</Text>
-                  <Text numberOfLines={1} style={styles.artistLine}>{selectedTrack?.artist}</Text>
+                  <Text numberOfLines={1} style={styles.trackTitle}>{selectedPlaylist?.title ?? selectedTrack?.title}</Text>
+                  <Text numberOfLines={1} style={styles.artistLine}>{selectedPlaylist ? `${selectedPlaylist.tracks.length} canciones` : selectedTrack?.artist}</Text>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel="Cerrar" hitSlop={10} disabled={busy} onPress={closeDownloadOptions} style={[styles.closeButton, busy && styles.disabledButton]}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Cerrar" hitSlop={10} onPress={closeDownloadOptions} style={[styles.closeButton, busy && styles.disabledButton]}>
                   <FontAwesome6 name="xmark" size={14} color={colors.text} />
                 </Pressable>
               </View>
 
-              <Text style={styles.inputLabel}>Nombre del archivo</Text>
-              <View style={styles.fileNameInputWrap}>
-                <TextInput
-                  value={fileName}
-                  onChangeText={setFileName}
-                  placeholder="Nombre de la canción"
-                  placeholderTextColor={colors.placeholder}
-                  editable={!busy}
-                  selectTextOnFocus
-                  accessibilityLabel="Nombre del archivo MP3"
-                  style={styles.fileNameInput}
-                />
-                <Text style={styles.extension}>.mp3</Text>
-              </View>
+              {selectedPlaylist ? (
+                <ScrollView style={styles.playlistTracks} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                  {selectedPlaylist.tracks.map((track, index) => (
+                    <View key={`${track.id}-${index}`} style={styles.playlistTrackRow}>
+                      <Image
+                        source={{ uri: track.artwork || unknownTrackImageUri }}
+                        style={styles.playlistTrackArtwork}
+                      />
+                      <View style={styles.resultInfo}>
+                        <Text numberOfLines={1} style={styles.trackTitle}>{track.title}</Text>
+                        <Text numberOfLines={1} style={styles.artistLine}>{track.artist} · {formatDuration(track.duration)}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : (
+                <>
+                  <Text style={styles.inputLabel}>Nombre del archivo</Text>
+                  <View style={styles.fileNameInputWrap}>
+                    <TextInput
+                      value={fileName}
+                      onChangeText={setFileName}
+                      placeholder="Nombre de la canción"
+                      placeholderTextColor={colors.placeholder}
+                      editable={!busy}
+                      selectTextOnFocus
+                      accessibilityLabel="Nombre del archivo MP3"
+                      style={styles.fileNameInput}
+                    />
+                    <Text style={styles.extension}>.mp3</Text>
+                  </View>
 
-              <Text style={styles.inputLabel}>Álbum</Text>
-              <View style={styles.fileNameInputWrap}>
-                <TextInput value={album} onChangeText={setAlbum} placeholder="Opcional" placeholderTextColor={colors.placeholder} accessibilityLabel="Álbum" editable={!busy} style={styles.fileNameInput} />
-              </View>
+                  <Text style={styles.inputLabel}>Álbum</Text>
+                  <View style={styles.fileNameInputWrap}>
+                    <TextInput value={album} onChangeText={setAlbum} placeholder="Opcional" placeholderTextColor={colors.placeholder} accessibilityLabel="Álbum" editable={!busy} style={styles.fileNameInput} />
+                  </View>
 
-              <Text style={styles.inputLabel}>Autor</Text>
-              <View style={styles.fileNameInputWrap}>
-                <TextInput value={author} onChangeText={setAuthor} placeholder="Opcional" placeholderTextColor={colors.placeholder} accessibilityLabel="Autor" editable={!busy} style={styles.fileNameInput} />
-              </View>
-
-              <Text style={styles.inputLabel}>Calidad del audio</Text>
-              <View style={styles.qualityRow}>
-                {[128, 192, 320].map((bitrate) => (
-                  <Pressable key={bitrate} disabled={busy} onPress={() => setQuality(bitrate)} style={[styles.qualityOption, quality === bitrate && styles.qualityOptionActive]}>
-                    <Text style={[styles.qualityText, quality === bitrate && styles.qualityTextActive]}>{bitrate} kbps</Text>
-                  </Pressable>
-                ))}
-              </View>
-
+                  <Text style={styles.inputLabel}>Autor</Text>
+                  <View style={styles.fileNameInputWrap}>
+                    <TextInput value={author} onChangeText={setAuthor} placeholder="Opcional" placeholderTextColor={colors.placeholder} accessibilityLabel="Autor" editable={!busy} style={styles.fileNameInput} />
+                  </View>
+                  <Text style={styles.inputLabel}>Calidad del audio</Text>
+                  <View style={styles.qualityRow}>
+                    {[128, 192, 320].map((bitrate) => (
+                      <Pressable key={bitrate} disabled={busy} onPress={() => setQuality(bitrate)} style={[styles.qualityOption, quality === bitrate && styles.qualityOptionActive]}>
+                        <Text style={[styles.qualityText, quality === bitrate && styles.qualityTextActive]}>{bitrate} kbps</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </>
+              )}
               <Text style={styles.metadataHint}>
-                <FontAwesome6 name="circle-info" size={15} color={colors.textMuted} />  Se incluirán los metadatos y la portada disponibles.
+                <FontAwesome6 name="circle-info" size={15} color={colors.textMuted} />  {selectedPlaylist ? 'Se conservarán los metadatos y la portada disponibles de cada video.' : 'Se incluirán los metadatos y la portada disponibles.'}
               </Text>
-              <Text style={[styles.metadataHint, { color: colors.primary }]}>{folderUri ? 'Guardando en la carpeta de la biblioteca' : 'Debes escoger la carpeta de la biblioteca de la aplicación.'}</Text>
+              <Text style={[styles.metadataHint, { color: colors.text }]}>{folderUri ? 'Guardando en la carpeta de la biblioteca' : 'Debes escoger la carpeta de la biblioteca de la aplicación.'}</Text>
               {downloadError ? <Text style={styles.errorText}>{downloadError}</Text> : null}
 
+              {selectedPlaylist && !busy && (
+                <TouchableOpacity
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: createLocalPlaylist }}
+                  onPress={() => setCreateLocalPlaylist((enabled) => !enabled)}
+                  style={styles.createPlaylistOption}
+                >
+                  <FontAwesome6 name={createLocalPlaylist ? 'circle-check' : 'circle'} size={12} color={colors.primary} />
+                  <Text style={styles.createPlaylistLabel}>Crear playlist en la aplicación</Text>
+                </TouchableOpacity>
+              )}
+
               {busy ? (
-                <View style={styles.progressCard}>
+                <View>
                   <View style={styles.progressHeader}>
                     <Text accessibilityLiveRegion="polite" style={styles.progressTitle}>
                       {downloadState === 'importing' ? 'Añadiendo a la biblioteca…' : cancelling ? 'Cancelando…' : downloadStatus || `Descargando · ${Math.round(progress * 100)}%`}
@@ -350,9 +496,9 @@ const MusicSearchScreen = () => {
                   <Bar progress={downloadState === 'importing' ? 1 : progress} width={null} height={4} color={colors.primary} borderWidth={0} unfilledColor="rgba(255,255,255,0.12)" />
                 </View>
               ) : (
-                <GradientButton onPress={() => void (folderUri ? startDownload() : selectLibraryFolder())} disabled={Platform.OS !== 'android' || (!!folderUri && !fileName.trim())} style={[styles.primaryButton, (Platform.OS !== 'android' || (!!folderUri && !fileName.trim())) && styles.disabledButton]}>
+                <GradientButton onPress={() => void (folderUri ? startDownload() : selectLibraryFolder())} disabled={Platform.OS !== 'android' || (!!folderUri && !selectedPlaylist && !fileName.trim())} style={[styles.primaryButton, (Platform.OS !== 'android' || (!!folderUri && !selectedPlaylist && !fileName.trim())) && styles.disabledButton]}>
                   <MaterialIcons name="download" size={19} color={colors.background} />
-                  <Text style={styles.primaryButtonText}>{folderUri ? 'Descargar MP3' : 'Elegir carpeta de la biblioteca'}</Text>
+                  <Text style={styles.primaryButtonText}>{folderUri ? selectedPlaylist ? 'Descargar Playlist' : 'Descargar MP3' : 'Elegir carpeta de la biblioteca'}</Text>
                 </GradientButton>
               )}
               {Platform.OS !== 'android' ? <Text style={styles.errorText}>Esta función está disponible solo en Android.</Text> : null}
@@ -365,11 +511,15 @@ const MusicSearchScreen = () => {
 }
 
 const getReadableError = (error: unknown, fallback: string) => {
-  const message = error instanceof Error ? error.message : String(error ?? '')
+  const message = error instanceof Error ? error.message : typeof error === 'string' ? error : ''
   if (/failed to initialize|ExceptionInInitializerError|no se pudo preparar el extractor/i.test(message)) return 'No se pudo iniciar el motor de búsqueda en el dispositivo.'
   if (/cancel|destroy|interrupt/i.test(message)) return 'Descarga cancelada.'
-  if (/postprocessing:|ffmpeg.*not found|sin generar el MP3/i.test(message)) {
-    return 'Se obtuvo el audio, pero no se pudo convertir o preparar el MP3.'
+  if (/no space left|enospc|not enough space/i.test(message)) return 'No hay espacio suficiente en el dispositivo para preparar este MP3.'
+  if (/out of memory|cannot allocate memory|killed/i.test(message)) return 'El dispositivo no tiene memoria suficiente para preparar este audio. Cierra otras aplicaciones e inténtalo de nuevo.'
+  if (/ffmpeg.*not found|ffprobe.*not found/i.test(message)) return 'No se encontró el conversor de audio en el dispositivo.'
+  if (/postprocessing:|sin generar el MP3/i.test(message)) {
+    const detail = /postprocessing:\s*([^\r\n]+)/i.exec(message)?.[1]?.trim()
+    return detail ? `No se pudo preparar el MP3: ${detail.slice(0, 180)}` : 'Se obtuvo el audio, pero falló la conversión o preparación del MP3.'
   }
   if (/requested format is not available|no video formats found|only images are available|gvs po token|proof.of.origin token/i.test(message)) {
     return 'YouTube no entregó un formato de audio compatible para este resultado. Prueba otra versión de la canción.'
@@ -387,6 +537,17 @@ const getReadableError = (error: unknown, fallback: string) => {
 }
 
 const styles = StyleSheet.create({
+  createPlaylistOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    minHeight: 44,
+    marginBottom: 14,
+  },
+  createPlaylistLabel: {
+    color: colors.primary,
+    fontSize: fontSize.xs,
+  },
 	backgroundGlow: {
 		position: 'absolute',
 		top: -120,
@@ -496,10 +657,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginTop: 8,
 	},
-	progressCard: {
-    padding: 15,
-    backgroundColor: 'rgba(14,18,21,0.82)'
-  },
 	progressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -528,17 +685,24 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 	},
 	optionsCard: {
-        flexShrink: 1,
-        width: '100%',
-        maxWidth: 460,
-        backgroundColor: 'rgba(21,25,28,0.98)',
-    },
-    optionsContent: {
+    flexShrink: 1,
+    width: '100%',
+    maxWidth: 460,
+    backgroundColor: 'rgba(21,25,28,0.98)',
+  },
+  optionsContent: {
 		paddingHorizontal: 20,
 		paddingTop: 20,
 		paddingBottom: 24,
 	},
-  closeButton: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)'
+  },
 	modalTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -549,6 +713,23 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 10
+  },
+	playlistTracks: {
+    maxHeight: 280,
+    marginBottom: 16,
+  },
+	playlistTrackRow: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: 12,
+    paddingVertical: 5,
+  },
+	playlistTrackArtwork: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
 	inputLabel: {
 		color: colors.textMuted,

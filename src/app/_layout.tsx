@@ -21,7 +21,7 @@ import { useRootNavigationState, useRouter } from 'expo-router';
 import { Entypo, FontAwesome, FontAwesome6, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
 import FastImage from 'react-native-fast-image';
-import { getYouTubeVideoId, subscribeToSharedMusic } from '@/services/musicDownloadService';
+import { getYouTubePlaylistUrl, getYouTubeVideoId, subscribeToSharedMusic } from '@/services/musicDownloadService';
 import { showToast } from '@/helpers/toast';
 
 const CustomStack = Stack
@@ -155,6 +155,11 @@ const RootNavigation = () => {
 	useEffect(() => {
 		if (Platform.OS !== 'android' || !navigationReady) return
 		return subscribeToSharedMusic((text) => {
+			const playlistUrl = getYouTubePlaylistUrl(text)
+			if (playlistUrl) {
+				routerRef.current.navigate({ pathname: '/(tabs)/download', params: { playlistUrl, share: String(++shareSequence.current) } })
+				return
+			}
 			const videoId = getYouTubeVideoId(text)
 			if (!videoId) {
 				showToast('Comparte un enlace de una canción o un video de YouTube.')
