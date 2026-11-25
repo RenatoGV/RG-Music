@@ -320,7 +320,7 @@ const MusicSearchScreen = () => {
 
       <View style={styles.content}>
         {busy && hidden && (
-          <Pressable accessibilityRole="button" onPress={() => { setHidden(false); minimized.current = false }} style={styles.progressCard}>
+          <Pressable accessibilityRole="button" onPress={() => { setHidden(false); minimized.current = false }}>
             <Text style={styles.progressTitle}>Ver descarga en curso</Text>
           </Pressable>
         )}
@@ -482,7 +482,7 @@ const MusicSearchScreen = () => {
               )}
 
               {busy ? (
-                <View style={styles.progressCard}>
+                <View>
                   <View style={styles.progressHeader}>
                     <Text accessibilityLiveRegion="polite" style={styles.progressTitle}>
                       {downloadState === 'importing' ? 'Añadiendo a la biblioteca…' : cancelling ? 'Cancelando…' : downloadStatus || `Descargando · ${Math.round(progress * 100)}%`}
@@ -657,9 +657,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginTop: 8,
 	},
-	progressCard: {
-    padding: 15,
-  },
 	progressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
