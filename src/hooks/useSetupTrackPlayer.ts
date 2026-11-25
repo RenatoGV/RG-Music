@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react"
+import { Platform } from "react-native"
 import TrackPlayer, { Capability, RepeatMode } from "@/helpers/track-player-compat"
 
 const setupPlayer = () => {
 	TrackPlayer.setupPlayer({
 		maxCacheSize: 1024 * 10,
 		contentType: 'music',
-		// Keep Android audio focus so calls and other full interruptions pause playback.
-		// RNTP's exclusive mode lets Android duck music for brief transient sounds.
-		audioMixing: 'exclusive'
+		// On Android, let alarms play alongside music without relying on audio focus returning.
+		audioMixing: Platform.OS === 'android' ? 'mix' : 'exclusive'
 	})
 
 	TrackPlayer.updateOptions({
